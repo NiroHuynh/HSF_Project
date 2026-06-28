@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${showtime != null ? showtime.movieTitle + ' - Chọn ghế' : 'CineMax - Chọn ghế'}">CineMax - Chọn ghế</title>
+    <link rel="stylesheet" href="css/style.css" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!--
+  ============================================================
+  TRANG: Chọn ghế
+  Module: Đặt vé
+  Tên view gợi ý: return "booking/seat-selection";  (đổi theo Controller thật của bạn)
+  Vào trang này từ link suất chiếu ở trang trước:
+    /booking/seats?showtimeId={id}
+
+  GIẢ ĐỊNH MODEL:
+
+    showtime         : ShowtimeHeaderDTO
+      - movieTitle, ageRating
+      - cinemaName, roomName
+      - startTimeLabel, endTimeLabel   (đã format sẵn "20/05/2026 22:50")
+
+    seatRows         : List<SeatRowDTO>
+      - rowLabel                       (vd "A")
+      - seats : List<SeatVM>
+          - id, code (vd "A1"), type (STANDARD/VIP/SWEETBOX), status (AVAILABLE/BOOKED), price
+
+    availableSeatsCount : int   (đếm seat status = AVAILABLE)
+    totalSeatsCount      : int  (= cinema_room.total_seats)
+
+  LƯU Ý:
+    - "X" trong mockup gốc mình hiểu là ghế ĐÃ ĐẶT (status BOOKED, không bấm được),
+      không phải ô trống/aisle — nếu ý bạn là khoảng trống không có ghế thật,
+      báo lại để mình đổi cách render (ẩn hẳn ô đó thay vì hiển thị X).
+    - Số "SỨC CHỨA" mình tính lại = availableSeatsCount / totalSeatsCount (ghế trống / tổng ghế),
+      không hard-code cố định như mockup tĩnh.
+    - Giá tiền mỗi loại ghế lấy từ field `price` gắn sẵn trên từng seat (Service tự resolve
+      từ bảng ticket_price theo seat_type + screen_format + day_type + time_slot của suất
+      chiếu này trước khi đổ vào view) — template không tự tính giá.
+  ============================================================
+-->
+
+<style>
+    .seat-page-header {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+        margin-bottom: var(--space-xl);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-lg);
+        flex-wrap: wrap;
+    }
+
+    .seat-page-header__top {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
+    }
+
+    .seat-page-header__title {
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .seat-page-header__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-lg);
+    }
+
+    .seat-page-header__meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--text-body-sm);
+        color: var(--color-text-secondary);
+    }
+    .seat-page-header__meta-item .material-symbols-outlined { font-size: 18px; }
+
+    .seat-page-header__capacity {
+        text-align: right;
+        flex-shrink: 0;
+    }
+    .seat-page-header__capacity-label {
+        font-size: var(--text-label);
+        color: var(--color-text-muted);
+        letter-spacing: 0.06em;
+        margin-bottom: 2px;
+    }
+    .seat-page-header__capacity-value {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--color-brand-red);
+    }
+
+    /* ---- Screen indicator ---- */
+    .screen-indicator {
+        text-align: center;
+        margin-bottom: var(--space-2xl);
+    }
+    .screen-indicator__bar {
+        height: 3px;
+        max-width: 720px;
+        margin: 0 auto var(--space-sm);
+        border-radius: var(--radius-pill);
+        background: linear-gradient(to right, transparent, var(--color-brand-red) 50%, transparent);
+        box-shadow: 0 6px 24px rgba(227, 27, 35, 0.45);
+    }
+    .screen-indicator__label {
+        font-size: var(--text-label);
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        color: var(--color-text-muted);
+    }
+
+    /* ---- Seat map ---- */
+    .seat-map {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: var(--space-xl);
+        overflow-x: auto;
+        padding-bottom: var(--space-sm);
+    }
+    .seat-row { display: flex; gap: 6px; }
+
+    .seat-btn {
+        width: 42px;
+        height: 30px;
+        flex-shrink: 0;
+        border-radius: var(--radius-xs);
+        border: 1.5px solid;
+        background: transparent;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+    }
+    .seat-btn--standard { color: #6DBF6D; border-color: #6DBF6D; }
+    .seat-btn--standard:hover { background: rgba(109, 191, 109, 0.15); }
+
+    .seat-btn--vip { color: #F06D6D; border-color: #F06D6D; }
+    .seat-btn--vip:hover { background: rgba(240, 109, 109, 0.15); }
+
+    .seat-btn--sweetbox { color: #B06DF0; border-color: #B06DF0; }
+    .seat-btn--sweetbox:hover { background: rgba(176, 109, 240, 0.15); }
+
+    .seat-btn--standard:hover,
+    .seat-btn--vip:hover,
+    .seat-btn--sweetbox:hover { transform: translateY(-2px); cursor: pointer; }
+
+    .seat-btn.is-selected {
+        background: var(--color-brand-red) !important;
+        border-color: var(--color-brand-red) !important;
+        color: #fff !important;
+        transform: translateY(-2px);
+    }
+
+    .seat-btn--booked {
+        background: var(--color-surface-raised);
+        border-color: var(--color-border);
+        color: var(--color-text-muted);
+        cursor: not-allowed;
+        opacity: 0.55;
+    }
+
+    /* ---- Legend ---- */
+    .seat-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-lg);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-md) var(--space-lg);
+        margin-bottom: var(--space-xl);
+    }
+    .seat-legend__item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        font-size: var(--text-body-sm);
+        color: var(--color-text-secondary);
+    }
+    .seat-legend__swatch {
+        width: 16px;
+        height: 16px;
+        border-radius: var(--radius-xs);
+        border: 1.5px solid;
+        flex-shrink: 0;
+    }
+    .seat-legend__swatch--standard { border-color: #6DBF6D; }
+    .seat-legend__swatch--vip { background: #F06D6D; border-color: #F06D6D; }
+    .seat-legend__swatch--sweetbox { background: #B06DF0; border-color: #B06DF0; }
+    .seat-legend__swatch--selected { background: var(--color-brand-red); border-color: var(--color-brand-red); }
+    .seat-legend__swatch--booked { background: var(--color-surface-raised); border-color: var(--color-border); }
+
+    /* ---- Bottom bar ---- */
+    .booking-bottom-bar {
+        position: sticky;
+        bottom: 0;
+        background: var(--color-surface-overlay);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid var(--color-border);
+        padding: var(--space-md) 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-lg);
+        flex-wrap: wrap;
+    }
+
+    .booking-bottom-bar__selected-label {
+        font-size: var(--text-label);
+        letter-spacing: 0.06em;
+        color: var(--color-text-muted);
+        margin-bottom: 2px;
+    }
+    .booking-bottom-bar__selected-value {
+        font-size: var(--text-body-md);
+        font-weight: 600;
+    }
+
+    .booking-bottom-bar__total-label {
+        font-size: var(--text-label);
+        letter-spacing: 0.06em;
+        color: var(--color-text-muted);
+        margin-bottom: 2px;
+    }
+    .booking-bottom-bar__total-value {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--color-star);
+    }
+
+    #continueBtn[disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 576px) {
+        .seat-btn { width: 30px; height: 26px; font-size: 8px; }
+        .booking-bottom-bar { justify-content: center; text-align: center; }
+    }
+</style>
+
+<main class="section" th:fragment="content">
+    <div class="container">
+
+        <!-- ===================== 1. HEADER THÔNG TIN SUẤT CHIẾU ===================== -->
+        <div class="seat-page-header">
+            <div>
+                <div class="seat-page-header__top">
+                    <span class="chip chip-t18" th:if="${showtime.ageRating != null}" th:text="${showtime.ageRating}">C18</span>
+                    <h1 class="seat-page-header__title" th:text="${showtime.movieTitle}">JOKER: FOLIE À DEUX</h1>
+                </div>
+                <div class="seat-page-header__meta">
+          <span class="seat-page-header__meta-item">
+            <span class="material-symbols-outlined">location_on</span>
+            <span th:text="${showtime.cinemaName}">CGV Vincom Nguyễn Chí Thanh</span>
+          </span>
+                    <span class="seat-page-header__meta-item">
+            <span class="material-symbols-outlined">theaters</span>
+            <span th:text="${showtime.roomName}">Cinema 7</span>
+          </span>
+                    <span class="seat-page-header__meta-item">
+            <span class="material-symbols-outlined">calendar_month</span>
+            <span th:text="${showtime.startTimeLabel} + ' ~ ' + ${showtime.endTimeLabel}">20/05/2026 22:50 ~ 21/05/2026 00:42</span>
+          </span>
+                </div>
+            </div>
+            <div class="seat-page-header__capacity">
+                <div class="seat-page-header__capacity-label">GHẾ TRỐNG</div>
+                <div class="seat-page-header__capacity-value">
+                    <span th:text="${availableSeatsCount}">70</span> / <span th:text="${totalSeatsCount}">82</span> Ghế
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== 2. SCREEN ===================== -->
+        <div class="screen-indicator">
+            <div class="screen-indicator__bar"></div>
+            <div class="screen-indicator__label">SCREEN</div>
+        </div>
+
+        <!-- ===================== 3. SƠ ĐỒ GHẾ ===================== -->
+        <div class="seat-map" id="seatMap">
+            <div class="seat-row" th:each="row : ${seatRows}">
+                <button th:each="seat : ${row.seats}"
+                        type="button"
+                        class="seat-btn"
+                        th:classappend="${seat.status == 'BOOKED'} ? 'seat-btn--booked' : ('seat-btn--' + #strings.toLowerCase(seat.type))"
+                        th:disabled="${seat.status == 'BOOKED'}"
+                        th:attr="data-id=${seat.id}, data-code=${seat.code}, data-type=${seat.type}, data-price=${seat.price}"
+                        th:text="${seat.status == 'BOOKED'} ? 'X' : ${seat.code}">
+                    A1
+                </button>
+            </div>
+        </div>
+
+        <!-- ===================== 4. CHÚ THÍCH ===================== -->
+        <div class="seat-legend">
+            <span class="seat-legend__item"><span class="seat-legend__swatch seat-legend__swatch--standard"></span>Ghế thường</span>
+            <span class="seat-legend__item"><span class="seat-legend__swatch seat-legend__swatch--vip"></span>VIP</span>
+            <span class="seat-legend__item"><span class="seat-legend__swatch seat-legend__swatch--sweetbox"></span>Sweetbox</span>
+            <span class="seat-legend__item"><span class="seat-legend__swatch seat-legend__swatch--selected"></span>Đang chọn</span>
+            <span class="seat-legend__item"><span class="seat-legend__swatch seat-legend__swatch--booked"></span>Đã đặt</span>
+        </div>
+
+    </div>
+
+    <!-- ===================== 5. THANH DƯỚI — REALTIME ===================== -->
+    <div class="container booking-bottom-bar">
+        <a class="btn btn-outline" th:href="@{/booking/movie/{id}(id=${showtime.movieId})}">
+            <span class="material-symbols-outlined">arrow_back</span> Quay về
+        </a>
+
+        <div>
+            <div class="booking-bottom-bar__selected-label">GHẾ ĐÃ CHỌN</div>
+            <div class="booking-bottom-bar__selected-value" id="selectedSeatsLabel">Vui lòng chọn ghế...</div>
+        </div>
+
+        <div>
+            <div class="booking-bottom-bar__total-label">TỔNG THANH TOÁN</div>
+            <div class="booking-bottom-bar__total-value" id="totalPriceLabel">0 đ</div>
+        </div>
+
+        <button class="btn btn-primary" id="continueBtn" type="button" disabled>
+            Tiếp tục <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+    </div>
+</main>
+
+<script th:inline="javascript">
+    (function () {
+        var selectedSeats = new Map(); // id -> { code, price }
+
+        var seatButtons = document.querySelectorAll('.seat-btn[data-id]');
+        var selectedLabel = document.getElementById('selectedSeatsLabel');
+        var totalLabel = document.getElementById('totalPriceLabel');
+        var continueBtn = document.getElementById('continueBtn');
+
+        function formatCurrency(amount) {
+            return amount.toLocaleString('vi-VN') + ' đ';
+        }
+
+        function updateBottomBar() {
+            if (selectedSeats.size === 0) {
+                selectedLabel.textContent = 'Vui lòng chọn ghế...';
+                totalLabel.textContent = formatCurrency(0);
+                continueBtn.disabled = true;
+                return;
+            }
+
+            var codes = [];
+            var total = 0;
+            selectedSeats.forEach(function (seat) {
+                codes.push(seat.code);
+                total += seat.price;
+            });
+
+            selectedLabel.textContent = codes.join(', ') + ' (' + codes.length + ' ghế)';
+            totalLabel.textContent = formatCurrency(total);
+            continueBtn.disabled = false;
+        }
+
+        seatButtons.forEach(function (btn) {
+            if (btn.disabled) return; // ghế đã đặt — không cho bấm
+
+            btn.addEventListener('click', function () {
+                var id = btn.getAttribute('data-id');
+                var code = btn.getAttribute('data-code');
+                var price = parseFloat(btn.getAttribute('data-price'));
+
+                if (selectedSeats.has(id)) {
+                    selectedSeats.delete(id);
+                    btn.classList.remove('is-selected');
+                } else {
+                    selectedSeats.set(id, { code: code, price: price });
+                    btn.classList.add('is-selected');
+                }
+                updateBottomBar();
+            });
+        });
+
+        continueBtn.addEventListener('click', function () {
+            if (selectedSeats.size === 0) return;
+            var seatIds = Array.from(selectedSeats.keys()).join(',');
+            // TODO: đổi đúng route bước "Chọn combo" thật của bạn
+            window.location.href = '/booking/combo?seatIds=' + seatIds;
+        });
+
+        updateBottomBar();
+    })();
+</script>
+
+</body>
+</html>
