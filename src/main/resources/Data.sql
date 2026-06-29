@@ -88,41 +88,53 @@ GO
 /* ============================================================
    5. MOVIE
    ============================================================ */
-INSERT INTO movie (title, description, duration_minutes, director, cast, release_date, poster_url, average_rating, status, is_deleted) VALUES
-(N'Joker: Folie à Deux',
- N'Arthur Fleck đối diện thế giới nội tâm hỗn loạn của chính mình khi mối quan hệ với Harley Quinn ngày càng sâu đậm, giữa bối cảnh phiên tòa xét xử căng thẳng tại Gotham.',
- 138, N'Todd Phillips', N'Joaquin Phoenix, Lady Gaga, Brendan Gleeson',
- '2026-09-15', '/assets/posters/joker-folie-a-deux.jpg', 8.9, 'NOW_SHOWING', 0),
+INSERT INTO movie (
+    title,
+    description,
+    duration_minutes,
+    director,
+    cast,
+    release_date,
+    poster_url,
+    age_rating,
+    average_rating,
+    status,
+    is_deleted
+) VALUES
+      (N'Joker: Folie à Deux',
+       N'Arthur Fleck đối diện thế giới nội tâm hỗn loạn của chính mình khi mối quan hệ với Harley Quinn ngày càng sâu đậm, giữa bối cảnh phiên tòa xét xử căng thẳng tại Gotham.',
+       138, N'Todd Phillips', N'Joaquin Phoenix, Lady Gaga, Brendan Gleeson',
+       '2026-09-15', '/assets/posters/joker-folie-a-deux.jpg', 'T18', 8.9, 'NOW_SHOWING', 0),
 
-(N'Dune: Part Two',
- N'Paul Atreides tiếp tục hành trình báo thù và tìm cách ngăn chặn tương lai đen tối, đồng thời học cách đoàn kết người Fremen để giành lại quyền kiểm soát Arrakis.',
- 166, N'Denis Villeneuve', N'Timothée Chalamet, Zendaya, Rebecca Ferguson',
- '2026-04-01', '/assets/posters/dune-part-two.jpg', 8.7, 'NOW_SHOWING', 0),
+      (N'Dune: Part Two',
+       N'Paul Atreides tiếp tục hành trình báo thù và tìm cách ngăn chặn tương lai đen tối, đồng thời học cách đoàn kết người Fremen để giành lại quyền kiểm soát Arrakis.',
+       166, N'Denis Villeneuve', N'Timothée Chalamet, Zendaya, Rebecca Ferguson',
+       '2026-04-01', '/assets/posters/dune-part-two.jpg', 'T13', 8.7, 'NOW_SHOWING', 0),
 
-(N'Lằn Ranh Sinh Tử',
- N'Một cựu cảnh sát buộc phải truy đuổi tổ chức buôn người xuyên quốc gia để cứu con gái mình trước khi quá muộn.',
- 124, N'Lê Minh Khoa', N'Trấn Thành, Ngọc Lan, Hữu Long',
- '2026-08-01', '/assets/posters/lan-ranh-sinh-tu.jpg', 7.8, 'NOW_SHOWING', 0),
+      (N'Lằn Ranh Sinh Tử',
+       N'Một cựu cảnh sát buộc phải truy đuổi tổ chức buôn người xuyên quốc gia để cứu con gái mình trước khi quá muộn.',
+       124, N'Lê Minh Khoa', N'Trấn Thành, Ngọc Lan, Hữu Long',
+       '2026-08-01', '/assets/posters/lan-ranh-sinh-tu.jpg', 'T16', 7.8, 'NOW_SHOWING', 0),
 
-(N'Đường Đua Tốc Độ',
- N'Một tay đua trẻ phải vượt qua quá khứ lỗi lầm để giành chiến thắng trong giải đua xuyên Việt lớn nhất từ trước đến nay.',
- 110, N'Phan Đăng Vũ', N'Quốc Anh, Thuý Diễm, Bảo Long',
- '2026-09-01', '/assets/posters/duong-dua-toc-do.jpg', 7.5, 'NOW_SHOWING', 0),
+      (N'Đường Đua Tốc Độ',
+       N'Một tay đua trẻ phải vượt qua quá khứ lỗi lầm để giành chiến thắng trong giải đua xuyên Việt lớn nhất từ trước đến nay.',
+       110, N'Phan Đăng Vũ', N'Quốc Anh, Thuý Diễm, Bảo Long',
+       '2026-09-01', '/assets/posters/duong-dua-toc-do.jpg', 'P', 7.5, 'NOW_SHOWING', 0),
 
-(N'Vũ Trụ Song Hành',
- N'Hai nhà vật lý phát hiện cánh cổng dẫn đến một vũ trụ song song, nơi mọi lựa chọn của họ đã rẽ theo hướng khác.',
- 132, N'Đỗ Gia Linh', N'Mai Tài Phến, Nhã Phương',
- '2026-12-10', '/assets/posters/vu-tru-song-hanh.jpg', 0, 'COMING_SOON', 0),
+      (N'Vũ Trụ Song Hành',
+       N'Hai nhà vật lý phát hiện cánh cổng dẫn đến một vũ trụ song song, nơi mọi lựa chọn của họ đã rẽ theo hướng khác.',
+       132, N'Đỗ Gia Linh', N'Mai Tài Phến, Nhã Phương',
+       '2026-12-10', '/assets/posters/vu-tru-song-hanh.jpg', 'T13', 0, 'COMING_SOON', 0),
 
-(N'Mùa Hè Của Em',
- N'Một câu chuyện tình nhẹ nhàng giữa hai người trẻ gặp lại nhau sau 10 năm xa cách tại chính nơi họ từng chia tay.',
- 105, N'Nguyễn Hữu Tuấn', N'Khả Ngân, Thanh Sơn',
- '2026-11-20', '/assets/posters/mua-he-cua-em.jpg', 0, 'COMING_SOON', 0),
+      (N'Mùa Hè Của Em',
+       N'Một câu chuyện tình nhẹ nhàng giữa hai người trẻ gặp lại nhau sau 10 năm xa cách tại chính nơi họ từng chia tay.',
+       105, N'Nguyễn Hữu Tuấn', N'Khả Ngân, Thanh Sơn',
+       '2026-11-20', '/assets/posters/mua-he-cua-em.jpg', 'P', 0, 'COMING_SOON', 0),
 
-(N'Bóng Ma Quá Khứ',
- N'Một gia đình chuyển đến căn nhà cũ và dần phát hiện những bí mật rùng rợn bị chôn giấu suốt 30 năm.',
- 98, N'Trần Bửu Lộc', N'Lan Ngọc, Việt Hương',
- '2026-02-14', '/assets/posters/bong-ma-qua-khu.jpg', 6.9, 'ENDED', 0);
+      (N'Bóng Ma Quá Khứ',
+       N'Một gia đình chuyển đến căn nhà cũ và dần phát hiện những bí mật rùng rợn bị chôn giấu suốt 30 năm.',
+       98, N'Trần Bửu Lộc', N'Lan Ngọc, Việt Hương',
+       '2026-02-14', '/assets/posters/bong-ma-qua-khu.jpg', 'T18', 6.9, 'ENDED', 0);
 GO
 
 /* ============================================================

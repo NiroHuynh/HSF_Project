@@ -52,16 +52,19 @@ public class Movie {
     @Column(name = "poster_url", length = 500)
     private String posterUrl;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "age_rating", nullable = false, length = 10)
+    private AgeRating ageRating;
+
     @ColumnDefault("0")
     @Column(name = "average_rating", precision = 3, scale = 1)
     private BigDecimal averageRating;
 
-    @Size(max = 20)
     @NotNull
-    @Nationalized
-    @ColumnDefault("'COMING_SOON'")
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private MovieStatus status;
 
     @ColumnDefault("0")
     @Column(name = "is_deleted")
@@ -135,6 +138,14 @@ public class Movie {
         this.posterUrl = posterUrl;
     }
 
+    public AgeRating getAgeRating() {
+        return ageRating;
+    }
+
+    public void setAgeRating(AgeRating ageRating) {
+        this.ageRating = ageRating;
+    }
+
     public BigDecimal getAverageRating() {
         return averageRating;
     }
@@ -143,11 +154,11 @@ public class Movie {
         this.averageRating = averageRating;
     }
 
-    public String getStatus() {
+    public MovieStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(MovieStatus status) {
         this.status = status;
     }
 
