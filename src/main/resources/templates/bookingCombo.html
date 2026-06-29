@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bắp Nước - CineMax</title>
+
+    <!-- Design system gốc của dự án (giữ nguyên, không định nghĩa lại token) -->
+    <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css"/>
+
+    <!-- Icon font Material Symbols — dùng để thay ảnh combo (chưa có cột ảnh trong DB) -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
+
+    <!-- ============================================================
+         CSS riêng cho trang "Chọn combo bắp nước" (gộp từ combo.css)
+         Chỉ thêm component mới, KHÔNG định nghĩa lại token đã có
+         trong style.css. Đặt sau style.css để override đúng thứ tự.
+         ============================================================ -->
+    <style>
+        /* Chừa khoảng trống cho action bar sticky ở dưới cùng */
+        .booking-page-content {
+            padding-bottom: 140px;
+        }
+
+        /* Tiêu đề trang — có gạch đỏ ngắn dưới chân (theo mockup) */
+        .page-title-accent {
+            position: relative;
+            padding-bottom: var(--space-md);
+        }
+        .page-title-accent::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 64px;
+            height: 3px;
+            background: var(--color-brand-red);
+            border-radius: var(--radius-pill);
+        }
+
+        /* Combo grid & card */
+        .combo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-md);
+        }
+        @media (max-width: 992px) { .combo-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 576px) { .combo-grid { grid-template-columns: 1fr; } }
+
+        .combo-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+        }
+        .combo-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-card-hover);
+        }
+
+        /* Khối icon thay cho ảnh combo (bảng combo chưa có cột ảnh) */
+        .combo-card__icon-wrap {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-surface-raised);
+        }
+        .combo-card__icon {
+            font-size: 48px;
+            color: var(--color-text-secondary);
+        }
+        .combo-card__badge {
+            position: absolute;
+            top: var(--space-sm);
+            left: var(--space-sm);
+            padding: 3px 10px;
+            background: var(--color-brand-red);
+            color: #fff;
+            font-size: var(--text-label);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            border-radius: var(--radius-xs);
+        }
+
+        .combo-card__body {
+            padding: var(--space-md);
+        }
+        .combo-card__footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: var(--space-md);
+            padding-top: var(--space-sm);
+            border-top: 1px solid var(--color-border);
+        }
+        .combo-card__price {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-brand-red);
+        }
+
+        /* Quantity stepper */
+        .qty-stepper {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--color-border-strong);
+            background: transparent;
+            color: var(--color-text-primary);
+            font-size: 16px;
+            font-weight: 700;
+            transition: background var(--transition-fast), border-color var(--transition-fast);
+        }
+        .qty-btn:hover {
+            background: var(--color-surface-raised);
+            border-color: var(--color-text-secondary);
+        }
+        .qty-btn--plus {
+            border-color: var(--color-brand-red);
+            color: var(--color-brand-red);
+        }
+        .qty-btn--plus:hover {
+            background: var(--color-brand-red);
+            color: #fff;
+        }
+        .qty-value {
+            min-width: 20px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* Sticky action bar — dùng chung cho các bước trong luồng đặt vé */
+        .booking-actionbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-lg);
+            padding: var(--space-md) var(--space-lg);
+            background: var(--color-surface-overlay);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid var(--color-border);
+            box-shadow: var(--shadow-nav);
+        }
+        .booking-actionbar__summary {
+            display: flex;
+            gap: var(--space-2xl);
+            flex: 1;
+        }
+        .booking-actionbar__total {
+            text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            .booking-actionbar {
+                flex-wrap: wrap;
+            }
+            .booking-actionbar__summary {
+                order: 3;
+                width: 100%;
+                gap: var(--space-lg);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAVBAR
+     TODO: thay bằng th:replace="~{fragments/navbar :: navbar}" khi
+     module dùng chung đã tách fragment navbar/footer.
+     ============================================================ -->
+<nav class="navbar">
+    <div class="container">
+        <a th:href="@{/}" class="navbar-brand">CineMax</a>
+
+        <ul class="navbar-nav">
+            <li><a th:href="@{/phim}" class="nav-link">Phim</a></li>
+            <li><a th:href="@{/rap}" class="nav-link">Rạp</a></li>
+            <li><a th:href="@{/uu-bai}" class="nav-link">Ưu bãi</a></li>
+            <li><a th:href="@{/ve-cua-toi}" class="nav-link">Vé của tôi</a></li>
+        </ul>
+
+        <div class="navbar-actions">
+            <button class="icon-btn" type="button" aria-label="Thông báo">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <div class="user-chip">
+                <div class="user-avatar">HP</div>
+                <div class="user-info">
+                    <div class="user-name">Huỳnh Tấn Phong</div>
+                    <div class="user-role">Khách hàng</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ============================================================
+     NỘI DUNG CHÍNH
+     ============================================================ -->
+<main class="container booking-page-content">
+
+    <div class="page-title-accent mt-xl mb-xl">
+        <h1 class="headline-lg">Bắp Nước</h1>
+    </div>
+
+    <div class="combo-grid" id="comboGrid">
+
+        <div class="combo-card"
+             th:each="combo : ${combos}"
+             th:attr="data-combo-id=${combo.id()},
+                       data-combo-price=${combo.price()},
+                       data-combo-name=${combo.name()}">
+
+            <div class="combo-card__icon-wrap">
+                <span class="combo-card__badge"
+                      th:if="${combo.badge() != null}"
+                      th:text="${combo.badge()}">BADGE</span>
+                <span class="material-symbols-outlined combo-card__icon"
+                      th:text="${combo.icon()}">local_movies</span>
+            </div>
+
+            <div class="combo-card__body">
+                <div class="promo-card__title" th:text="${combo.name()}">Tên combo</div>
+                <div class="promo-card__desc" th:text="${combo.description()}">Mô tả combo</div>
+
+                <div class="combo-card__footer">
+                    <span class="combo-card__price"
+                          th:text="${#numbers.formatInteger(combo.price(), 0, 'POINT')} + ' đ'">0 đ</span>
+
+                    <div class="qty-stepper">
+                        <button type="button" class="qty-btn qty-btn--minus" aria-label="Giảm số lượng">−</button>
+                        <span class="qty-value">0</span>
+                        <button type="button" class="qty-btn qty-btn--plus" aria-label="Tăng số lượng">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ============================================================
+     FORM ẨN — mang dữ liệu sang bước Thanh toán qua query param.
+     Demo: mỗi combo có 1 input ẩn combo_{id}; controller bước sau
+     chỉ cần lọc các combo_{id} có giá trị > 0.
+     ============================================================ -->
+<form id="comboForm" method="get" th:action="@{/booking/payment}">
+    <input type="hidden" name="showtimeId" th:value="${showtimeId}"/>
+    <input type="hidden" name="seatIds" th:value="${seatIds}"/>
+    <input type="hidden" name="seatTotal" th:value="${seatTotal}"/>
+    <input type="hidden"
+           th:each="combo : ${combos}"
+           th:name="${'combo_' + combo.id()}"
+           th:id="${'qty-input-' + combo.id()}"
+           value="0"/>
+</form>
+
+<!-- ============================================================
+     ACTION BAR — sticky dưới cùng, theo đúng mockup (Quay về /
+     Ghế đã chọn / Combo / Tổng thanh toán / Tiếp tục).
+     ============================================================ -->
+<div class="booking-actionbar">
+
+    <a class="btn btn-outline" th:href="@{/booking/seats(showtimeId=${showtimeId})}">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Quay về
+    </a>
+
+    <div class="booking-actionbar__summary">
+        <div class="detail-group">
+            <div class="detail-label">GHẾ ĐÃ CHỌN</div>
+            <div class="detail-value">
+                <th:block th:each="seat, iterStat : ${selectedSeats}">
+                    <span th:text="${seat}">A1</span><span th:unless="${iterStat.last}">, </span>
+                </th:block>
+                <span th:if="${selectedSeats.isEmpty()}" class="text-muted">Vui lòng chọn ghế...</span>
+            </div>
+        </div>
+
+        <div class="detail-group">
+            <div class="detail-label">COMBO</div>
+            <div class="detail-value" id="comboSummary">
+                <span class="text-muted">Vui lòng chọn combo...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="booking-actionbar__total">
+        <div class="detail-label">TỔNG THANH TOÁN</div>
+        <div class="detail-value is-code" id="grandTotal">0 đ</div>
+    </div>
+
+    <button type="submit" form="comboForm" class="btn btn-primary btn-lg">
+        Tiếp tục
+        <span class="material-symbols-outlined">arrow_forward</span>
+    </button>
+</div>
+
+<script th:inline="javascript">
+    /*
+     * Logic demo phía client:
+     * - Tăng/giảm số lượng từng combo.
+     * - Tính lại "TỔNG THANH TOÁN" = tiền vé (seatTotal, mang từ bước chọn ghế)
+     *   + tổng tiền combo đã chọn, cập nhật realtime không cần gọi server.
+     * - Đồng bộ số lượng vào input ẩn tương ứng để submit qua query param.
+     */
+    const seatTotal = Number(/*[[${seatTotal}]]*/ 0);
+    const comboCards = document.querySelectorAll('.combo-card');
+
+    function formatVnd(amount) {
+        return Math.round(amount).toLocaleString('vi-VN') + ' đ';
+    }
+
+    function recalc() {
+        let comboTotal = 0;
+        const chosenNames = [];
+
+        comboCards.forEach(card => {
+            const qty = Number(card.querySelector('.qty-value').textContent);
+            const price = Number(card.dataset.comboPrice);
+            const id = card.dataset.comboId;
+            const name = card.dataset.comboName;
+
+            document.getElementById('qty-input-' + id).value = qty;
+
+            if (qty > 0) {
+                comboTotal += qty * price;
+                chosenNames.push(name + ' x' + qty);
+            }
+        });
+
+        document.getElementById('comboSummary').innerHTML = chosenNames.length
+            ? chosenNames.join(', ')
+            : '<span class="text-muted">Vui lòng chọn combo...</span>';
+
+        document.getElementById('grandTotal').textContent = formatVnd(seatTotal + comboTotal);
+    }
+
+    comboCards.forEach(card => {
+        const qtyEl = card.querySelector('.qty-value');
+
+        card.querySelector('.qty-btn--plus').addEventListener('click', () => {
+            qtyEl.textContent = Number(qtyEl.textContent) + 1;
+            recalc();
+        });
+
+        card.querySelector('.qty-btn--minus').addEventListener('click', () => {
+            qtyEl.textContent = Math.max(0, Number(qtyEl.textContent) - 1);
+            recalc();
+        });
+    });
+
+    recalc();
+</script>
+
+</body>
+</html>
