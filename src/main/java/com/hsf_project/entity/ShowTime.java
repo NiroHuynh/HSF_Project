@@ -36,6 +36,15 @@ public class ShowTime {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
     public Long getId() {
         return id;
     }

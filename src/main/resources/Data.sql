@@ -104,12 +104,12 @@ INSERT INTO movie (
       (N'Joker: Folie à Deux',
        N'Arthur Fleck đối diện thế giới nội tâm hỗn loạn của chính mình khi mối quan hệ với Harley Quinn ngày càng sâu đậm, giữa bối cảnh phiên tòa xét xử căng thẳng tại Gotham.',
        138, N'Todd Phillips', N'Joaquin Phoenix, Lady Gaga, Brendan Gleeson',
-       '2026-09-15', '/assets/posters/joker-folie-a-deux.jpg', 'T18', 8.9, 'NOW_SHOWING', 0),
+       '2026-09-15', 'https://upload.wikimedia.org/wikipedia/vi/7/79/JOKER_FOLIE_%C3%80_DEUX_-_Vietnam_poster.jpg', 'T18', 8.9, 'NOW_SHOWING', 0),
 
       (N'Dune: Part Two',
        N'Paul Atreides tiếp tục hành trình báo thù và tìm cách ngăn chặn tương lai đen tối, đồng thời học cách đoàn kết người Fremen để giành lại quyền kiểm soát Arrakis.',
        166, N'Denis Villeneuve', N'Timothée Chalamet, Zendaya, Rebecca Ferguson',
-       '2026-04-01', '/assets/posters/dune-part-two.jpg', 'T13', 8.7, 'NOW_SHOWING', 0),
+       '2026-04-01', 'https://m.media-amazon.com/images/M/MV5BZWI5NWQwY2QtZTc0Mi00YWE4LTkzMGQtZDA1NTI3NzAwODU2XkEyXkFqcGc@._V1_FMjpg_UY2048_.jpg', 'T13', 8.7, 'NOW_SHOWING', 0),
 
       (N'Lằn Ranh Sinh Tử',
        N'Một cựu cảnh sát buộc phải truy đuổi tổ chức buôn người xuyên quốc gia để cứu con gái mình trước khi quá muộn.',

@@ -1,5 +1,10 @@
 package com.hsf_project.controller;
 
+import com.hsf_project.dto.response.SeatRowResponse;
+import com.hsf_project.entity.ShowTime;
+import com.hsf_project.service.SeatService;
+import com.hsf_project.service.ShowTimeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,28 +43,21 @@ import java.util.Set;
 @RequestMapping("/booking")
 public class BookingSeatController {
 
-    // Mock giá theo loại ghế — khi nối DB thật, thay bằng TicketPriceService (bảng ticket_price).
-    private static final Map<String, BigDecimal> SEAT_PRICE = Map.of(
-            "STANDARD", new BigDecimal("90000"),
-            "VIP", new BigDecimal("120000"),
-            "SWEETBOX", new BigDecimal("150000")
-    );
+    @Autowired
+    private ShowTimeService showTimeService;
 
-    // Mock ghế đã có người đặt (hiển thị dấu ✕, không chọn được) — khi nối DB thật,
-    // lấy từ bảng ticket theo showtime_id (status PAID/PENDING).
-    private static final Set<String> BOOKED_SEATS = Set.of(
-            "A5", "B1", "B5", "B6", "C6", "C12", "D8", "D12", "E4", "E12", "F2", "F9", "F12"
-    );
+    @Autowired
+    private SeatService seatService;
 
     @GetMapping("/seats")
     public String showSeatPage(@RequestParam Long showtimeId, Model model) {
 
-        ShowtimeDetail showtime = mockShowtimeDetail(showtimeId);
-        List<SeatRow> rows = buildSeatGrid();
-        int totalSeats = rows.stream().mapToInt(r -> r.seats().size()).sum();
+        ShowTime showtime = showTimeService.getShowTimeById(showtimeId);
+        List<SeatRowResponse> rows = seatService.getSeatMap(showtime.getRoom().getId(),showtimeId);
+        int totalSeats = showtime.getRoom().getTotalSeats();
         int bookedCount = rows.stream()
-                .flatMap(r -> r.seats().stream())
-                .filter(Seat::booked)
+                .flatMap(r -> r.getSeats().stream())
+                .filter(r -> r.isBooked())
                 .toList()
                 .size();
         int availableSeats = totalSeats - bookedCount;
@@ -101,18 +99,19 @@ public class BookingSeatController {
         return rows;
     }
 
-    private ShowtimeDetail mockShowtimeDetail(Long showtimeId) {
-        // Mock cố định — khi nối DB thật, query theo showtimeId.
-        // Nhãn độ tuổi dùng "T16" để khớp với trang chi tiết phim (mockup khác dùng T16 cho cùng phim này).
-        return new ShowtimeDetail(
-                "JOKER: FOLIE À DEUX",
-                "T16",
-                "CGV Vincom Nguyễn Chí Thanh",
-                "Cinema 7",
-                "20/05/2026 22:50",
-                "21/05/2026 00:42"
-        );
-    }
+
+    // Mock giá theo loại ghế — khi nối DB thật, thay bằng TicketPriceService (bảng ticket_price).
+    private static final Map<String, BigDecimal> SEAT_PRICE = Map.of(
+            "STANDARD", new BigDecimal("90000"),
+            "VIP", new BigDecimal("120000"),
+            "SWEETBOX", new BigDecimal("150000")
+    );
+
+    // Mock ghế đã có người đặt (hiển thị dấu ✕, không chọn được) — khi nối DB thật,
+    // lấy từ bảng ticket theo showtime_id (status PAID/PENDING).
+    private static final Set<String> BOOKED_SEATS = Set.of(
+            "A5", "B1", "B5", "B6", "C6", "C12", "D8", "D12", "E4", "E12", "F2", "F9", "F12"
+    );
 
     public record Seat(String code, String type, boolean booked) {
         /** Trả về class CSS tương ứng — dùng trực tiếp trong template, tránh ternary rối ở Thymeleaf. */
