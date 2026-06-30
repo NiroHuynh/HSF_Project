@@ -296,7 +296,7 @@
               <span class="dn" th:text="${d.dayOfMonth}">29</span>
               <span class="dm" th:text="${'Th' + d.monthValue}">Th6</span>
               <span class="dd"
-                    th:text="${iter.index == 0 ? 'Hôm nay' : (iter.index == 1 ? 'Ngày mai' : #temporals.format(d,'EEE','vi'))}">
+                    th:text="${iter.index == 0 ? 'Hôm nay' : (iter.index == 1 ? 'Ngày mai' : #temporals.format(d,'EEE', new java.util.Locale('vi')))}">
                 T2</span>
             </a>
           </th:block>
