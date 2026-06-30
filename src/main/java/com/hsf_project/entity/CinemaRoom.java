@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "cinema_room")
 public class CinemaRoom {
@@ -39,6 +42,60 @@ public class CinemaRoom {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+    @OneToMany(
+            mappedBy = "room",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL
+    )
+    private List<ShowTime> showTimes = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "room",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL
+    )
+    private List<Seat> seats = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "room",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL
+    )
+    private List<TicketPrice> ticketPrices = new ArrayList<>();
+
+
+    public List<TicketPrice> getTicketPrices() {
+        return ticketPrices;
+    }
+
+    public void setTicketPrices(List<TicketPrice> ticketPrices) {
+        this.ticketPrices = ticketPrices;
+    }
+
+    public List<Seat> getSeats() {
+        return seats;
+    }
+
+    public void setSeats(List<Seat> seats) {
+        this.seats = seats;
+    }
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public List<ShowTime> getShowTimes() {
+        return showTimes;
+    }
+
+    public void setShowTimes(List<ShowTime> showTimes) {
+        this.showTimes = showTimes;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -63,13 +120,6 @@ public class CinemaRoom {
         this.roomType = rooomType;
     }
 
-    public Boolean getDeleted() {
-        return isDeleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
 
     public Integer getTotalSeats() {
         return totalSeats;
