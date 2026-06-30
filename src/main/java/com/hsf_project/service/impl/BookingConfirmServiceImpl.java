@@ -1,7 +1,11 @@
-package com.hsf_project.service;
+package com.hsf_project.service.impl;
 
 import com.hsf_project.entity.*;
 import com.hsf_project.repository.*;
+import com.hsf_project.service.BookingConfirmService;
+import com.hsf_project.service.ComboService;
+import com.hsf_project.service.PromotionService;
+import com.hsf_project.service.ShowTimeService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +59,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
     @Override
     public String confirmBooking(Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities,
                                  Long paymentMethodId, Long promotionId,
-                                 BigDecimal discountAmount, BigDecimal serviceFee) {
+                                 BigDecimal discountAmount) {
 
         LocalDateTime now = LocalDateTime.now();
         ShowTime showtime = showTimeService.getById(showtimeId);
@@ -87,7 +91,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         }
 
         BigDecimal totalAmount = seatTotal.add(comboTotal);
-        BigDecimal finalAmount = totalAmount.subtract(discountAmount).add(serviceFee);
+        BigDecimal finalAmount = totalAmount.subtract(discountAmount);
 
         Booking booking = new Booking();
         booking.setUser(entityManager.getReference(User.class, HARDCODED_USER_ID));

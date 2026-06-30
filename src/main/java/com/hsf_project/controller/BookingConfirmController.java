@@ -25,7 +25,6 @@ public class BookingConfirmController {
     public String confirmBooking(
             @RequestParam Long showtimeId,
             @RequestParam String seatIds,
-            @RequestParam BigDecimal serviceFee,
             @RequestParam BigDecimal discountAmount,
             @RequestParam(required = false) String promotionId,
             @RequestParam Long paymentMethod,
@@ -52,7 +51,7 @@ public class BookingConfirmController {
         Long promoId = (promotionId != null && !promotionId.isBlank()) ? Long.valueOf(promotionId) : null;
 
         String bookingCode = bookingConfirmService.confirmBooking(
-                showtimeId, seatCodes, comboQuantities, paymentMethod, promoId, discountAmount, serviceFee);
+                showtimeId, seatCodes, comboQuantities, paymentMethod, promoId, discountAmount);
 
         model.addAttribute("bookingCode", bookingCode);
         return "redirect:/";

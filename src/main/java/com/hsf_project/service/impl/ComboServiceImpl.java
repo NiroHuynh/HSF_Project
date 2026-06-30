@@ -1,7 +1,8 @@
-package com.hsf_project.service;
+package com.hsf_project.service.impl;
 
 import com.hsf_project.entity.Combo;
 import com.hsf_project.repository.ComboRepository;
+import com.hsf_project.service.ComboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
