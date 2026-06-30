@@ -56,6 +56,22 @@ public class CinemaRoom {
     )
     private List<Seat> seats = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "room",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL
+    )
+    private List<TicketPrice> ticketPrices = new ArrayList<>();
+
+
+    public List<TicketPrice> getTicketPrices() {
+        return ticketPrices;
+    }
+
+    public void setTicketPrices(List<TicketPrice> ticketPrices) {
+        this.ticketPrices = ticketPrices;
+    }
+
     public List<Seat> getSeats() {
         return seats;
     }
@@ -104,13 +120,6 @@ public class CinemaRoom {
         this.roomType = rooomType;
     }
 
-    public Boolean getDeleted() {
-        return isDeleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
 
     public Integer getTotalSeats() {
         return totalSeats;
