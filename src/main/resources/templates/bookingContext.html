@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${movie != null ? movie.title + ' - CineMax' : 'CineMax'}">CineMax - Chọn lịch chiếu</title>
+
+    <!-- Dùng "natural templating": href dùng khi mở file tĩnh, th:href dùng khi render qua Spring
+         (resolve tới src/main/resources/static/css/style.css) -->
+    <link rel="stylesheet" href="css/style.css" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!--
+  ============================================================
+  TRANG: Chi tiết phim + Chọn ngày / rạp / giờ chiếu
+  Module: Đặt vé (điểm bắt đầu luồng đặt vé)
+  Tên view trong Controller: return "bookingContext";
+  -> Lưu file này thành: src/main/resources/templates/bookingContext.html
+  Không có navbar/footer — nếu hệ thống dùng layout chung (vd Layout Dialect),
+  chèn fragment "content" này vào, hoặc thêm navbar/footer thật vào quanh <main> dưới đây.
+
+  GIẢ ĐỊNH MODEL (Controller cần đưa vào view, đặt tên theo gợi ý — đổi lại cho khớp
+  nếu Controller/DTO thật của bạn dùng tên khác):
+
+    movie            : MovieDetailDTO
+      - id, title, posterUrl, durationMinutes, averageRating
+      - ageRating        (*) xem lưu ý 1
+      - genres           : List<Genre> (mỗi genre có .name)  — từ bảng genre/movie_genre
+
+    showDates        : List<ShowDateDTO>      (dải ngày để chọn, controller tự sinh)
+      - isoDate, dayOfMonth, month, weekdayLabel, selected
+
+    cities           : List<City>             (bảng city)
+    selectedCityId   : Long
+
+    cinemaSchedules  : List<CinemaScheduleDTO> (đã lọc theo movie + ngày + thành phố)
+      - id, name, address
+      - formatGroups   : LinkedHashMap<String, List<ShowtimeSlotDTO>>
+          key   = nhãn định dạng hiển thị, ví dụ "2D" / "3D" / "IMAX"
+          value = danh sách { id (show_time.id), timeLabel ví dụ "10:00" }
+
+  (*) LƯU Ý 1 — khoảng trống dữ liệu so với create.sql, cần xác nhận lại với nhóm:
+    1. Bảng `movie` hiện CHƯA có cột nhãn độ tuổi (T16/T18/P) như mockup yêu cầu.
+       -> Template dùng th:if nên nếu chưa có field này, chip sẽ tự ẩn, không lỗi.
+    2. Bảng `show_time` hiện KHÔNG có cột định dạng chiếu (2D/3D/IMAX) cho từng suất.
+       `cinema_room.room_type` chỉ có STANDARD/IMAX/4DX/VIP — không khớp 1-1 với
+       2D/3D/IMAX trong mockup (1 phòng STANDARD vẫn có thể chiếu cả suất 2D và 3D).
+       -> Template KHÔNG tự suy luận field này; nó nhận sẵn `formatGroups` đã được
+          Service/Controller gom nhóm. Bạn cần chốt 1 trong 2 hướng:
+            a) Thêm cột `format` (VARCHAR) vào bảng show_time, hoặc
+            b) Tạm dùng cinema_room.room_type làm nhãn nhóm (STANDARD hiển thị "2D")
+          rồi mình sẽ chỉnh Service cho khớp.
+  ============================================================
+-->
+
+<!-- Material Symbols dùng cho icon (location_on, schedule, star, chevron_left/right)
+     đã thấy dùng trong các trang khác (sell, payments, lock, arrow_forward...).
+     Nếu fragment head chung đã có link này thì có thể xoá dòng @import dưới đây. -->
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined');
+
+    .movie-detail__header {
+        display: flex;
+        gap: var(--space-xl);
+        margin-bottom: var(--space-2xl);
+    }
+
+    .movie-detail__poster {
+        width: 180px;
+        flex-shrink: 0;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+    }
+    .movie-detail__poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .movie-detail__info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+    }
+
+    .movie-detail__badges {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
+    }
+
+    .movie-detail__genres {
+        text-transform: uppercase;
+    }
+
+    .movie-detail__title {
+        margin-bottom: var(--space-md);
+        word-break: break-word;
+    }
+
+    .movie-detail__meta {
+        display: flex;
+        align-items: center;
+        gap: var(--space-lg);
+    }
+
+    .movie-detail__meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--text-body-sm);
+        color: var(--color-text-secondary);
+    }
+    .movie-detail__meta-item .material-symbols-outlined { font-size: 18px; }
+
+    .movie-detail__rating {
+        color: var(--color-star);
+        font-weight: 700;
+    }
+    .movie-detail__rating .material-symbols-outlined {
+        font-variation-settings: 'FILL' 1;
+    }
+
+    /* ---- Date carousel ---- */
+    .date-carousel__nav { display: flex; gap: var(--space-xs); }
+
+    .date-carousel {
+        display: flex;
+        gap: var(--space-sm);
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+        padding-bottom: var(--space-xs);
+        margin-bottom: var(--space-xl);
+    }
+    .date-carousel::-webkit-scrollbar { display: none; }
+
+    .date-pill {
+        flex-shrink: 0;
+        width: 84px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: var(--space-sm) var(--space-xs);
+        border: 1.5px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-surface);
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+    }
+    .date-pill:hover {
+        border-color: var(--color-border-strong);
+        color: var(--color-text-primary);
+    }
+    .date-pill.is-active {
+        background: var(--color-brand-red);
+        border-color: var(--color-brand-red);
+        color: #fff;
+    }
+    .date-pill__month {
+        font-size: var(--text-label);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+    }
+    .date-pill__day {
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+    .date-pill__weekday {
+        font-size: var(--text-label);
+        letter-spacing: 0.04em;
+    }
+
+    /* ---- City tabs ---- */
+    .city-tabs { margin-bottom: var(--space-xl); }
+
+    /* ---- Cinema + showtime list ---- */
+    .cinema-schedule-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .cinema-schedule-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+    }
+
+    .cinema-schedule-card__name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--color-text-primary);
+        margin-bottom: 4px;
+    }
+
+    .cinema-schedule-card__address {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--text-body-sm);
+        color: var(--color-text-secondary);
+        margin-bottom: var(--space-md);
+    }
+    .cinema-schedule-card__address .material-symbols-outlined { font-size: 16px; }
+
+    .cinema-schedule-card__format-group + .cinema-schedule-card__format-group {
+        margin-top: var(--space-md);
+    }
+
+    .cinema-schedule-card__format-label {
+        display: inline-block;
+        color: var(--color-brand-red);
+        text-transform: uppercase;
+        margin-bottom: var(--space-sm);
+    }
+
+    .showtime-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+    }
+
+    .showtime-btn {
+        padding: 8px var(--space-md);
+        border: 1.5px solid var(--color-border-strong);
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--color-text-primary);
+        font-size: var(--text-body-sm);
+        font-weight: 600;
+        transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+    }
+    .showtime-btn:hover {
+        background: var(--color-brand-red);
+        border-color: var(--color-brand-red);
+        color: #fff;
+    }
+
+    .schedule-empty-state {
+        text-align: center;
+        padding: var(--space-2xl) 0;
+        color: var(--color-text-secondary);
+    }
+
+    @media (max-width: 576px) {
+        .movie-detail__header { flex-direction: column; }
+        .movie-detail__poster { width: 140px; }
+    }
+</style>
+
+<main class="section" th:fragment="content">
+    <div class="container">
+
+        <!-- ===================== 1. THÔNG TIN PHIM ===================== -->
+        <div class="movie-detail__header">
+            <div class="movie-detail__poster ratio-poster">
+                <img th:src="${movie.posterUrl}" th:alt="${movie.title}"
+                     src="https://via.placeholder.com/360x540" alt="Poster">
+            </div>
+
+            <div class="movie-detail__info">
+                <div class="movie-detail__badges">
+          <span class="chip chip-t16"
+                th:if="${movie.ageRating != null}"
+                th:text="${movie.ageRating}"
+                th:classappend="${movie.ageRating == 'T18'} ? 'chip-t18' : (${movie.ageRating == 'P'} ? 'chip-p' : 'chip-t16')">
+          </span>
+                    <span class="label-sm text-secondary movie-detail__genres">
+            <span th:each="genre, iter : ${movie.genres}">
+                <span th:text="${genre.name}"></span>
+                <span th:unless="${iter.last}"> / </span>
+            </span>
+            <span th:if="${#lists.isEmpty(movie.genres)}">Đang cập nhật</span>
+          </span>
+                </div>
+
+                <h1 class="headline-lg movie-detail__title" th:text="${movie.title}"></h1>
+
+                <div class="movie-detail__meta">
+          <span class="movie-detail__meta-item">
+            <span class="material-symbols-outlined">schedule</span>
+            <span th:text="${movie.durationMinutes} + ' Phút'"></span>
+          </span>
+                    <span class="movie-detail__meta-item movie-detail__rating">
+            <span class="material-symbols-outlined">star</span>
+            <span th:text="${movie.averageRating} + '/10'"></span>
+          </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== 2. CHỌN NGÀY XEM ===================== -->
+        <div class="date-carousel" id="dateCarousel">
+            <a th:each="d : ${showDates}"
+               class="date-pill"
+               th:classappend="${d.selected} ? 'is-active' : ''"
+               th:href="@{/booking/movie/{id}(id=${movie.id}, cityId=${selectedCityId}, date=${d.isoDate})}">
+                <span class="date-pill__month" th:text="'THÁNG ' + ${d.month}">THÁNG 10</span>
+                <span class="date-pill__day" th:text="${d.dayOfMonth}">20</span>
+                <span class="date-pill__weekday" th:text="${d.weekdayLabel}">WED</span>
+            </a>
+        </div>
+
+        <!-- ===================== 3. CHỌN THÀNH PHỐ / KHU VỰC ===================== -->
+        <div class="filter-row city-tabs">
+            <a th:each="c : ${cities}"
+               class="filter-chip"
+               th:classappend="${c.id == selectedCityId} ? 'active' : ''"
+               th:text="${c.name}"
+               th:href="@{/booking/movie/{id}(id=${movie.id}, cityId=${c.id}, date=${selectedDate})}">
+
+            </a>
+        </div>
+
+        <!-- ===================== 4. DANH SÁCH RẠP + GIỜ CHIẾU ===================== -->
+        <div class="cinema-schedule-list" th:if="${not #lists.isEmpty(cinemaSchedules)}">
+            <div class="cinema-schedule-card" th:each="cinema : ${cinemaSchedules}">
+                <h3 class="cinema-schedule-card__name" th:text="${cinema.name}"></h3>
+                <p class="cinema-schedule-card__address">
+                    <span class="material-symbols-outlined"></span>
+                    <span th:text="${cinema.address}"></span>
+                </p>
+
+                <div class="cinema-schedule-card__format-group" th:each="group : ${cinema.cinemaRooms}">
+                    <span class="label-sm cinema-schedule-card__format-label" th:text="${group.roomType}"></span>
+                    <div class="showtime-row">
+                        <a th:each="slot : ${group.showTimes}"
+                           class="showtime-btn"
+                           th:text="${#temporals.format(slot.startTime, 'HH:mm')}"
+                           th:href="@{/booking/seats(showtimeId=${slot.id})}">
+
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== 5. TRẠNG THÁI RỖNG ===================== -->
+        <div class="schedule-empty-state" th:if="${#lists.isEmpty(cinemaSchedules)}">
+            <p class="body-md">Không tìm thấy suất chiếu phù hợp.</p>
+            <p class="body-sm text-muted">Vui lòng chọn ngày hoặc khu vực khác.</p>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>
