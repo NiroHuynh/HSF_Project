@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rạp Chiếu Phim — CineMax</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --red:#E31B23; --red-h:#C41219; --red-l:rgba(227,27,35,.15);
+      --bg:#0A0A0C;  --surf:#111114;  --surf-r:#18181D;
+      --tp:#FFF;     --ts:#A0A0B0;    --tm:#606070;
+      --br:rgba(255,255,255,.08); --brs:rgba(255,255,255,.16);
+      --star:#F5C518;
+      --r4:4px;--r8:8px;--r12:12px;--r16:16px;--rpill:9999px;
+      --ff:'Inter',-apple-system,sans-serif;
+      --tf:150ms ease; --tb:250ms ease;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--ff);background:var(--bg);color:var(--tp);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    a{color:inherit;text-decoration:none}
+
+    /* ── NAVBAR ── */
+    .cnav{position:sticky;top:0;z-index:1000;height:60px;background:var(--bg);
+          border-bottom:1px solid var(--br);box-shadow:0 2px 16px rgba(0,0,0,.6)}
+    .cnav .inner{display:flex;align-items:center;gap:32px;height:100%}
+    .brand{font-size:22px;font-weight:800;color:var(--red);letter-spacing:-.02em;flex-shrink:0}
+    .nlinks{display:flex;align-items:center;gap:24px;flex:1}
+    .nlink{font-size:14px;font-weight:500;color:var(--ts);padding:8px 0;position:relative;transition:color var(--tf)}
+    .nlink::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;
+                  background:var(--red);border-radius:var(--rpill);transition:width var(--tb)}
+    .nlink:hover,.nlink.active{color:var(--tp)}
+    .nlink.active::after,.nlink:hover::after{width:100%}
+    .nactions{display:flex;align-items:center;gap:12px;margin-left:auto}
+    .ibtn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;
+          border-radius:var(--r8);background:transparent;border:none;cursor:pointer;
+          color:var(--ts);transition:background var(--tf),color var(--tf)}
+    .ibtn:hover{background:var(--surf);color:var(--tp)}
+    .uchip{display:flex;align-items:center;gap:8px;padding:4px 8px;
+           border-radius:var(--r8);cursor:pointer;transition:background var(--tf)}
+    .uchip:hover{background:var(--surf)}
+    .uav{width:32px;height:32px;border-radius:var(--rpill);background:var(--red);
+         display:flex;align-items:center;justify-content:center;
+         font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+    .uname{font-size:14px;font-weight:600;line-height:1.2}
+    .urole{font-size:12px;color:var(--tm)}
+
+    /* ── PAGE HEADER ── */
+    .phdr{padding:48px 0 28px;border-bottom:1px solid var(--br)}
+    .phdr h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1}
+    .phdr p{font-size:15px;color:var(--ts);margin-top:6px}
+
+    /* ── CITY PILLS ── */
+    .slabel{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tm);margin-bottom:10px}
+    .cpills{display:flex;flex-wrap:wrap;gap:8px;padding:28px 0 0}
+    .cpill{padding:8px 20px;border-radius:var(--rpill);font-size:14px;font-weight:500;
+           border:1.5px solid var(--brs);background:transparent;color:var(--ts);
+           cursor:pointer;transition:all var(--tf)}
+    .cpill:hover{border-color:var(--red);color:var(--tp)}
+    .cpill.active{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+
+    /* ── SEARCH ── */
+    .swrap{position:relative;margin:20px 0 0}
+    .swrap .si{position:absolute;left:16px;top:50%;transform:translateY(-50%);
+               color:var(--tm);font-size:16px;pointer-events:none}
+    .swrap input{width:100%;padding:13px 16px 13px 46px;background:var(--surf);
+                 border:1.5px solid var(--br);border-radius:var(--r12);
+                 color:var(--tp);font-size:15px;font-family:var(--ff);outline:none;
+                 transition:border-color var(--tf),box-shadow var(--tf)}
+    .swrap input::placeholder{color:var(--tm)}
+    .swrap input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(227,27,35,.15)}
+
+    /* ── META / DIVIDER ── */
+    .lmeta{margin:22px 0 10px;font-size:13px;color:var(--tm)}
+    .lmeta strong{color:var(--ts)}
+    .dline{height:1px;background:var(--br);margin-bottom:14px}
+
+    /* ── CINEMA CARD ── */
+    .ccard{background:var(--surf);border:1px solid var(--br);border-radius:var(--r16);
+           margin-bottom:10px;overflow:hidden;transition:border-color var(--tf),box-shadow var(--tf)}
+    .ccard:hover{border-color:var(--brs)}
+    .ccard.open{border-color:var(--red);box-shadow:0 4px 24px rgba(0,0,0,.45)}
+    .chdr{display:flex;align-items:center;gap:16px;padding:18px 22px;cursor:pointer;user-select:none}
+    .clogo{width:46px;height:46px;flex-shrink:0;border-radius:var(--r12);
+           background:linear-gradient(135deg,#1a1a1f,#252530);border:1px solid var(--brs);
+           display:flex;align-items:center;justify-content:center;
+           font-size:16px;font-weight:800;color:var(--red);letter-spacing:-.03em}
+    .cmeta{flex:1;min-width:0}
+    .cname{font-size:15px;font-weight:700;margin-bottom:3px;
+           white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .caddr{font-size:12px;color:var(--ts);display:flex;align-items:flex-start;gap:5px}
+    .cfmts{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+    .ftag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:var(--r4);
+          font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+    .fi{background:#1E3A5F;color:#6DB9F0}
+    .f2{background:#1E2E1E;color:#6DBF6D}
+    .f4{background:#3A2A10;color:#F5A623}
+    .fv{background:#2A1E3A;color:#C06DF0}
+    .tbtn{background:transparent;border:none;cursor:pointer;color:var(--tm);
+          width:32px;height:32px;border-radius:var(--r8);
+          display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+          transition:color var(--tf),background var(--tf),transform var(--tb)}
+    .tbtn:hover{background:var(--surf-r);color:var(--tp)}
+    .tbtn.rot{transform:rotate(180deg);color:var(--red)}
+
+    /* ── SHOWTIME PANEL ── */
+    .spanel{border-top:1px solid var(--br);padding:0 22px 22px;display:none}
+    .spanel.open{display:block}
+
+    /* ── DATE SCROLLER ── */
+    .drow{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:18px 0 14px}
+    .drow::-webkit-scrollbar{display:none}
+    .dbtn{flex-shrink:0;min-width:56px;display:flex;flex-direction:column;align-items:center;gap:1px;
+          padding:9px 12px;border-radius:var(--r12);border:1.5px solid var(--brs);
+          background:transparent;color:var(--ts);cursor:pointer;text-decoration:none;
+          transition:border-color var(--tf),background var(--tf),color var(--tf)}
+    .dbtn .dn{font-size:19px;font-weight:700;line-height:1}
+    .dbtn .dm{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+    .dbtn .dd{font-size:10px;color:var(--tm);margin-top:2px}
+    .dbtn:hover{border-color:var(--red);color:var(--tp)}
+    .dbtn.active{background:var(--red);border-color:var(--red);color:#fff}
+    .dbtn.active .dd{color:rgba(255,255,255,.65)}
+
+    /* ── MOVIE ROW ── */
+    .mrow{padding:16px 0;border-top:1px solid var(--br)}
+    .mrow:first-child{border-top:none}
+    .mrowi{display:flex;align-items:flex-start;gap:14px}
+    .pthumb{width:54px;height:76px;flex-shrink:0;border-radius:var(--r8);overflow:hidden;
+            background:var(--surf-r);display:flex;align-items:center;justify-content:center;
+            color:var(--tm);font-size:20px}
+    .pthumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .minfo{flex:1;min-width:0}
+    .mtitle{font-size:14px;font-weight:700;margin-bottom:4px}
+    .mmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;
+           color:var(--ts);margin-bottom:10px}
+    .mmeta .dot{width:3px;height:3px;border-radius:50%;background:var(--tm);flex-shrink:0}
+    .starr{display:flex;align-items:center;gap:3px;color:var(--star);font-weight:700}
+    .chip{display:inline-flex;align-items:center;padding:1px 6px;border-radius:var(--r4);
+          font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+    .cc18,.ct18{background:#3A1E1E;color:#E31B23}
+    .ct16{background:#3A1E1E;color:#F06D6D}
+    .ct13{background:#3A2A10;color:#F5A623}
+    .cp,.ck{background:#1E3A1E;color:#6DBF6D}
+    .fgrp{margin-bottom:8px}
+    .flbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+          color:var(--tm);margin-bottom:5px}
+    .slots{display:flex;flex-wrap:wrap;gap:7px}
+    .slot{padding:7px 14px;border-radius:var(--r8);border:1.5px solid var(--brs);
+          background:var(--surf-r);color:var(--tp);font-size:13px;font-weight:600;
+          cursor:pointer;white-space:nowrap;
+          transition:border-color var(--tf),background var(--tf),color var(--tf)}
+    .slot:hover{border-color:var(--red);background:var(--red-l);color:var(--red)}
+    .slot.alm{border-color:rgba(245,197,24,.4);color:var(--star)}
+    .slot.alm:hover{border-color:var(--star);background:rgba(245,197,24,.1)}
+
+    /* ── EMPTY ── */
+    .empty{text-align:center;padding:56px 24px;color:var(--tm)}
+    .empty i{font-size:40px;display:block;margin-bottom:12px}
+    .empty p{font-size:14px;line-height:1.6}
+
+    /* ── FOOTER ── */
+    .sfooter{background:var(--surf);border-top:1px solid var(--br);padding:48px 0 0;margin-top:80px}
+    .fb{font-size:22px;font-weight:800;color:var(--red);margin-bottom:8px}
+    .fd{font-size:13px;color:var(--ts);line-height:1.6;max-width:240px}
+    .fct{font-size:14px;font-weight:700;margin-bottom:14px}
+    .fci{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ts);margin-bottom:10px}
+    .fbot{border-top:1px solid var(--br);padding:18px 0;margin-top:32px;
+          text-align:center;font-size:12px;color:var(--tm)}
+
+    @media(max-width:768px){
+      .nlinks{display:none}
+      .uname,.urole{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══════════════════════════════════════════════ -->
+<nav class="cnav">
+  <div class="container-xl px-3">
+    <div class="inner">
+      <a th:href="@{/}" class="brand">CineMax</a>
+      <div class="nlinks">
+        <a th:href="@{/phim}"  class="nlink">Phim</a>
+        <a th:href="@{/rap}"   class="nlink active">Rạp</a>
+        <a th:href="@{/uu-dai}" class="nlink">Ưu đãi</a>
+        <a th:href="@{/ve-cua-toi}" class="nlink">Vé của tôi</a>
+      </div>
+      <div class="nactions">
+        <button class="ibtn" aria-label="Thông báo">
+          <i class="bi bi-bell fs-5"></i>
+        </button>
+        <div class="uchip">
+          <div class="uav">HT</div>
+          <div>
+            <div class="uname">Huỳnh Tấn Phong</div>
+            <div class="urole">Khách hàng</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ PAGE HEADER ══════════════════════════════════════════ -->
+<header class="phdr">
+  <div class="container-xl px-3">
+    <h1>Hệ thống rạp</h1>
+    <p>Tìm rạp và đặt vé cho suất chiếu bạn yêu thích.</p>
+  </div>
+</header>
+
+<!-- ══ MAIN ════════════════════════════════════════════════ -->
+<main>
+  <div class="container-xl px-3">
+
+    <!-- ── City selector ── -->
+    <div class="slabel" style="margin-top:28px">Chọn thành phố</div>
+    <div class="cpills">
+      <a th:each="city : ${cities}"
+         th:href="@{/rap(cityId=${city.cityId})}"
+         th:classappend="${city.cityId == selectedCityId} ? 'active'"
+         class="cpill"
+         th:text="${city.name}">TP. Hồ Chí Minh</a>
+    </div>
+
+    <!-- ── Search (client-side filter only) ── -->
+    <div class="swrap">
+      <i class="bi bi-search si"></i>
+      <input type="text" id="searchInput"
+             placeholder="Tìm rạp theo tên hoặc địa chỉ…"
+             autocomplete="off"/>
+    </div>
+
+    <!-- ── Count ── -->
+    <p class="lmeta">
+      Hiển thị <strong id="countNum" th:text="${#lists.size(cinemas)}">0</strong>
+      rạp tại <strong th:text="${selectedCity.name}">TP. Hồ Chí Minh</strong>
+    </p>
+    <div class="dline"></div>
+
+    <!-- ── Cinema list ── -->
+    <div th:if="${#lists.isEmpty(cinemas)}" class="empty">
+      <i class="bi bi-building-x"></i>
+      <p>Không có rạp nào tại thành phố này.</p>
+    </div>
+
+    <div th:each="cinema : ${cinemas}"
+         th:id="'cc-' + ${cinema.cinemaId}"
+         th:classappend="${cinema.cinemaId == openCinemaId} ? 'open'"
+         class="ccard cinema-card">
+
+      <!-- Card header -->
+      <a th:href="@{/rap(cityId=${selectedCityId},cinemaId=${cinema.cinemaId},date=${selectedDate})}"
+         class="chdr text-decoration-none">
+        <div class="clogo">CM</div>
+        <div class="cmeta">
+          <div class="cname" th:text="${cinema.name}">CineMax Pandora City</div>
+          <div class="caddr">
+            <i class="bi bi-geo-alt"></i>
+            <span th:text="${cinema.address}">1/1 Trường Chinh, Q. Tân Phú</span>
+          </div>
+          <div class="cfmts">
+            <th:block th:each="fmt : ${formatMap.get(cinema.cinemaId)}">
+              <span th:text="${fmt}"
+                    th:classappend="${fmt == 'IMAX'} ? 'fi' : (${fmt == '4DX'} ? 'f4' : (${fmt == 'VIP'} ? 'fv' : 'f2'))"
+                    class="ftag">2D</span>
+            </th:block>
+          </div>
+        </div>
+        <button th:classappend="${cinema.cinemaId == openCinemaId} ? 'rot'"
+                class="tbtn"
+                aria-label="Xem lịch chiếu">
+          <i class="bi bi-chevron-down"></i>
+        </button>
+      </a>
+
+      <!-- Showtime panel (only rendered when this cinema is expanded) -->
+      <div th:if="${cinema.cinemaId == openCinemaId}"
+           class="spanel open">
+
+        <!-- Date scroller -->
+        <div class="drow">
+          <th:block th:each="d,iter : ${dateStrip}">
+            <a th:href="@{/rap(cityId=${selectedCityId},cinemaId=${openCinemaId},date=${d})}"
+               th:classappend="${d == selectedDate} ? 'active'"
+               class="dbtn">
+              <span class="dn" th:text="${d.dayOfMonth}">29</span>
+              <span class="dm" th:text="${'Th' + d.monthValue}">Th6</span>
+              <span class="dd"
+                    th:text="${iter.index == 0 ? 'Hôm nay' : (iter.index == 1 ? 'Ngày mai' : #temporals.format(d,'EEE','vi'))}">
+                T2</span>
+            </a>
+          </th:block>
+        </div>
+
+        <!-- Movies + slots -->
+        <!-- showtimeMap: cinemaId → { "movieId|format" → [ShowTime,...] } -->
+        <th:block th:if="${showtimeMap != null and showtimeMap.containsKey(openCinemaId)}">
+
+          <!-- Group by movie: collect distinct movieIds from keys "mid|fmt" -->
+          <!-- We iterate entries and track current movie manually via Thymeleaf -->
+          <div th:each="entry : ${showtimeMap.get(openCinemaId)}"
+               th:with="parts=${#strings.arraySplit(entry.key,'|')},
+                        mid=${parts[0]},
+                        fmt=${parts[1]},
+                        firstSlot=${entry.value[0]}">
+
+            <!-- Movie header row — show only for first format of this movie -->
+            <div class="mrow"
+                 th:id="'m-' + ${mid}">
+              <div class="mrowi">
+                <div class="pthumb">
+                  <img th:if="${firstSlot.movie.posterUrl != null}"
+                       th:src="${firstSlot.movie.posterUrl}"
+                       th:alt="${firstSlot.movie.title}"/>
+                  <i th:if="${firstSlot.movie.posterUrl == null}"
+                     class="bi bi-film"></i>
+                </div>
+                <div class="minfo">
+                  <div class="mtitle" th:text="${firstSlot.movie.title}">JOKER</div>
+                  <div class="mmeta">
+                    <!-- Age rating chip -->
+                    <span th:text="${firstSlot.movie.ageRating == 'C' ? 'C18' : firstSlot.movie.ageRating}"
+                          th:classappend="${firstSlot.movie.ageRating == 'C' or firstSlot.movie.ageRating == 'T18'} ? 'cc18'
+                                        : (${firstSlot.movie.ageRating == 'T16'} ? 'ct16'
+                                        : (${firstSlot.movie.ageRating == 'T13'} ? 'ct13' : 'cp'))"
+                          class="chip">P</span>
+                    <span th:text="${firstSlot.movie.durationMinutes + ' phút'}">138 phút</span>
+                    <span class="dot"></span>
+                    <span class="starr">
+                      <i class="bi bi-star-fill" style="font-size:10px"></i>
+                      <span th:text="${firstSlot.movie.averageRating}">8.9</span>
+                    </span>
+                  </div>
+
+                  <!-- Format label + time slots -->
+                  <div class="fgrp">
+                    <div class="flbl" th:text="${fmt}">2D</div>
+                    <div class="slots">
+                      <th:block th:each="st,si : ${entry.value}">
+                        <a th:href="@{/chon-ghe(showtimeId=${st.showtimeId})}"
+                           th:classappend="${si.last} ? 'alm'"
+                           class="slot"
+                           th:text="${st.timeLabel}">19:45</a>
+                      </th:block>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /entry loop -->
+        </th:block>
+
+        <!-- Empty: no showtimes on this date -->
+        <div th:if="${showtimeMap == null or !showtimeMap.containsKey(openCinemaId) or #maps.isEmpty(showtimeMap.get(openCinemaId))}"
+             class="empty" style="padding:32px 0">
+          <i class="bi bi-calendar-x"></i>
+          <p>Không có suất chiếu vào ngày này.</p>
+        </div>
+
+      </div><!-- /spanel -->
+    </div><!-- /cinema card -->
+
+  </div><!-- /container -->
+</main>
+
+<!-- ══ FOOTER ══════════════════════════════════════════════ -->
+<footer class="sfooter">
+  <div class="container-xl px-3">
+    <div class="row g-4 pb-2">
+      <div class="col-12 col-md-5">
+        <div class="fb">CineMax</div>
+        <p class="fd">Hệ thống rạp chiếu phim hiện đại bậc nhất với công nghệ IMAX và âm thanh vòm Dolby Atmos đỉnh cao.</p>
+      </div>
+      <div class="col-12 col-md-7">
+        <div class="fct">Chăm sóc khách hàng</div>
+        <div class="fci"><i class="bi bi-telephone-fill text-danger"></i>&nbsp;1900 1234</div>
+        <div class="fci"><i class="bi bi-envelope-fill text-danger"></i>&nbsp;contact@cinemax.vn</div>
+        <div class="fci"><i class="bi bi-clock-fill text-danger"></i>&nbsp;08:00 – 24:00 (Hàng ngày)</div>
+      </div>
+    </div>
+    <div class="fbot">© 2024 CineMax. All rights reserved. Cinematic Noir Experience.</div>
+  </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Client-side search filter (filter existing cinema cards)
+  document.getElementById('searchInput').addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.cinema-card');
+    let visible = 0;
+    cards.forEach(card => {
+      const name = card.querySelector('.cname')?.textContent.toLowerCase() || '';
+      const addr = card.querySelector('.caddr span')?.textContent.toLowerCase() || '';
+      const show = name.includes(q) || addr.includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('countNum').textContent = visible;
+  });
+</script>
+</body>
+</html>
