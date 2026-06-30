@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "show_time")
@@ -44,6 +46,9 @@ public class ShowTime {
     public void setDeleted(Boolean deleted) {
         isDeleted = deleted;
     }
+
+    @OneToMany(mappedBy = "showtime", fetch = FetchType.LAZY)
+    private List<Ticket> tickets = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -93,4 +98,11 @@ public class ShowTime {
         this.isDeleted = isDeleted;
     }
 
+    public List<Ticket> getTickets() {
+        return tickets;
+    }
+
+    public void setTickets(List<Ticket> tickets) {
+        this.tickets = tickets;
+    }
 }

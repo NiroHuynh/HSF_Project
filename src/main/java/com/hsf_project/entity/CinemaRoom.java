@@ -23,10 +23,10 @@ public class CinemaRoom {
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @Size(max = 30)
+    @Size(max = 20)
     @NotNull
     @Nationalized
-    @Column(name = "room_type", nullable = false, length = 30)
+    @Column(name = "room_type", nullable = false, length = 20)
     private String roomType;
 
     @NotNull
@@ -100,8 +100,16 @@ public class CinemaRoom {
         return roomType;
     }
 
-    public void setRoomType(String roomType) {
-        this.roomType = roomType;
+    public void setRoomType(String rooomType) {
+        this.roomType = rooomType;
+    }
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
     }
 
     public Integer getTotalSeats() {
