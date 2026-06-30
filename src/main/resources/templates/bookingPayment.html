@@ -175,6 +175,7 @@
     <input type="hidden" name="seatTotal" th:value="${seatTotal}"/>
     <input type="hidden" name="serviceFee" th:value="${serviceFee}"/>
     <input type="hidden" name="discountAmount" id="discountHidden" th:value="${discount}"/>
+    <input type="hidden" name="promotionId" id="promotionIdHidden" value=""/>
     <input type="hidden"
            th:each="entry : ${comboQueryParams}"
            th:name="${'combo_' + entry.key}"
@@ -310,19 +311,14 @@
 
 <script th:inline="javascript">
     /*
-     * Mock áp mã khuyến mãi 100% phía client (demo). Khi nối DB thật,
-     * thay bằng gọi PromotionService kiểm tra bảng `promotion`
-     * (code, discount_type, discount_value, start_date/end_date, usage_limit).
+     * Áp mã khuyến mãi: gọi AJAX tới /booking/apply-promo, server validate
+     * thật bằng BookingPromotionService (bảng `promotion`).
      */
-    const mockPromoCodes = {
-        'SUMMER10': { type: 'PERCENT', value: 10 },
-        'GIAM20K': { type: 'FIXED', value: 20000 }
-    };
-
     const seatTotal = Number(/*[[${seatTotal}]]*/ 0);
     const comboTotal = Number(/*[[${comboTotal}]]*/ 0);
     const serviceFee = Number(/*[[${serviceFee}]]*/ 0);
     let currentDiscount = Number(/*[[${discount}]]*/ 0);
+    let currentPromotionId = null; // null = chưa áp mã nào, dùng ở bước Confirm sau
 
     function formatVnd(amount) {
         return Math.round(amount).toLocaleString('vi-VN') + ' đ';
@@ -333,30 +329,40 @@
         document.getElementById('grandTotalDisplay').textContent = formatVnd(grand);
         document.getElementById('discountDisplay').textContent = '- ' + formatVnd(currentDiscount);
         document.getElementById('discountHidden').value = currentDiscount;
+        document.getElementById('promotionIdHidden').value = currentPromotionId ?? '';
     }
 
-    document.getElementById('applyPromoBtn').addEventListener('click', () => {
-        const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+    document.getElementById('applyPromoBtn').addEventListener('click', async () => {
+        const code = document.getElementById('promoCodeInput').value.trim();
         const msgEl = document.getElementById('promoMessage');
-        const promo = mockPromoCodes[code];
 
         if (!code) {
             msgEl.textContent = '';
             currentDiscount = 0;
+            currentPromotionId = null;
             recalcTotal();
             return;
         }
 
-        if (!promo) {
-            currentDiscount = 0;
-            msgEl.textContent = 'Mã không hợp lệ hoặc đã hết hạn.';
+        const orderAmount = seatTotal + comboTotal;
+
+        try {
+            const res = await fetch(
+                '/booking/apply-promo?code=' + encodeURIComponent(code) + '&orderAmount=' + orderAmount,
+                { method: 'POST' }
+            );
+            const result = await res.json(); // { valid, message, discountAmount, promotionId }
+
+            msgEl.textContent = result.message;
+            msgEl.style.color = result.valid ? 'var(--color-status-done)' : 'var(--color-brand-red)';
+
+            currentDiscount = result.valid ? Number(result.discountAmount) : 0;
+            currentPromotionId = result.valid ? result.promotionId : null;
+        } catch (err) {
+            msgEl.textContent = 'Không thể kiểm tra mã lúc này, vui lòng thử lại.';
             msgEl.style.color = 'var(--color-brand-red)';
-        } else {
-            currentDiscount = promo.type === 'PERCENT'
-                ? Math.round((seatTotal + comboTotal) * promo.value / 100)
-                : promo.value;
-            msgEl.textContent = 'Áp dụng mã thành công, giảm ' + formatVnd(currentDiscount) + '.';
-            msgEl.style.color = 'var(--color-status-done)';
+            currentDiscount = 0;
+            currentPromotionId = null;
         }
 
         recalcTotal();
@@ -369,6 +375,8 @@
             item.classList.add('is-selected');
         });
     });
+
+    recalcTotal();
 </script>
 
 </body>

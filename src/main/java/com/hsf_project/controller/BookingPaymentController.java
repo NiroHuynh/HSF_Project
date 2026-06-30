@@ -2,16 +2,18 @@ package com.hsf_project.controller;
 
 import com.hsf_project.entity.Combo;
 import com.hsf_project.entity.PaymentMethod;
-import com.hsf_project.service.BookingComboService;
-import com.hsf_project.service.BookingPaymentService;
+import com.hsf_project.entity.ShowTime;
+import com.hsf_project.service.ComboService;
+import com.hsf_project.service.PaymentMethodService;
+import com.hsf_project.service.PromotionService;
+import com.hsf_project.service.ShowTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -25,10 +27,16 @@ public class BookingPaymentController {
     private static final BigDecimal SERVICE_FEE = new BigDecimal("3000");
 
     @Autowired
-    private BookingPaymentService bookingPaymentService;
+    private PaymentMethodService paymentMethodService;
 
     @Autowired
-    private BookingComboService bookingComboService;
+    private ComboService bookingComboService;
+
+    @Autowired
+    private PromotionService promotionService;
+
+    @Autowired
+    private ShowTimeService showTimeService;
 
     @GetMapping("/payment")
     public String showPaymentPage(
@@ -74,7 +82,7 @@ public class BookingPaymentController {
         BigDecimal discount = BigDecimal.ZERO;
         BigDecimal grandTotal = seatTotal.add(comboTotal).add(SERVICE_FEE).subtract(discount);
 
-        List<PaymentMethod> paymentMethods = bookingPaymentService.getActiveMethods();
+        List<PaymentMethod> paymentMethods = paymentMethodService.getActiveMethods();
         Long defaultPaymentMethodId = paymentMethods.isEmpty() ? null : paymentMethods.get(0).getId();
 
         model.addAttribute("showtimeId", showtimeId);
@@ -87,16 +95,34 @@ public class BookingPaymentController {
         model.addAttribute("serviceFee", SERVICE_FEE);
         model.addAttribute("discount", discount);
         model.addAttribute("grandTotal", grandTotal);
-        model.addAttribute("showtimeInfo", mockShowtimeInfo(showtimeId)); // TODO: vẫn mock, xem ghi chú dưới
+        model.addAttribute("showtimeInfo", loadShowtimeInfo(showtimeId));
         model.addAttribute("paymentMethods", paymentMethods);
         model.addAttribute("defaultPaymentMethodId", defaultPaymentMethodId);
 
         return "bookingPayment";
     }
 
-    // TODO: thay bằng BookingShowtimeService thật khi có Entity ShowTime/Movie/CinemaRoom/Cinema.
-    private ShowtimeInfo mockShowtimeInfo(Long showtimeId) {
-        return new ShowtimeInfo("Dune: Part Two", "20/05/2026 19:30", "Screen 04", "CINEMAX IMAX");
+    /**
+     * MỚI: endpoint cho JS ở trang Thanh toán gọi AJAX khi người dùng bấm "Áp dụng".
+     * Trả về JSON { valid, message, discountAmount, promotionId } lấy THẬT từ bảng promotion.
+     */
+    @PostMapping("/apply-promo")
+    @ResponseBody
+    public PromotionService.PromotionResult applyPromo(
+            @RequestParam String code,
+            @RequestParam BigDecimal orderAmount) {
+        return promotionService.validate(code, orderAmount);
+    }
+
+    private ShowtimeInfo loadShowtimeInfo(Long showtimeId) {
+        ShowTime showtime = showTimeService.getById(showtimeId);
+
+        String startTimeLabel = showtime.getStartTime()
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        String roomName = showtime.getRoom().getName();
+        String formatLabel = "CINEMAX " + showtime.getRoom().getRoomType(); // vd: "CINEMAX IMAX"
+
+        return new ShowtimeInfo(showtime.getMovie().getTitle(), startTimeLabel, roomName, formatLabel);
     }
 
     public record SelectedCombo(String name, int quantity, BigDecimal lineTotal) {
