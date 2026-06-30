@@ -4,6 +4,6 @@ import com.hsf_project.entity.PaymentMethod;
 
 import java.util.List;
 
-public interface BookingPaymentMethodService {
+public interface BookingPaymentService {
     List<PaymentMethod> getActiveMethods();
 }

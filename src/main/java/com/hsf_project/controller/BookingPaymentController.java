@@ -3,7 +3,7 @@ package com.hsf_project.controller;
 import com.hsf_project.entity.Combo;
 import com.hsf_project.entity.PaymentMethod;
 import com.hsf_project.service.BookingComboService;
-import com.hsf_project.service.BookingPaymentMethodService;
+import com.hsf_project.service.BookingPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,7 +25,7 @@ public class BookingPaymentController {
     private static final BigDecimal SERVICE_FEE = new BigDecimal("3000");
 
     @Autowired
-    private BookingPaymentMethodService bookingPaymentMethodService;
+    private BookingPaymentService bookingPaymentService;
 
     @Autowired
     private BookingComboService bookingComboService;
@@ -74,7 +74,7 @@ public class BookingPaymentController {
         BigDecimal discount = BigDecimal.ZERO;
         BigDecimal grandTotal = seatTotal.add(comboTotal).add(SERVICE_FEE).subtract(discount);
 
-        List<PaymentMethod> paymentMethods = bookingPaymentMethodService.getActiveMethods();
+        List<PaymentMethod> paymentMethods = bookingPaymentService.getActiveMethods();
         Long defaultPaymentMethodId = paymentMethods.isEmpty() ? null : paymentMethods.get(0).getId();
 
         model.addAttribute("showtimeId", showtimeId);
