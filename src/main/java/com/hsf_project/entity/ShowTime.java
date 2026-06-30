@@ -38,6 +38,15 @@ public class ShowTime {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
     @OneToMany(mappedBy = "showtime", fetch = FetchType.LAZY)
     private List<Ticket> tickets = new ArrayList<>();
 
@@ -87,14 +96,6 @@ public class ShowTime {
 
     public void setIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
-    }
-
-    public Boolean getDeleted() {
-        return isDeleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
     }
 
     public List<Ticket> getTickets() {

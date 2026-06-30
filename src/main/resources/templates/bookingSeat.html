@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${showtime.movieTitle()} + ' - Chọn ghế - CineMax'">Chọn ghế - CineMax</title>
+    <title th:text="${showtime.movie.title} + ' - Chọn ghế - CineMax'">Chọn ghế - CineMax</title>
 
     <!-- Design system gốc của dự án (giữ nguyên, không định nghĩa lại token) -->
     <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css"/>
@@ -200,22 +200,23 @@
     <div class="flex-between flex-wrap gap-md mt-xl mb-lg">
         <div>
             <div class="d-flex gap-sm" style="align-items:center;">
-                <span class="chip chip-t16" th:text="${showtime.ageRating()}">T16</span>
-                <h1 class="headline-md" th:text="${showtime.movieTitle()}">Tên phim</h1>
+                <span class="chip chip-t16" th:text="${showtime.movie.ageRating}">T16</span>
+                <h1 class="headline-md" th:text="${showtime.movie.title}">Tên phim</h1>
             </div>
 
             <div class="d-flex gap-lg flex-wrap mt-sm body-sm text-secondary">
                 <span class="d-flex gap-xs" style="align-items:center;">
                     <span class="material-symbols-outlined" style="font-size:16px;">location_on</span>
-                    <span th:text="${showtime.cinemaName()}">Tên rạp</span>
+                    <span th:text="${showtime.room.cinema.name}">Tên rạp</span>
                 </span>
                 <span class="d-flex gap-xs" style="align-items:center;">
                     <span class="material-symbols-outlined" style="font-size:16px;">theaters</span>
-                    <span th:text="${showtime.roomName()}">Phòng chiếu</span>
+                    <span th:text="${showtime.room.name}">Phòng chiếu</span>
                 </span>
                 <span class="d-flex gap-xs" style="align-items:center;">
                     <span class="material-symbols-outlined" style="font-size:16px;">calendar_month</span>
-                    <span th:text="${showtime.startTime()} + ' ~ ' + ${showtime.endTime()}">Giờ chiếu</span>
+                    <span th:text="${#temporals.format(showtime.startTime, 'dd/MM/yyyy HH:mm')} + ' ~ '
+                                        + ${#temporals.format(showtime.endTime, 'dd/MM/yyyy HH:mm')}">Giờ chiếu</span>
                 </span>
             </div>
         </div>
@@ -242,10 +243,10 @@
                     class="seat"
                     th:each="seat : ${row.seats}"
                     th:classappend="${seat.cssClass()}"
-                    th:text="${seat.booked() ? '✕' : seat.code()}"
-                    th:attr="data-seat-code=${seat.code()}, data-seat-type=${seat.type()}"
-                    th:disabled="${seat.booked()}"
-                    th:aria-label="${'Ghế ' + seat.code()}">
+                    th:text="${seat.booked ? '✕' : seat.code}"
+                    th:attr="data-seat-code=${seat.code}, data-seat-type=${seat.type}"
+                    th:disabled="${seat.booked}"
+                    th:aria-label="${'Ghế ' + seat.code}">
                 A1
             </button>
         </div>
