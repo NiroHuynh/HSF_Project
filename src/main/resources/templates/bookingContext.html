@@ -273,44 +273,32 @@
                 th:if="${movie.ageRating != null}"
                 th:text="${movie.ageRating}"
                 th:classappend="${movie.ageRating == 'T18'} ? 'chip-t18' : (${movie.ageRating == 'P'} ? 'chip-p' : 'chip-t16')">
-            T16
           </span>
                     <span class="label-sm text-secondary movie-detail__genres">
             <span th:each="genre, iter : ${movie.genres}">
-              <span th:text="${genre.name}">ACTION</span><span th:unless="${iter.last}"> / </span>
+                <span th:text="${genre.name}"></span>
+                <span th:unless="${iter.last}"> / </span>
             </span>
             <span th:if="${#lists.isEmpty(movie.genres)}">Đang cập nhật</span>
           </span>
                 </div>
 
-                <h1 class="headline-lg movie-detail__title" th:text="${movie.title}">JOKER: FOLIE À DEUX</h1>
+                <h1 class="headline-lg movie-detail__title" th:text="${movie.title}"></h1>
 
                 <div class="movie-detail__meta">
           <span class="movie-detail__meta-item">
             <span class="material-symbols-outlined">schedule</span>
-            <span th:text="${movie.durationMinutes} + ' Phút'">138 Phút</span>
+            <span th:text="${movie.durationMinutes} + ' Phút'"></span>
           </span>
                     <span class="movie-detail__meta-item movie-detail__rating">
             <span class="material-symbols-outlined">star</span>
-            <span th:text="${movie.averageRating} + '/10'">8.9/10</span>
+            <span th:text="${movie.averageRating} + '/10'"></span>
           </span>
                 </div>
             </div>
         </div>
 
         <!-- ===================== 2. CHỌN NGÀY XEM ===================== -->
-        <div class="section-header">
-            <h2 class="section-title" style="margin-bottom:0;">CHỌN NGÀY XEM</h2>
-            <div class="date-carousel__nav">
-                <button class="icon-btn" type="button" onclick="document.getElementById('dateCarousel').scrollBy({left:-200,behavior:'smooth'})">
-                    <span class="material-symbols-outlined">chevron_left</span>
-                </button>
-                <button class="icon-btn" type="button" onclick="document.getElementById('dateCarousel').scrollBy({left:200,behavior:'smooth'})">
-                    <span class="material-symbols-outlined">chevron_right</span>
-                </button>
-            </div>
-        </div>
-
         <div class="date-carousel" id="dateCarousel">
             <a th:each="d : ${showDates}"
                class="date-pill"
@@ -329,27 +317,27 @@
                th:classappend="${c.id == selectedCityId} ? 'active' : ''"
                th:text="${c.name}"
                th:href="@{/booking/movie/{id}(id=${movie.id}, cityId=${c.id}, date=${selectedDate})}">
-                Hồ Chí Minh
+
             </a>
         </div>
 
         <!-- ===================== 4. DANH SÁCH RẠP + GIỜ CHIẾU ===================== -->
         <div class="cinema-schedule-list" th:if="${not #lists.isEmpty(cinemaSchedules)}">
             <div class="cinema-schedule-card" th:each="cinema : ${cinemaSchedules}">
-                <h3 class="cinema-schedule-card__name" th:text="${cinema.name}">CGV PANDORA CITY</h3>
+                <h3 class="cinema-schedule-card__name" th:text="${cinema.name}"></h3>
                 <p class="cinema-schedule-card__address">
-                    <span class="material-symbols-outlined">location_on</span>
-                    <span th:text="${cinema.address}">1/1 Trường Chinh, P. Tây Thạnh, Q. Tân Phú</span>
+                    <span class="material-symbols-outlined"></span>
+                    <span th:text="${cinema.address}"></span>
                 </p>
 
-                <div class="cinema-schedule-card__format-group" th:each="group : ${cinema.formatGroups}">
-                    <span class="label-sm cinema-schedule-card__format-label" th:text="${group.key}">2D</span>
+                <div class="cinema-schedule-card__format-group" th:each="group : ${cinema.cinemaRooms}">
+                    <span class="label-sm cinema-schedule-card__format-label" th:text="${group.roomType}"></span>
                     <div class="showtime-row">
-                        <a th:each="slot : ${group.value}"
+                        <a th:each="slot : ${group.showTimes}"
                            class="showtime-btn"
-                           th:text="${slot.timeLabel}"
+                           th:text="${#temporals.format(slot.startTime, 'HH:mm')}"
                            th:href="@{/booking/seats(showtimeId=${slot.id})}">
-                            10:00
+
                         </a>
                     </div>
                 </div>
