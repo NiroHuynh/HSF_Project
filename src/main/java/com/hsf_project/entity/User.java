@@ -18,7 +18,7 @@ public class User {
     private Long id;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
@@ -185,5 +185,12 @@ public class User {
 
     public void setCinema(Cinema cinema) {
         this.cinema = cinema;
+    }
+    public String getFullName() {
+        if (this.firstName == null && this.lastName == null) {
+            return "Tài khoản";
+        }
+        // Gộp Họ và Tên lại với nhau (Ví dụ: Nguyễn + Văn A = Nguyễn Văn A)
+        return (this.firstName != null ? this.firstName : "") + " " + (this.lastName != null ? this.lastName : "");
     }
 }

@@ -53,33 +53,33 @@ INSERT INTO users
  date_of_birth, gender, status, is_deleted)
 VALUES
     (1, N'Minh',  N'Nguyễn Quang', 'admin@cinemax.vn',      '0900000001',
-     '$2a$10$placeholderHashAdmin001', '1990-01-15', N'Nam', 'ACTIVE',   0),
+     '123456', '1990-01-15', N'Nam', 'ACTIVE',   0),
 
 -- 6 STAFF — moi nguoi phu trach 1 rap (gan cinema_id sau khi seed cinema)
     (2, N'Hà',    N'Trần Thị',     'staff.ha@cinemax.vn',     '0900000002',
-     '$2a$10$placeholderHashStaff002', '1996-03-22', N'Nữ',  'ACTIVE',   0),
+     '123456', '1996-03-22', N'Nữ',  'ACTIVE',   0),
 
     (2, N'Tuấn',  N'Lê Văn',       'staff.tuan@cinemax.vn',   '0900000003',
-     '$2a$10$placeholderHashStaff003', '1995-06-10', N'Nam', 'ACTIVE',   0),
+     '123456', '1995-06-10', N'Nam', 'ACTIVE',   0),
 
     (2, N'Thảo',  N'Phan Thị',     'staff.thao@cinemax.vn',   '0900000004',
-     '$2a$10$placeholderHashStaff004', '1997-02-18', N'Nữ',  'ACTIVE',   0),
+     '123456', '1997-02-18', N'Nữ',  'ACTIVE',   0),
 
     (2, N'Đức',   N'Vũ Quang',     'staff.duc@cinemax.vn',    '0900000005',
-     '$2a$10$placeholderHashStaff005', '1994-09-05', N'Nam', 'ACTIVE',   0),
+     '123456', '1994-09-05', N'Nam', 'ACTIVE',   0),
 
     (2, N'Trang', N'Đỗ Thị',       'staff.trang@cinemax.vn',  '0900000006',
      '$2a$10$placeholderHashStaff006', '1998-12-01', N'Nữ',  'ACTIVE',   0),
 
     (2, N'Bảo',   N'Hồ Nguyễn',    'staff.bao@cinemax.vn',    '0900000007',
-     '$2a$10$placeholderHashStaff007', '1996-07-25', N'Nam', 'ACTIVE',   0),
+     '123456', '1996-07-25', N'Nam', 'ACTIVE',   0),
 
 -- 4 CUSTOMER
     (3, N'Phong', N'Huỳnh Tấn',    'phong.huynh@gmail.com', '0901234567',
-     '$2a$10$placeholderHashCust003', '1999-07-08',  N'Nam', 'ACTIVE',   0),
+     '123456', '1999-07-08',  N'Nam', 'ACTIVE',   0),
 
     (3, N'Mai',   N'Nguyễn Thị',   'mai.nguyen@gmail.com',  '0912345678',
-     '$2a$10$placeholderHashCust004', '2001-11-02',  N'Nữ',  'ACTIVE',   0),
+     '123456', '2001-11-02',  N'Nữ',  'ACTIVE',   0),
 
     (3, N'Khánh', N'Trần Gia',     'khanh.tran@gmail.com',  '0923456789',
      '$2a$10$placeholderHashCust005', '1998-05-19',  N'Nam', 'ACTIVE',   0),
@@ -148,42 +148,42 @@ VALUES
      N'Arthur Fleck đối diện thế giới nội tâm hỗn loạn khi mối quan hệ với Harley Quinn ngày càng sâu đậm, giữa bối cảnh phiên tòa xét xử căng thẳng tại Gotham.',
      138, N'Todd Phillips',
      N'Joaquin Phoenix, Lady Gaga, Brendan Gleeson',
-     '2026-09-15', '/assets/posters/joker-folie-a-deux.jpg',
-     'T18', 8.9, 'NOW_SHOWING', 0),
+     '2026-09-15', '/images/joker.jpeg',
+     'T18', 9.9, 'NOW_SHOWING', 0),
 
     (N'Dune: Part Two',
      N'Paul Atreides tiếp tục hành trình báo thù, tìm cách ngăn chặn tương lai đen tối và đoàn kết người Fremen để giành lại quyền kiểm soát Arrakis.',
      166, N'Denis Villeneuve',
      N'Timothée Chalamet, Zendaya, Rebecca Ferguson',
-     '2026-04-01', '/assets/posters/dune-part-two.jpg',
-     'T13', 8.7, 'NOW_SHOWING', 0),
+     '2026-04-01', '/images/parttwo.jpeg',
+     'T13', 9.9, 'NOW_SHOWING', 0),
 
     (N'Lằn Ranh Sinh Tử',
      N'Một cựu cảnh sát buộc phải truy đuổi tổ chức buôn người xuyên quốc gia để cứu con gái trước khi quá muộn.',
      124, N'Lê Minh Khoa',
      N'Trấn Thành, Ngọc Lan, Hữu Long',
-     '2026-08-01', '/assets/posters/lan-ranh-sinh-tu.jpg',
-     'T16', 7.8, 'NOW_SHOWING', 0),
+     '2026-08-01', '/images/lanranhsinhtu.jpeg',
+     'T16', 9.9, 'NOW_SHOWING', 0),
 
     (N'Đường Đua Tốc Độ',
      N'Một tay đua trẻ phải vượt qua quá khứ để giành chiến thắng trong giải đua xuyên Việt lớn nhất từ trước đến nay.',
      110, N'Phan Đăng Vũ',
      N'Quốc Anh, Thuý Diễm, Bảo Long',
-     '2026-09-01', '/assets/posters/duong-dua-toc-do.jpg',
-     'P', 7.5, 'NOW_SHOWING', 0),
+     '2026-09-01', '/images/duongduatocdo.jpeg',
+     'P', 9.9, 'NOW_SHOWING', 0),
 
     (N'Vũ Trụ Song Hành',
      N'Hai nhà vật lý phát hiện cánh cổng dẫn đến một vũ trụ song song, nơi mọi lựa chọn của họ đã rẽ theo hướng hoàn toàn khác.',
      132, N'Đỗ Gia Linh',
      N'Mai Tài Phến, Nhã Phương',
-     '2026-12-10', '/assets/posters/vu-tru-song-hanh.jpg',
+     '2026-7-1', '/images/vutrusonghanh.jpeg',
      'T13', 0, 'COMING_SOON', 0),
 
     (N'Mùa Hè Của Em',
      N'Câu chuyện tình nhẹ nhàng giữa hai người trẻ gặp lại nhau sau 10 năm xa cách tại chính nơi họ từng chia tay.',
      105, N'Nguyễn Hữu Tuấn',
      N'Khả Ngân, Thanh Sơn',
-     '2026-11-20', '/assets/posters/mua-he-cua-em.jpg',
+     '2026-7-1', '/images/muahecuaem.jpeg',
      'P', 0, 'COMING_SOON', 0),
 
     (N'Bóng Ma Quá Khứ',
@@ -191,7 +191,84 @@ VALUES
      98, N'Trần Bửu Lộc',
      N'Lan Ngọc, Việt Hương',
      '2026-02-14', '/assets/posters/bong-ma-qua-khu.jpg',
-     'T18', 6.9, 'ENDED', 0);
+     'T18', 6.9, 'ENDED', 0),
+
+    -- ============================================================
+    -- NOW_SHOWING
+    -- ============================================================
+
+    (N'Kẻ Đánh Cắp Ký Ức',
+     N'Một nhà khoa học phát minh thiết bị có thể xâm nhập ký ức con người nhưng nhanh chóng bị cuốn vào âm mưu đánh cắp bí mật quốc gia.',
+     126, N'Nguyễn Khắc Minh',
+     N'Quốc Trường, Kaity Nguyễn, Hứa Vĩ Văn',
+     '2026-07-10', '/assets/posters/ke-danh-cap-ky-uc.jpg',
+     'T16', 8.4, 'NOW_SHOWING', 0),
+
+    (N'Đảo Bão',
+     N'Một nhóm du khách mắc kẹt trên hòn đảo sau cơn bão lớn và phát hiện nơi đây đang che giấu một phòng thí nghiệm bí mật.',
+     118, N'Bùi Quốc Việt',
+     N'Liên Bỉnh Phát, Thu Anh, Bình An',
+     '2026-06-28', '/assets/posters/dao-bao.jpg',
+     'T13', 7.9, 'NOW_SHOWING', 0),
+
+    (N'Cuộc Gọi Cuối Cùng',
+     N'Một nữ tổng đài viên nhận được cuộc gọi từ tương lai, cảnh báo về chuỗi thảm họa sẽ xảy ra trong vòng 24 giờ.',
+     112, N'Đặng Hoàng Nam',
+     N'Jun Vũ, Anh Dũng, Quang Tuấn',
+     '2026-07-02', '/assets/posters/cuoc-goi-cuoi-cung.jpg',
+     'T13', 8.1, 'NOW_SHOWING', 0),
+
+    (N'Biệt Đội Săn Bão',
+     N'Một nhóm chuyên gia khí tượng thực hiện nhiệm vụ nguy hiểm nhằm ngăn chặn siêu bão trước khi nó tàn phá miền Trung.',
+     130, N'Võ Thành Nhân',
+     N'Hồng Ánh, Kiều Minh Tuấn, Song Luân',
+     '2026-05-18', '/assets/posters/biet-doi-san-bao.jpg',
+     'P', 7.7, 'NOW_SHOWING', 0),
+
+    (N'Trọ Chơi Sinh Tồn',
+     N'Tám người xa lạ bị nhốt trong một khu công nghiệp bỏ hoang và buộc phải vượt qua hàng loạt thử thách để sống sót.',
+     121, N'Lê Quốc Bảo',
+     N'Rima Thanh Vy, Quốc Anh, Võ Điền Gia Huy',
+     '2026-06-20', '/assets/posters/tro-choi-sinh-ton.jpg',
+     'T18', 8.5, 'NOW_SHOWING', 0),
+
+    -- ============================================================
+    -- COMING_SOON
+    -- ============================================================
+
+    (N'Người Gác Hải Đăng',
+     N'Một người gác hải đăng già phát hiện những tín hiệu kỳ lạ ngoài khơi và dần hé lộ bí mật đã bị chôn vùi nhiều thập kỷ.',
+     114, N'Nguyễn Minh Đức',
+     N'NSƯT Thành Lộc, Lê Phương',
+     '2026-7-1', '/images/nguoigachaidang.jpeg',
+     'T13', 0, 'COMING_SOON', 0),
+
+    (N'Bản Giao Hưởng Cuối',
+     N'Một nhạc trưởng nổi tiếng phải hoàn thành buổi biểu diễn cuối cùng trong khi chống chọi với căn bệnh làm mất dần thính giác.',
+     109, N'Vũ Hải Long',
+     N'Isaac, Hoàng Hà, Hồng Đào',
+     '2026-7-1', '/images/bangiaohuongcuoi.jpeg',
+     'P', 0, 'COMING_SOON', 0),
+
+    (N'Chiến Dịch Sao Đỏ',
+     N'Lực lượng đặc nhiệm Việt Nam thực hiện nhiệm vụ giải cứu con tin tại một căn cứ bí mật nằm sâu trong rừng nhiệt đới.',
+     137, N'Trần Quốc Hưng',
+     N'Nhan Phúc Vinh, Hà Việt Dũng, Oanh Kiều',
+     '2026-11-08', '/assets/posters/chien-dich-sao-do.jpg',
+     'T16', 0, 'COMING_SOON', 0),
+    (N'Giấc Mơ Atlantis',
+     N'Một đoàn thám hiểm dưới đáy đại dương phát hiện tàn tích của nền văn minh Atlantis cùng sức mạnh vượt ngoài trí tưởng tượng.',
+     145, N'Phạm Tuấn Anh',
+     N'Khương Ngọc, Diễm My 9X, Huỳnh Anh',
+     '2026-12-05', '/assets/posters/giac-mo-atlantis.jpg',
+     'T13', 0, 'COMING_SOON', 0),
+
+    (N'Ánh Sáng Cuối Đường Hầm',
+     N'Một kỹ sư đường sắt và đội cứu hộ chạy đua với thời gian để giải cứu hàng trăm hành khách mắc kẹt trong vụ sập hầm.',
+     119, N'Đỗ Minh Quân',
+     N'Thanh Sơn, Lương Thu Trang, Doãn Quốc Đam',
+     '2026-10-30', '/assets/posters/anh-sang-cuoi-duong-ham.jpg',
+     'T13', 0, 'COMING_SOON', 0);
 GO
 
 /* ============================================================

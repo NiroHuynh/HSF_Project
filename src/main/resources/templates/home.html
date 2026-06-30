@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<!-- Khai báo sử dụng Thymeleaf engine -->
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>CineMax — Hệ Thống Đặt Vé Xem Phim</title>
+    <!-- Nhúng Font Inter và file style.css của thiết kế CineMax -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<!-- ============================================================
+   1. HEADER FRAGMENT
+   (Thay thế bằng fragment header có sẵn của bạn)
+   ============================================================ -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- ============================================================
+   2. HERO SECTION (Banner phim nổi bật đầu trang)
+   Hiển thị bộ phim bom tấn đang chiếu tiêu biểu (VD: Dune)
+   ============================================================ -->
+<section class="hero">
+    <!-- Ảnh nền backdrop lớn của phim nổi bật -->
+    <img class="hero__backdrop" th:src="@{/images/back_drop.png}" alt="back_drop">
+    <!-- Lớp phủ gradient tối dần từ trên xuống dưới theo design system -->
+    <div class="hero__gradient"></div>
+</section>
+
+<!-- ============================================================
+   3. PHIM ĐANG CHIẾU SECTION (Mối quan hệ status = 'NOW_SHOWING')
+   Sử dụng cấu trúc vòng lặp th:each để render danh sách phim từ database
+   ============================================================ -->
+<section class="section">
+    <div class="container">
+        <!-- Tiêu đề phân khu và nút Xem tất cả -->
+        <div class="section-header">
+            <h2 class="section-title">Phim Đang Chiếu</h2>
+            <a th:href="@{/movies?status='NOW_SHOWING'}" class="view-all">Xem tất cả ➔</a>
+        </div>
+
+        <!-- Grid danh sách phim sử dụng class .movie-grid -->
+        <div class="movie-grid">
+            <!-- Vòng lặp duyệt danh sách phim đang chiếu từ Controller -->
+            <!-- Thay thế danh sách tĩnh dưới đây bằng biến động ${nowShowingMovies} khi map code Java -->
+            <div class="movie-card" th:each="dto : ${nowShowingMovies}">
+                <!-- Ảnh poster phim tỉ lệ 2/3 -->
+                <img class="movie-card__poster" th:src="${dto.movie.posterUrl}" th:alt="${dto.movie.title}">
+                <div class="movie-card__overlay"></div>
+
+                <!-- Badge hiển thị điểm đánh giá trung bình lấy từ database -->
+                <div class="movie-card__rating">
+                    ⭐ <span th:text="${dto.movie.averageRating}">8.9</span>
+                </div>
+
+                <!-- Khối thông tin phim hiển thị ở phần đáy card -->
+                <div class="movie-card__info">
+                    <div class="movie-card__tags">
+                        <!-- Format phim (2D/3D/IMAX) -->
+                        <span class="chip chip-imax">IMAX</span>
+                        <!-- Phân loại độ tuổi (age_rating ENUM) -->
+                        <!-- Dùng th:classappend để thay đổi class màu sắc theo enum của bạn (Ví dụ: chip-t16, chip-p) -->
+                        <span class="chip" th:classappend="${'chip-' + #strings.toLowerCase(dto.movie.ageRating)}" th:text="${dto.movie.ageRating}">T16</span>
+                    </div>
+                    <!-- Tên phim -->
+                    <h3 class="movie-card__title" th:text="${dto.movie.title}">Chiến Binh Cuối Cùng</h3>
+                    <!-- Danh sách thể loại nối chuỗi từ bảng movie_genre -->
+                    <p class="movie-card__genre" th:text="${dto.genresString}">Hành động, Viễn tưởng</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+   4. PHIM SẮP CHIẾU SECTION (Mối quan hệ status = 'COMING_SOON')
+   Hiển thị badge ngày khởi chiếu lên góc trên bên trái
+   ============================================================ -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Phim Sắp Chiếu</h2>
+            <a th:href="@{/movies?status='COMING_SOON'}" class="view-all">Xem tất cả ➔</a>
+        </div>
+
+        <div class="movie-grid">
+            <!-- Vòng lặp duyệt danh sách phim sắp chiếu -->
+            <div class="movie-card movie-card--upcoming" th:each="dto : ${comingSoonMovies}">
+                <img class="movie-card__poster" th:src="${dto.movie.posterUrl}" th:alt="${dto.movie.title}">
+                <div class="movie-card__overlay"></div>
+
+                <!-- Badge hiển thị ngày khởi chiếu (release_date) đặc trưng của mục sắp chiếu -->
+                <div class="movie-card__date-badge" th:text="${#temporals.format(dto.movie.releaseDate, 'dd.MM.yyyy')}">22.03.2026</div>
+
+                <div class="movie-card__info">
+                    <div class="movie-card__tags">
+                        <!-- Phân loại độ tuổi -->
+                        <span class="chip" th:classappend="${'chip-' + #strings.toLowerCase(dto.movie.ageRating)}" th:text="${dto.movie.ageRating}">P</span>
+                    </div>
+                    <h3 class="movie-card__title" th:text="${dto.movie.title}">Hành Trình Vô Tận</h3>
+                    <p class="movie-card__genre" th:text="${dto.genresString}">Phiêu lưu, Kịch tính</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+   5. ƯU ĐÃI ĐỘC QUYỀN SECTION
+   Map trực tiếp với dữ liệu từ bảng promotion trong database
+   ============================================================ -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Ưu đãi độc quyền</h2>
+        </div>
+
+        <!-- Grid hiển thị danh sách các chương trình khuyến mãi đang hoạt động -->
+        <div class="promo-grid">
+            <!-- Vòng lặp duyệt danh sách khuyến mãi active -->
+            <div class="promo-card" th:each="promo : ${activePromotions}">
+                <!-- Ảnh banner của chương trình ưu đãi -->
+                <div class="relative">
+                    <img class="promo-card__image" th:src="@{/images/promo-banner.jpg}" alt="Promotion Banner">
+                    <!-- Nhãn phân loại loại mã giảm giá (Dựa vào trường discount_type) -->
+                    <span class="chip chip-promo promo-card__category-badge" th:text="${promo.discountType == 'PERCENT' ? 'MEMBER SPECIAL' : 'PARTNER DEALS'}">MEMBER SPECIAL</span>
+                </div>
+
+                <div class="promo-card__body">
+                    <!-- Tên chương trình khuyến mãi -->
+                    <h3 class="promo-card__title" th:text="${promo.name}">Mua 1 Tặng 1 Vé Phim 2D</h3>
+                    <!-- Mô tả ngắn điều kiện sử dụng -->
+                    <p class="promo-card__desc" th:text="${promo.description}">Áp dụng cho chủ thẻ thành viên CineMax Gold vào mỗi thứ 2 hàng tuần.</p>
+
+                    <!-- Phần chân card hiển thị Mã code độc quyền và Nút hành động bấm lấy/áp mã -->
+                    <div class="promo-card__footer">
+                        <span class="promo-card__code">🔑 CODE: <strong th:text="${promo.code}">CINEMAX50</strong></span>
+                        <button class="btn btn-primary btn-sm">NHẬN ƯU ĐÃI</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+   6. FOOTER FRAGMENT
+   (Thay thế bằng fragment footer có sẵn của bạn)
+   ============================================================ -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

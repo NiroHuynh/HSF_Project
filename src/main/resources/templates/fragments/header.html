@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"></head>
+<body>
+
+<!-- ============================================================
+     FRAGMENT: HEADER / NAVBAR
+     Cách dùng ở trang khác:
+     <div th:replace="~{fragments/header :: header}"></div>
+
+     Biến truyền vào (optional, set ở Controller qua model.addAttribute):
+     - activePage (String): "phim" | "rap" | "uu-dai" | "ve-cua-toi"  -> để tô active đúng menu
+     - currentUser (Object): null nếu chưa đăng nhập, có object User nếu đã đăng nhập
+       (currentUser cần có getter: getFullName(), getAvatarInitial() hoặc tương tự)
+     ============================================================ -->
+<nav class="navbar" th:fragment="header">
+  <div class="container">
+
+    <!-- Logo -->
+    <a th:href="@{/}" class="navbar-brand">CineMax</a>
+
+    <!-- Menu chính: Đã sửa lỗi vỡ dọc bằng d-flex flex-row -->
+    <ul class="navbar-nav d-flex flex-row">
+      <li>
+        <a th:href="@{/phim}" class="nav-link"
+           th:classappend="${activePage == 'phim'} ? ' active' : ''">Phim</a>
+      </li>
+      <li>
+        <a th:href="@{/rap}" class="nav-link"
+           th:classappend="${activePage == 'rap'} ? ' active' : ''">Rạp</a>
+      </li>
+      <li>
+        <a th:href="@{/uu-dai}" class="nav-link"
+           th:classappend="${activePage == 'uu-dai'} ? ' active' : ''">Ưu đãi</a>
+      </li>
+      <li>
+        <a th:href="@{/ve-cua-toi}" class="nav-link"
+           th:classappend="${activePage == 've-cua-toi'} ? ' active' : ''">Vé của tôi</a>
+      </li>
+    </ul>
+
+    <!-- Nút toggle menu mobile -->
+    <button class="navbar-toggler" type="button" aria-label="Mở menu" onclick="toggleNavbar()">
+      <span></span><span></span><span></span>
+    </button>
+
+    <!-- Khu vực bên phải -->
+    <div class="navbar-actions">
+
+<!--       TH1: Đã đăng nhập -> hiện avatar + tên-->
+      <div class="user-chip" th:if="${session.ttdn != null}">
+        <!-- Đã bọc thêm #strings.trim() để đảm bảo không lấy nhầm khoảng trắng -->
+        <div class="user-avatar" th:text="${#strings.substring(#strings.trim(session.ttdn.fullName), 0, 1)}">A</div>
+        <div class="user-info">
+          <div class="user-name" th:text="${session.ttdn.fullName}">Nguyễn Văn A</div>
+          <div class="user-role" th:text="${session.ttdn.role.roleName}"></div>
+        </div>
+      </div>
+
+      <!-- TH2: Chưa đăng nhập -> hiện nút Đăng nhập/Đăng ký -->
+      <a th:if="${session.ttdn == null}" th:href="@{/}" class="btn btn-primary btn-sm">
+        Đăng nhập / Đăng ký
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Script điều khiển menu mobile - chỉ cần load 1 lần, đặt cùng fragment header -->
+<script th:fragment="header-script">
+  function toggleNavbar() {
+    document.querySelector('.navbar-nav').classList.toggle('is-open');
+  }
+</script>
+
+</body>
+</html>
