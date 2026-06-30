@@ -173,7 +173,6 @@
     <input type="hidden" name="showtimeId" th:value="${showtimeId}"/>
     <input type="hidden" name="seatIds" th:value="${seatIds}"/>
     <input type="hidden" name="seatTotal" th:value="${seatTotal}"/>
-    <input type="hidden" name="serviceFee" th:value="${serviceFee}"/>
     <input type="hidden" name="discountAmount" id="discountHidden" th:value="${discount}"/>
     <input type="hidden" name="promotionId" id="promotionIdHidden" value=""/>
     <input type="hidden"
@@ -274,11 +273,6 @@
                       th:text="'- ' + ${#numbers.formatInteger(discount, 0, 'POINT')} + ' đ'">- 0 đ</span>
             </div>
 
-            <div class="price-row">
-                <span class="text-secondary body-sm">Phí dịch vụ</span>
-                <span th:text="${#numbers.formatInteger(serviceFee, 0, 'POINT')} + ' đ'">0 đ</span>
-            </div>
-
             <hr class="divider mt-lg mb-md">
 
             <div class="price-row price-row--total">
@@ -316,7 +310,6 @@
      */
     const seatTotal = Number(/*[[${seatTotal}]]*/ 0);
     const comboTotal = Number(/*[[${comboTotal}]]*/ 0);
-    const serviceFee = Number(/*[[${serviceFee}]]*/ 0);
     let currentDiscount = Number(/*[[${discount}]]*/ 0);
     let currentPromotionId = null; // null = chưa áp mã nào, dùng ở bước Confirm sau
 
@@ -325,7 +318,7 @@
     }
 
     function recalcTotal() {
-        const grand = seatTotal + comboTotal + serviceFee - currentDiscount;
+        const grand = seatTotal + comboTotal - currentDiscount;
         document.getElementById('grandTotalDisplay').textContent = formatVnd(grand);
         document.getElementById('discountDisplay').textContent = '- ' + formatVnd(currentDiscount);
         document.getElementById('discountHidden').value = currentDiscount;

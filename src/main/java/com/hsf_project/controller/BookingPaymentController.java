@@ -24,8 +24,6 @@ import java.util.Map;
 @RequestMapping("/booking")
 public class BookingPaymentController {
 
-    private static final BigDecimal SERVICE_FEE = new BigDecimal("3000");
-
     @Autowired
     private PaymentMethodService paymentMethodService;
 
@@ -80,7 +78,7 @@ public class BookingPaymentController {
         }
 
         BigDecimal discount = BigDecimal.ZERO;
-        BigDecimal grandTotal = seatTotal.add(comboTotal).add(SERVICE_FEE).subtract(discount);
+        BigDecimal grandTotal = seatTotal.add(comboTotal).subtract(discount);
 
         List<PaymentMethod> paymentMethods = paymentMethodService.getActiveMethods();
         Long defaultPaymentMethodId = paymentMethods.isEmpty() ? null : paymentMethods.get(0).getId();
@@ -92,7 +90,6 @@ public class BookingPaymentController {
         model.addAttribute("selectedCombos", selectedCombos);
         model.addAttribute("comboQueryParams", comboQueryParams);
         model.addAttribute("comboTotal", comboTotal);
-        model.addAttribute("serviceFee", SERVICE_FEE);
         model.addAttribute("discount", discount);
         model.addAttribute("grandTotal", grandTotal);
         model.addAttribute("showtimeInfo", loadShowtimeInfo(showtimeId));
