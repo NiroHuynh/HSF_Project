@@ -4,7 +4,7 @@ import com.hsf_project.entity.Combo;
 
 import java.util.List;
 
-public interface BookingComboService {
+public interface ComboService {
     List<Combo> getActiveCombos();
     Combo getById(Long id);
 }
