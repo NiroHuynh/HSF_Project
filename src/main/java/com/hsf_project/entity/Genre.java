@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "genre")
 public class Genre {
@@ -23,6 +26,25 @@ public class Genre {
     @ColumnDefault("0")
     @Column(name = "is_deleted")
     private Boolean isDeleted;
+
+    @ManyToMany(mappedBy = "genres")
+    private List<Movie> movies = new ArrayList<>();
+
+    public List<Movie> getMovies() {
+        return movies;
+    }
+
+    public void setMovies(List<Movie> movies) {
+        this.movies = movies;
+    }
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
 
     public Integer getId() {
         return id;
