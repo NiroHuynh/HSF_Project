@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "cinema")
 public class Cinema {
@@ -34,6 +37,29 @@ public class Cinema {
     @ColumnDefault("0")
     @Column(name = "is_deleted")
     private Boolean isDeleted;
+
+    @OneToMany(
+            mappedBy = "cinema",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL
+    )
+    private List<CinemaRoom> cinemaRooms = new ArrayList<>();
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public List<CinemaRoom> getCinemaRooms() {
+        return cinemaRooms;
+    }
+
+    public void setCinemaRooms(List<CinemaRoom> cinemaRooms) {
+        this.cinemaRooms = cinemaRooms;
+    }
 
     public Integer getId() {
         return id;
