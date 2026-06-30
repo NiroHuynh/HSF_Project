@@ -10,5 +10,5 @@ import java.util.List;
 
 public interface CinemaRepository extends JpaRepository<Cinema, Integer> {
     // All active cities (not soft-deleted)
-    List<Cinema> findByCityCityIdAndIsDeletedFalseOrderByName(Integer cityId);
+    List<Cinema> findByCityIdAndIsDeletedFalseOrderByName(Integer cityId);
 }

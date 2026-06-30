@@ -226,8 +226,8 @@
     <div class="slabel" style="margin-top:28px">Chọn thành phố</div>
     <div class="cpills">
       <a th:each="city : ${cities}"
-         th:href="@{/rap(cityId=${city.cityId})}"
-         th:classappend="${city.cityId == selectedCityId} ? 'active'"
+         th:href="@{/rap(cityId=${city.id})}"
+         th:classappend="${city.id == selectedCityId} ? 'active'"
          class="cpill"
          th:text="${city.name}">TP. Hồ Chí Minh</a>
     </div>
@@ -254,12 +254,12 @@
     </div>
 
     <div th:each="cinema : ${cinemas}"
-         th:id="'cc-' + ${cinema.cinemaId}"
-         th:classappend="${cinema.cinemaId == openCinemaId} ? 'open'"
+         th:id="'cc-' + ${cinema.id}"
+         th:classappend="${cinema.id == openCinemaId} ? 'open'"
          class="ccard cinema-card">
 
       <!-- Card header -->
-      <a th:href="@{/rap(cityId=${selectedCityId},cinemaId=${cinema.cinemaId},date=${selectedDate})}"
+      <a th:href="@{/rap(cityId=${selectedCityId},cinemaId=${cinema.id},date=${selectedDate})}"
          class="chdr text-decoration-none">
         <div class="clogo">CM</div>
         <div class="cmeta">
@@ -269,14 +269,14 @@
             <span th:text="${cinema.address}">1/1 Trường Chinh, Q. Tân Phú</span>
           </div>
           <div class="cfmts">
-            <th:block th:each="fmt : ${formatMap.get(cinema.cinemaId)}">
+            <th:block th:each="fmt : ${formatMap.get(cinema.id)}">
               <span th:text="${fmt}"
                     th:classappend="${fmt == 'IMAX'} ? 'fi' : (${fmt == '4DX'} ? 'f4' : (${fmt == 'VIP'} ? 'fv' : 'f2'))"
                     class="ftag">2D</span>
             </th:block>
           </div>
         </div>
-        <button th:classappend="${cinema.cinemaId == openCinemaId} ? 'rot'"
+        <button th:classappend="${cinema.id == openCinemaId} ? 'rot'"
                 class="tbtn"
                 aria-label="Xem lịch chiếu">
           <i class="bi bi-chevron-down"></i>
@@ -284,7 +284,7 @@
       </a>
 
       <!-- Showtime panel (only rendered when this cinema is expanded) -->
-      <div th:if="${cinema.cinemaId == openCinemaId}"
+      <div th:if="${cinema.id == openCinemaId}"
            class="spanel open">
 
         <!-- Date scroller -->
@@ -347,7 +347,7 @@
                     <div class="flbl" th:text="${fmt}">2D</div>
                     <div class="slots">
                       <th:block th:each="st,si : ${entry.value}">
-                        <a th:href="@{/chon-ghe(showtimeId=${st.showtimeId})}"
+                        <a th:href="@{/chon-ghe(showtimeId=${st.id})}"
                            th:classappend="${si.last} ? 'alm'"
                            class="slot"
                            th:text="${st.timeLabel}">19:45</a>

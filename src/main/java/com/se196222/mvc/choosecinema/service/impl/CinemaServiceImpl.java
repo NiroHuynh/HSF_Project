@@ -8,12 +8,16 @@ import com.se196222.mvc.choosecinema.repository.CinemaRoomRepository;
 import com.se196222.mvc.choosecinema.repository.CityRepository;
 import com.se196222.mvc.choosecinema.repository.ShowTimeRepository;
 import com.se196222.mvc.choosecinema.service.CinemaService;
+import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public class CinemaServiceImpl implements CinemaService {
 
     private final CityRepository       cityRepository;
@@ -39,12 +43,14 @@ public class CinemaServiceImpl implements CinemaService {
 
     @Override
     public List<Cinema> getCinemasByCity(Integer cityId) {
-        return cinemaRepository.findByCityCityIdAndIsDeletedFalseOrderByName(cityId);
+        return cinemaRepository.findByCityIdAndIsDeletedFalseOrderByName(cityId);
     }
 
     @Override
     public List<ShowTime> getShowtimes(Integer cinemaId, LocalDate date) {
-        return showTimeRepository.findByCinemaIdAndDate(cinemaId, date);
+        Instant startOfDay = date.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant endOfDay = date.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        return showTimeRepository.findByCinemaIdAndDate(cinemaId, startOfDay, endOfDay);
     }
 
     @Override

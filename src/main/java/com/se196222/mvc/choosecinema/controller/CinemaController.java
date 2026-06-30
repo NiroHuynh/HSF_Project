@@ -5,6 +5,7 @@ import com.se196222.mvc.choosecinema.entity.City;
 import com.se196222.mvc.choosecinema.entity.ShowTime;
 import com.se196222.mvc.choosecinema.service.CinemaService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.util.*;
 
+@Controller
 public class CinemaController {
     private final CinemaService cinemaService;
 
@@ -37,7 +39,7 @@ public class CinemaController {
         if (cities.isEmpty()) {
             model.addAttribute("cities", cities);
             model.addAttribute("cinemas", Collections.emptyList());
-            return "cinema/rap";
+            return "rap";
         }
 
         // 2. Default to first city if not selected
@@ -102,6 +104,6 @@ public class CinemaController {
         model.addAttribute("dateStrip",      dateStrip);
         model.addAttribute("showtimeMap",    showtimeMap);
 
-        return "cinema/rap";
+        return "rap";
     }
 }

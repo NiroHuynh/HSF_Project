@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "ShowTimes")
@@ -77,6 +79,12 @@ public class ShowTime {
 
     public void setIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
+    }
+
+    public String getTimeLabel() {
+        if (startTime == null) return "";
+        return startTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh"))
+                .toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
 }

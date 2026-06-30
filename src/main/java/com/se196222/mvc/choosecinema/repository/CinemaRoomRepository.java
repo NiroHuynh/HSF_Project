@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface CinemaRoomRepository extends JpaRepository<CinemaRoom, Integer> {
     // Rooms of a cinema (for deriving supported formats)
-    List<CinemaRoom> findByCinemaCinemaIdAndIsDeletedFalse(Integer cinemaId);
+    List<CinemaRoom> findByCinemaIdAndIsDeletedFalse(Integer cinemaId);
 
     // Distinct room_type values for a cinema
     @Query("SELECT DISTINCT r.roomType FROM CinemaRoom r " +
