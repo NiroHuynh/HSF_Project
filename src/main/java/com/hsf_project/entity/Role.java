@@ -23,7 +23,7 @@ public class Role {
     @NotNull
     @ColumnDefault("0")
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
 
     public Integer getId() {
         return id;
