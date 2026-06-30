@@ -8,7 +8,7 @@
     <!-- Design system gốc của dự án (giữ nguyên, không định nghĩa lại token) -->
     <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css"/>
 
-    <!-- Icon font Material Symbols — dùng để thay ảnh combo (chưa có cột ảnh trong DB) -->
+    <!-- Icon font Material Symbols — dùng cho navbar (notifications) và nút mũi tên ở action bar -->
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
 
@@ -60,35 +60,8 @@
             box-shadow: var(--shadow-card-hover);
         }
 
-        /* Khối icon thay cho ảnh combo (bảng combo chưa có cột ảnh) */
-        .combo-card__icon-wrap {
-            position: relative;
-            aspect-ratio: 16 / 9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--color-surface-raised);
-        }
-        .combo-card__icon {
-            font-size: 48px;
-            color: var(--color-text-secondary);
-        }
-        .combo-card__badge {
-            position: absolute;
-            top: var(--space-sm);
-            left: var(--space-sm);
-            padding: 3px 10px;
-            background: var(--color-brand-red);
-            color: #fff;
-            font-size: var(--text-label);
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            border-radius: var(--radius-xs);
-        }
-
         .combo-card__body {
-            padding: var(--space-md);
+            padding: var(--space-lg);
         }
         .combo-card__footer {
             display: flex;
@@ -227,25 +200,17 @@
 
         <div class="combo-card"
              th:each="combo : ${combos}"
-             th:attr="data-combo-id=${combo.id()},
-                       data-combo-price=${combo.price()},
-                       data-combo-name=${combo.name()}">
-
-            <div class="combo-card__icon-wrap">
-                <span class="combo-card__badge"
-                      th:if="${combo.badge() != null}"
-                      th:text="${combo.badge()}">BADGE</span>
-                <span class="material-symbols-outlined combo-card__icon"
-                      th:text="${combo.icon()}">local_movies</span>
-            </div>
+             th:attr="data-combo-id=${combo.id},
+                       data-combo-price=${combo.price},
+                       data-combo-name=${combo.name}">
 
             <div class="combo-card__body">
-                <div class="promo-card__title" th:text="${combo.name()}">Tên combo</div>
-                <div class="promo-card__desc" th:text="${combo.description()}">Mô tả combo</div>
+                <div class="promo-card__title" th:text="${combo.name}">Tên combo</div>
+                <div class="promo-card__desc" th:text="${combo.description}">Mô tả combo</div>
 
                 <div class="combo-card__footer">
                     <span class="combo-card__price"
-                          th:text="${#numbers.formatInteger(combo.price(), 0, 'POINT')} + ' đ'">0 đ</span>
+                          th:text="${#numbers.formatInteger(combo.price, 0, 'POINT')} + ' đ'">0 đ</span>
 
                     <div class="qty-stepper">
                         <button type="button" class="qty-btn qty-btn--minus" aria-label="Giảm số lượng">−</button>
@@ -270,8 +235,8 @@
     <input type="hidden" name="seatTotal" th:value="${seatTotal}"/>
     <input type="hidden"
            th:each="combo : ${combos}"
-           th:name="${'combo_' + combo.id()}"
-           th:id="${'qty-input-' + combo.id()}"
+           th:name="${'combo_' + combo.id}"
+           th:id="${'qty-input-' + combo.id}"
            value="0"/>
 </form>
 

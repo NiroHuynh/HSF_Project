@@ -10,14 +10,16 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "ticket")
 public class Ticket {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
     @NotNull
-    @Column(name = "customer_id", nullable = false)
-    private Long customerId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "booking_id", nullable = false)
+    private Booking booking;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -33,11 +35,6 @@ public class Ticket {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ticket_price_id", nullable = false)
     private TicketPrice ticketPrice;
-
-    @Size(max = 20)
-    @NotNull
-    @Column(name = "booking_code", nullable = false, length = 20)
-    private String bookingCode;
 
     @Size(max = 20)
     @ColumnDefault("'PENDING'")
@@ -63,12 +60,20 @@ public class Ticket {
         this.id = id;
     }
 
-    public Long getCustomerId() {
-        return customerId;
+    public Boolean getDeleted() {
+        return isDeleted;
     }
 
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public Booking getBooking() {
+        return booking;
+    }
+
+    public void setBooking(Booking booking) {
+        this.booking = booking;
     }
 
     public ShowTime getShowtime() {
@@ -95,28 +100,12 @@ public class Ticket {
         this.ticketPrice = ticketPrice;
     }
 
-    public String getBookingCode() {
-        return bookingCode;
-    }
-
-    public void setBookingCode(String bookingCode) {
-        this.bookingCode = bookingCode;
-    }
-
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public LocalDateTime getBookedAt() {
-        return bookedAt;
-    }
-
-    public void setBookedAt(LocalDateTime bookedAt) {
-        this.bookedAt = bookedAt;
     }
 
     public LocalDateTime getPaidAt() {
@@ -127,12 +116,14 @@ public class Ticket {
         this.paidAt = paidAt;
     }
 
-    public Boolean getIsDeleted() {
-        return isDeleted;
+    public LocalDateTime getBookedAt() {
+        return bookedAt;
     }
 
-    public void setIsDeleted(Boolean isDeleted) {
-        this.isDeleted = isDeleted;
+    public void setBookedAt(LocalDateTime bookedAt) {
+        this.bookedAt = bookedAt;
     }
-
 }
+
+
+

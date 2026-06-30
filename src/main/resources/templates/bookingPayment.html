@@ -94,18 +94,6 @@
             align-items: center;
             gap: var(--space-md);
         }
-        .payment-method-item__icon {
-            width: 40px;
-            height: 40px;
-            min-width: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-sm);
-            background: var(--color-surface-raised);
-            color: var(--color-text-secondary);
-            font-size: 20px;
-        }
 
         /* Tóm tắt đơn hàng (cột phải) */
         .order-summary__movie {
@@ -223,20 +211,18 @@
                 <div class="payment-method-list">
                     <label class="payment-method-item"
                            th:each="method : ${paymentMethods}"
-                           th:classappend="${method.code() == defaultPaymentMethod} ? 'is-selected' : ''">
+                           th:classappend="${method.id == defaultPaymentMethodId} ? 'is-selected' : ''">
 
                         <div class="payment-method-item__left">
-                            <span class="payment-method-item__icon material-symbols-outlined"
-                                  th:text="${method.icon()}">credit_card</span>
                             <div>
-                                <div class="label-md" th:text="${method.name()}">Tên phương thức</div>
-                                <div class="body-sm text-secondary" th:text="${method.description()}">Mô tả</div>
+                                <div class="label-md" th:text="${method.methodName}">Tên phương thức</div>
+                                <div class="body-sm text-secondary" th:text="${method.description}">Mô tả</div>
                             </div>
                         </div>
 
                         <input type="radio" name="paymentMethod" class="form-check-input" form="paymentForm"
-                               th:value="${method.code()}"
-                               th:checked="${method.code() == defaultPaymentMethod}">
+                               th:value="${method.id}"
+                               th:checked="${method.id == defaultPaymentMethodId}">
                     </label>
                 </div>
             </div>
