@@ -1,7 +1,7 @@
 package com.hsf_project.controller;
 
 import com.hsf_project.entity.Combo;
-import com.hsf_project.service.BookingComboService;
+import com.hsf_project.service.ComboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +18,7 @@ import java.util.List;
 public class BookingComboController {
 
     @Autowired
-    private BookingComboService bookingComboService;
+    private ComboService bookingComboService;
 
     @GetMapping("/combo")
     public String showComboPage(
