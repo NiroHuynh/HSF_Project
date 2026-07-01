@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Lỗi - CineMax</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="section">
+    <div class="container" style="text-align: center; padding: 80px 0;">
+        <h1 style="font-size: 72px; color: var(--color-brand-red); margin-bottom: 16px;" th:text="${errorCode}">404</h1>
+        <p style="font-size: 18px; color: var(--color-text-secondary); margin-bottom: 32px;" th:text="${errorMessage}">Không tìm thấy trang</p>
+        <a th:href="@{/home}" class="btn btn-primary">Quay về trang chủ</a>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
