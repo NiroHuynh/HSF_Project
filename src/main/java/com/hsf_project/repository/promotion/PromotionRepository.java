@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PromotionRepository extends JpaRepository<Promotion, Long> {
     /**
@@ -16,4 +17,5 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
             "AND (p.isDeleted = false OR p.isDeleted IS NULL) " +
             "AND :now BETWEEN p.startDate AND p.endDate")
     List<Promotion> findActivePromotions(@Param("now") LocalDateTime now);
+    Optional<Promotion> findByCodeIgnoreCaseAndIsDeletedFalse(String code);
 }

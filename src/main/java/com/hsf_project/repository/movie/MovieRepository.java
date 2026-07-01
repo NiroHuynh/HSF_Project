@@ -2,6 +2,8 @@ package com.hsf_project.repository.movie;
 
 import com.hsf_project.entity.Movie;
 import com.hsf_project.entity.MovieStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,4 +40,9 @@ public interface MovieRepository extends JpaRepository<Movie, Integer> {
             @Param("status") String status,
             @Param("currentDate") LocalDate currentDate
     );
+
+    Page<Movie> findByStatusAndIsDeletedFalse(MovieStatus status, Pageable pageable);
+
+    Page<Movie> findByTitleContainingIgnoreCaseAndStatusAndIsDeletedFalse(
+            String title, MovieStatus status, Pageable pageable);
 }

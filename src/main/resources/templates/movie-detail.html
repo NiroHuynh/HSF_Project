@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${movie.title} + ' - CineMax'">Chi tiết phim - CineMax</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .movie-detail__header {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+        .movie-detail__poster {
+            width: 260px;
+            flex-shrink: 0;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+        }
+        .movie-detail__poster img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .movie-detail__info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+        }
+        .movie-detail__badges {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .movie-detail__genres {
+            text-transform: uppercase;
+            font-size: 14px;
+            color: var(--color-text-secondary);
+        }
+        .movie-detail__title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .movie-detail__meta {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .movie-detail__meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 15px;
+            color: var(--color-text-secondary);
+        }
+        .movie-detail__rating {
+            color: var(--color-star);
+            font-weight: 700;
+        }
+        .movie-detail__description {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--color-text-secondary);
+            margin-bottom: 24px;
+        }
+        .movie-detail__extra {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .movie-detail__extra-item {
+            font-size: 14px;
+        }
+        .movie-detail__extra-item strong {
+            color: var(--color-text-primary);
+        }
+        .movie-detail__extra-item span {
+            color: var(--color-text-secondary);
+        }
+        .review-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .review-card__header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .review-card__avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--color-brand-red);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .review-card__name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .review-card__date {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+        .review-card__stars {
+            color: var(--color-star);
+            margin-left: auto;
+        }
+        .review-card__comment {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+        }
+        @media (max-width: 768px) {
+            .movie-detail__header { flex-direction: column; }
+            .movie-detail__poster { width: 100%; max-width: 300px; }
+            .movie-detail__extra { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="section">
+    <div class="container">
+        <div class="movie-detail__header">
+            <div class="movie-detail__poster">
+                <img th:src="${movie.posterUrl}" th:alt="${movie.title}"
+                     src="https://via.placeholder.com/360x540" alt="Poster">
+            </div>
+
+            <div class="movie-detail__info">
+                <div class="movie-detail__badges">
+                    <span class="chip"
+                          th:if="${movie.ageRating != null}"
+                          th:text="${movie.ageRating}"
+                          th:classappend="${movie.ageRating.name() == 'T18'} ? 'chip-t18' : (${movie.ageRating.name() == 'P'} ? 'chip-p' : 'chip-t16')">
+                    </span>
+                    <span class="movie-detail__genres" th:text="${genresString}">Hành động, Viễn tưởng</span>
+                </div>
+
+                <h1 class="movie-detail__title" th:text="${movie.title}">Tên phim</h1>
+
+                <div class="movie-detail__meta">
+                    <span class="movie-detail__meta-item">
+                        &#128338; <span th:text="${movie.durationMinutes} + ' Phút'">148 Phút</span>
+                    </span>
+                    <span class="movie-detail__meta-item movie-detail__rating" th:if="${movie.averageRating != null}">
+                        &#11088; <span th:text="${movie.averageRating} + '/10'">8.5/10</span>
+                    </span>
+                </div>
+
+                <div class="movie-detail__description" th:if="${movie.description != null and !movie.description.isEmpty()}">
+                    <p th:text="${movie.description}">Mô tả phim</p>
+                </div>
+
+                <div class="movie-detail__extra">
+                    <div class="movie-detail__extra-item" th:if="${movie.director != null and !movie.director.isEmpty()}">
+                        <strong>Đạo diễn:</strong> <span th:text="${movie.director}"></span>
+                    </div>
+                    <div class="movie-detail__extra-item" th:if="${movie.releaseDate != null}">
+                        <strong>Khởi chiếu:</strong> <span th:text="${#temporals.format(movie.releaseDate, 'dd/MM/yyyy')}"></span>
+                    </div>
+                </div>
+
+                <div class="movie-detail__extra" th:if="${movie.cast != null and !movie.cast.isEmpty()}">
+                    <div class="movie-detail__extra-item">
+                        <strong>Diễn viên:</strong> <span th:text="${movie.cast}"></span>
+                    </div>
+                </div>
+
+                <a th:href="@{/booking/movie/{id}(id=${movie.id})}" class="btn btn-primary" style="align-self: flex-start;">
+                    &#127916; Đặt vé ngay
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-top: 48px;">
+            <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">Đánh giá</h2>
+
+            <div th:if="${#lists.isEmpty(reviews)}" style="text-align: center; padding: 40px 0; color: var(--color-text-secondary);">
+                Chưa có đánh giá nào
+            </div>
+
+            <div th:each="review : ${reviews}">
+                <div class="review-card">
+                    <div class="review-card__header">
+                        <div class="review-card__avatar" th:text="${#strings.substring(review.user.fullName, 0, 1)}">A</div>
+                        <div>
+                            <div class="review-card__name" th:text="${review.user.fullName}">Nguyễn Văn A</div>
+                            <div class="review-card__date" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy')}">12/06/2026</div>
+                        </div>
+                        <div class="review-card__stars" th:if="${review.ratingStar != null}">
+                            <span th:each="s : ${#numbers.sequence(1, review.ratingStar)}">&#11088;</span>
+                        </div>
+                    </div>
+                    <div class="review-card__comment" th:if="${review.comment != null and !review.comment.isEmpty()}">
+                        <p th:text="${review.comment}">Bình luận</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
