@@ -1,11 +1,10 @@
 package com.hsf_project.service.movie;
 
 import com.hsf_project.dto.MovieHomeDTO;
+import com.hsf_project.entity.Genre;
 import com.hsf_project.entity.Movie;
-import com.hsf_project.entity.MovieGenre;
 import com.hsf_project.entity.MovieStatus;
 import com.hsf_project.entity.Promotion;
-import com.hsf_project.repository.MovieGenreRepository;
 import com.hsf_project.repository.movie.MovieRepository;
 import com.hsf_project.repository.promotion.PromotionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +20,6 @@ public class HomeService {
 
     @Autowired
     private MovieRepository movieRepository;
-
-    @Autowired
-    private MovieGenreRepository movieGenreRepository;
 
     @Autowired
     private PromotionRepository promotionRepository;
@@ -59,19 +55,19 @@ public class HomeService {
         // 4. Duyệt qua từng bộ phim thu được bằng vòng lặp for-each thông thường
         for (Movie movie : movieList) {
 
-            // Tìm các thể loại liên kết với bộ phim này
-            List<MovieGenre> movieGenreList = movieGenreRepository.findByMovieId(movie.getId());
+            // Lấy danh sách thể loại từ quan hệ ManyToMany của Movie
+            List<Genre> genreList = movie.getGenres();
 
             // Dùng StringBuilder để nối chuỗi tên thể loại
             StringBuilder genresBuilder = new StringBuilder();
 
             // Vòng lặp for cơ bản để duyệt qua danh sách thể loại
-            for (int i = 0; i < movieGenreList.size(); i++) {
-                String genreName = movieGenreList.get(i).getGenre().getName();
+            for (int i = 0; i < genreList.size(); i++) {
+                String genreName = genreList.get(i).getName();
                 genresBuilder.append(genreName);
 
                 // Nếu chưa phải phần tử cuối cùng thì thêm dấu phẩy ngăn cách
-                if (i < movieGenreList.size() - 1) {
+                if (i < genreList.size() - 1) {
                     genresBuilder.append(", ");
                 }
             }
