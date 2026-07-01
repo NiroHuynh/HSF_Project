@@ -1363,3 +1363,87 @@ p { color: inherit; }
     transition-duration: 0.01ms !important;
   }
 }
+
+body{
+  margin:0;
+  background:#0A0A0F;
+  color:white;
+  font-family:"Be Vietnam Pro",sans-serif;
+}
+
+.offers-page{
+  width:1200px;
+  margin:auto;
+  padding-top:100px;
+}
+
+.hero{
+  position:relative;
+  height:430px;
+  overflow:hidden;
+  border-radius:16px;
+}
+
+.hero img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.hero-overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:64px;
+  background:linear-gradient(
+          90deg,
+          rgba(10,10,15,.95),
+          rgba(10,10,15,.6),
+          rgba(10,10,15,0)
+  );
+}
+
+.offer-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:30px;
+  margin-top:60px;
+}
+
+.offer-card{
+  background:#1A1A2A;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.offer-image{
+  position:relative;
+}
+
+.offer-image img{
+  width:100%;
+  height:220px;
+  object-fit:cover;
+}
+
+.offer-type{
+  position:absolute;
+  top:15px;
+  right:15px;
+  background:#E50914;
+  padding:6px 12px;
+  border-radius:5px;
+  font-size:12px;
+}
+
+.offer-content{
+  padding:28px;
+}
+
+.offer-footer{
+  display:flex;
+  justify-content:space-between;
+  margin-top:20px;
+}

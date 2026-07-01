@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lịch Sử Đặt Vé - CineMax</title>
+    <style>
+        :root {
+            --color-brand-red:        #E31B23;
+            --color-brand-red-light:  rgba(227, 27, 35, 0.15);
+            --color-bg:               #0A0A0C;
+            --color-surface:          #111114;
+            --color-surface-raised:   #18181D;
+            --color-text-primary:     #FFFFFF;
+            --color-text-secondary:   #A0A0B0;
+            --color-text-muted:       #606070;
+            --color-border:           rgba(255, 255, 255, 0.08);
+            --color-border-strong:    rgba(255, 255, 255, 0.16);
+            --shadow-card:            0 4px 24px rgba(0, 0, 0, 0.45);
+            --radius-md:              12px;
+            --font-family:            'Inter', sans-serif;
+        }
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+            font-family: var(--font-family);
+            padding: 32px 16px;
+            margin: 0;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .title { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
+        .ticket-list { display: flex; flex-direction: column; gap: 16px; }
+
+        .ticket-item {
+            background-color: var(--color-surface); border: 1px solid var(--color-border);
+            border-radius: var(--radius-md); padding: 20px; display: flex;
+            justify-content: space-between; align-items: center; transition: 250ms ease;
+            box-shadow: var(--shadow-card);
+        }
+        .ticket-item:hover {
+            background-color: var(--color-surface-raised); border-color: var(--color-border-strong);
+            transform: translateY(-2px);
+        }
+        .info-group h3 { margin: 0 0 8px 0; font-size: 18px; }
+        .info-group p { margin: 4px 0; color: var(--color-text-secondary); font-size: 14px; }
+
+        .badge {
+            display: inline-block; padding: 4px 12px; border-radius: 9999px;
+            font-size: 12px; font-weight: 600; margin-top: 8px; text-transform: uppercase;
+        }
+        /* Style các màu trạng thái dựa trên dữ liệu 'status' chuỗi của bạn */
+        .status-pending { background-color: rgba(245, 197, 24, 0.15); color: #F5C518; }
+        .status-confirmed { background-color: var(--color-brand-red-light); color: var(--color-brand-red); }
+        .status-completed { background-color: rgba(45, 122, 79, 0.15); color: #2D7A4F; }
+        .status-cancelled { background-color: rgba(255,255,255,0.05); color: var(--color-text-muted); }
+
+        .price-group { text-align: right; }
+        .price-final { font-size: 22px; font-weight: 700; color: var(--color-brand-red); }
+        .price-discount { font-size: 13px; color: var(--color-text-muted); text-decoration: line-through; margin-top: 4px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="title">Lịch Sử Giao Dịch</h1>
+    <div class="ticket-list">
+
+        <div th:each="b : ${bookings}" class="ticket-item">
+            <div class="info-group">
+                <h3 th:text="'Mã đặt vé: ' + ${b.bookingCode}">CODE</h3>
+                <p th:text="'Ngày đặt: ' + ${#temporals.format(b.bookingDate, 'dd/MM/yyyy HH:mm')}">Ngày đặt</p>
+
+                <p th:if="${b.promotion != null}" th:text="'Khuyến mãi: ' + ${b.promotion.name}" style="color: #2D7A4F; font-weight: 500;"></p>
+
+                <span class="badge"
+                      th:classappend="${b.status == 'PENDING' ? 'status-pending' : (b.status == 'CONFIRMED' ? 'status-confirmed' : (b.status == 'COMPLETED' ? 'status-completed' : 'status-cancelled'))}"
+                      th:text="${b.status}">Trạng thái</span>
+            </div>
+
+            <div class="price-group">
+                <div class="price-final" th:text="${#numbers.formatDecimal(b.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+
+                <div class="price-discount" th:if="${b.discountAmount != null && b.discountAmount.doubleValue() > 0}"
+                     th:text="${#numbers.formatDecimal(b.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(bookings)}" style="text-align: center; color: var(--color-text-muted); margin-top: 48px;">
+            Bạn chưa có lịch sử đặt vé nào.
+        </div>
+    </div>
+</div>
+</body>
+</html>
