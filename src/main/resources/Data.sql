@@ -225,7 +225,7 @@ VALUES
       '2026-05-18', '/images/chuyentauhoanghon.jpeg',
      'P', 7.7, 'NOW_SHOWING', 0),
 
-    (N'Trọ Chơi Sinh Tồn',
+    (N'Trò Chơi Sinh Tồn',
      N'Tám người xa lạ bị nhốt trong một khu công nghiệp bỏ hoang và buộc phải vượt qua hàng loạt thử thách để sống sót.',
      121, N'Lê Quốc Bảo',
      N'Rima Thanh Vy, Quốc Anh, Võ Điền Gia Huy',
@@ -967,3 +967,13 @@ GO
    booking(6)  booking_combo(5)  ticket(8)
    payment_method(5)  payment(6)
    ============================================================ */
+
+SELECT title, COUNT(*)
+FROM notification
+GROUP BY title
+HAVING COUNT(*) > 1;
+
+SELECT email, COUNT(*)
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
