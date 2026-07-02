@@ -1,9 +1,13 @@
 package com.hsf_project.controller;
 
+import com.hsf_project.entity.User;
 import com.hsf_project.service.BookingConfirmService;
+import com.hsf_project.service.BookingConfirmService.ConfirmResult;
+import com.hsf_project.service.VnPayService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,6 +25,9 @@ public class BookingConfirmController {
     @Autowired
     private BookingConfirmService bookingConfirmService;
 
+    @Autowired
+    private VnPayService vnPayService;
+
     @PostMapping("/confirm")
     public String confirmBooking(
             @RequestParam Long showtimeId,
@@ -29,7 +36,11 @@ public class BookingConfirmController {
             @RequestParam(required = false) String promotionId,
             @RequestParam Long paymentMethod,
             @RequestParam Map<String, String> allParams,
-            Model model) {
+            HttpSession session,
+            HttpServletRequest request) {
+
+        // AuthInterceptor đã chặn /booking/** khi chưa đăng nhập nên user luôn tồn tại.
+        User currentUser = (User) session.getAttribute("ttdn");
 
         List<String> seatCodes = Arrays.stream(seatIds.split(","))
                 .map(String::trim)
@@ -50,10 +61,17 @@ public class BookingConfirmController {
 
         Long promoId = (promotionId != null && !promotionId.isBlank()) ? Long.valueOf(promotionId) : null;
 
-        String bookingCode = bookingConfirmService.confirmBooking(
-                showtimeId, seatCodes, comboQuantities, paymentMethod, promoId, discountAmount);
+        ConfirmResult result = bookingConfirmService.confirmBooking(
+                currentUser.getId(), showtimeId, seatCodes, comboQuantities, paymentMethod, promoId, discountAmount);
 
-        model.addAttribute("bookingCode", bookingCode);
-        return "redirect:/";
+        // Voucher giảm 100%: không cần qua VNPay, chốt thành công luôn
+        if (result.finalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            bookingConfirmService.finalizeBooking(result.bookingCode(), true, null, null, "FREE_BY_PROMOTION");
+            return "redirect:/booking/result?code=" + result.bookingCode();
+        }
+
+        String paymentUrl = vnPayService.buildPaymentUrl(
+                result.bookingCode(), result.finalAmount(), result.bankCode(), request.getRemoteAddr());
+        return "redirect:" + paymentUrl;
     }
 }

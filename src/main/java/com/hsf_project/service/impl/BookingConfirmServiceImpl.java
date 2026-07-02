@@ -10,6 +10,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,10 +22,6 @@ import java.util.Random;
 
 @Service
 public class BookingConfirmServiceImpl implements BookingConfirmService {
-
-    // TODO: thay bằng userId thật khi có module đăng nhập (Spring Security/session).
-    // Tạm hard-code user_id=8 (phong.huynh@gmail.com, role CUSTOMER) để test luồng booking.
-    private static final Long HARDCODED_USER_ID = 8L;
 
     @Autowired
     private ShowTimeService showTimeService;
@@ -57,9 +54,10 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
     private EntityManager entityManager;
 
     @Override
-    public String confirmBooking(Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities,
-                                 Long paymentMethodId, Long promotionId,
-                                 BigDecimal discountAmount) {
+    @Transactional
+    public ConfirmResult confirmBooking(Long userId, Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities,
+                                        Long paymentMethodId, Long promotionId,
+                                        BigDecimal discountAmount) {
 
         LocalDateTime now = LocalDateTime.now();
         ShowTime showtime = showTimeService.getById(showtimeId);
@@ -94,14 +92,15 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         BigDecimal finalAmount = totalAmount.subtract(discountAmount);
 
         Booking booking = new Booking();
-        booking.setUser(entityManager.getReference(User.class, HARDCODED_USER_ID));
+        booking.setUser(entityManager.getReference(User.class, userId));
         booking.setPromotion(promotionId != null ? entityManager.getReference(Promotion.class, promotionId) : null);
         booking.setBookingCode(generateBookingCode());
         booking.setBookingDate(now);
         booking.setTotalAmount(totalAmount);
         booking.setDiscountAmount(discountAmount);
         booking.setFinalAmount(finalAmount);
-        booking.setStatus("PAID");
+        // PENDING chờ kết quả VNPay; finalizeBooking sẽ chuyển sang PAID/CANCELLED
+        booking.setStatus("PENDING");
         booking.setCreatedAt(now);
         booking.setUpdatedAt(now);
         booking.setIsDeleted(false);
@@ -113,9 +112,9 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             ticket.setShowtime(showtime);
             ticket.setSeat(seats.get(i));
             ticket.setTicketPrice(ticketPrices.get(i));
-            ticket.setStatus("PAID");
+            ticket.setStatus("PENDING");
             ticket.setBookedAt(now);
-            ticket.setPaidAt(now);
+            ticket.setPaidAt(null);
             ticket.setIsDeleted(false);
             ticketRepository.save(ticket);
         }
@@ -133,20 +132,83 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             bookingComboRepository.save(line);
         }
 
+        PaymentMethod paymentMethod = entityManager.getReference(PaymentMethod.class, paymentMethodId);
+
         Payment payment = new Payment();
         payment.setBooking(booking);
-        payment.setPaymentMethod(entityManager.getReference(PaymentMethod.class, paymentMethodId));
+        payment.setPaymentMethod(paymentMethod);
         payment.setAmount(finalAmount);
-        payment.setPaymentTime(now);
-        payment.setPaymentStatus("SUCCESS");
+        payment.setPaymentTime(null);
+        payment.setPaymentStatus("PENDING");
         payment.setCreatedAt(now);
         paymentRepository.save(payment);
 
-        if (promotionId != null) {
-            promotionService.markUsed(promotionId);
+        // Voucher chỉ được đánh dấu đã dùng khi thanh toán thành công (finalizeBooking)
+
+        return new ConfirmResult(booking.getBookingCode(), finalAmount, toVnpBankCode(paymentMethod));
+    }
+
+    @Override
+    @Transactional
+    public void finalizeBooking(String bookingCode, boolean success,
+                                String transactionNo, String responseCode, String rawParams) {
+        Booking booking = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy booking: " + bookingCode));
+
+        // Idempotent: user F5 lại Return URL thì booking đã được chốt, không xử lý lại
+        if (!"PENDING".equals(booking.getStatus())) {
+            return;
         }
 
-        return booking.getBookingCode();
+        LocalDateTime now = LocalDateTime.now();
+        Payment payment = paymentRepository.findFirstByBookingIdOrderByIdDesc(booking.getId())
+                .orElseThrow(() -> new IllegalStateException("Booking " + bookingCode + " không có bản ghi payment"));
+        payment.setTransactionCode(transactionNo);
+        payment.setGatewayResponse(rawParams);
+        payment.setPaymentTime(now);
+
+        if (success) {
+            booking.setStatus("PAID");
+            for (Ticket ticket : booking.getTickets()) {
+                ticket.setStatus("PAID");
+                ticket.setPaidAt(now);
+            }
+            payment.setPaymentStatus("SUCCESS");
+            if (booking.getPromotion() != null) {
+                promotionService.markUsed(booking.getPromotion().getId());
+            }
+        } else {
+            booking.setStatus("CANCELLED");
+            // Ràng buộc CK_ticket_status trong DB chỉ cho PAID/PENDING nên không set
+            // ticket = CANCELLED được; soft-delete để giải phóng ghế
+            // (existsBookedSeat lọc isDeleted = false).
+            for (Ticket ticket : booking.getTickets()) {
+                ticket.setIsDeleted(true);
+            }
+            payment.setPaymentStatus("FAILED");
+        }
+
+        booking.setUpdatedAt(now);
+        bookingRepository.save(booking);
+        paymentRepository.save(payment);
+    }
+
+    /**
+     * Map phương thức user chọn trên trang thanh toán sang kênh VNPay (vnp_BankCode).
+     * Mọi giao dịch đều đi qua VNPay sandbox; null = user tự chọn kênh trên trang VNPay.
+     */
+    private String toVnpBankCode(PaymentMethod method) {
+        String name = method.getMethodName() == null ? "" : method.getMethodName();
+        if (name.equalsIgnoreCase("The ATM Noi Dia")) {
+            return "VNBANK";
+        }
+        if (name.equalsIgnoreCase("The Quoc Te")) {
+            return "INTCARD";
+        }
+        if (name.equalsIgnoreCase("QR Code")) {
+            return "VNPAYQR";
+        }
+        return null;
     }
 
     private String generateBookingCode() {
