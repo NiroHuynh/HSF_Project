@@ -163,34 +163,8 @@
 </head>
 <body>
 
-<!-- ============================================================
-     NAVBAR — TODO: thay bằng th:replace="~{fragments/navbar :: navbar}"
-     ============================================================ -->
-<nav class="navbar">
-    <div class="container">
-        <a th:href="@{/}" class="navbar-brand">CineMax</a>
-
-        <ul class="navbar-nav">
-            <li><a th:href="@{/phim}" class="nav-link">Phim</a></li>
-            <li><a th:href="@{/rap}" class="nav-link">Rạp</a></li>
-            <li><a th:href="@{/uu-bai}" class="nav-link">Ưu bãi</a></li>
-            <li><a th:href="@{/ve-cua-toi}" class="nav-link">Vé của tôi</a></li>
-        </ul>
-
-        <div class="navbar-actions">
-            <button class="icon-btn" type="button" aria-label="Thông báo">
-                <span class="material-symbols-outlined">notifications</span>
-            </button>
-            <div class="user-chip">
-                <div class="user-avatar">HP</div>
-                <div class="user-info">
-                    <div class="user-name">Huỳnh Tấn Phong</div>
-                    <div class="user-role">Khách hàng</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
+<!-- NAVBAR dùng chung toàn site -->
+<div th:replace="~{fragments/header :: header}"></div>
 
 <main class="container booking-page-content">
 
@@ -350,6 +324,10 @@
 
     recalc();
 </script>
+
+<!-- FOOTER dùng chung toàn site -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:replace="~{fragments/header :: header-script}"></script>
 
 </body>
 </html>

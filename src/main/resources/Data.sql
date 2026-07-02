@@ -912,11 +912,12 @@ GO
    description là VARCHAR → viết không dấu.
    ============================================================ */
 INSERT INTO payment_method (method_name, provider, description, is_active) VALUES
-                                                                               ('Vi MoMo',         'MoMo',    'Thanh toan nhanh qua ung dung MoMo',         1),
+                                                                               ('VNPay',            'VNPay',   'Thanh toan qua cong thanh toan VNPay',       1),
                                                                                ('ZaloPay',         'ZaloPay', 'Giam gia them 10k cho chu the ZaloPay',       1),
                                                                                ('ShopeePay',       'Shopee',  'Su dung Shopee xu de duoc giam gia',          1),
                                                                                ('The Quoc Te',     NULL,      'Visa, Mastercard, JCB, Amex',                 1),
-                                                                               ('The ATM Noi Dia', NULL,      'Ho tro 40+ ngan hang tai Viet Nam',           1);
+                                                                               ('The ATM Noi Dia', NULL,      'Ho tro 40+ ngan hang tai Viet Nam',           1),
+                                                                               ('QR Code',         'VNPay',   'Quet ma QR thanh toan qua ung dung ngan hang', 1);
 GO
 
 /* ============================================================
@@ -930,9 +931,9 @@ VALUES
  (SELECT id FROM payment_method WHERE method_name = 'The Quoc Te'),
  542000, NULL, 'PENDING'),
 
--- CMX20261020J01 — đã thanh toán bằng Ví MoMo
+-- CMX20261020J01 — đã thanh toán bằng VNPay
 ((SELECT id FROM booking WHERE booking_code = 'CMX20261020J01'),
- (SELECT id FROM payment_method WHERE method_name = 'Vi MoMo'),
+ (SELECT id FROM payment_method WHERE method_name = 'VNPay'),
  381000, '2026-10-20 19:00:00', 'SUCCESS'),
 
 -- CMX20260520J03 — đã thanh toán bằng Thẻ ATM Nội Địa
@@ -952,7 +953,7 @@ VALUES
 
 -- CMX20261021D02 — chờ thanh toán
 ((SELECT id FROM booking WHERE booking_code = 'CMX20261021D02'),
- (SELECT id FROM payment_method WHERE method_name = 'Vi MoMo'),
+ (SELECT id FROM payment_method WHERE method_name = 'VNPay'),
  572000, NULL, 'PENDING');
 GO
 
@@ -965,7 +966,7 @@ GO
    seat: Cinema7(82) + Screen04(2) + Pandora(120) + Gigamall(110) = 314
    ticket_price(18)
    booking(6)  booking_combo(5)  ticket(8)
-   payment_method(5)  payment(6)
+   payment_method(6)  payment(6)
    ============================================================ */
 
 SELECT title, COUNT(*)

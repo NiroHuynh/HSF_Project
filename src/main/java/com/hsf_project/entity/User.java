@@ -58,7 +58,8 @@ public class User {
 
     @Size(max = 20)
     @NotNull
-    @Nationalized
+    // Không dùng @Nationalized: cột users.status trong DB là VARCHAR,
+    // driver mssql lỗi "conversion from varchar to NCHAR is unsupported" nếu đọc kiểu N.
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status", nullable = false, length = 20)
     private String status;
