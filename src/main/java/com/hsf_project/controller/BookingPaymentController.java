@@ -119,12 +119,13 @@ public class BookingPaymentController {
         String roomName = showtime.getRoom().getName();
         String formatLabel = "CINEMAX " + showtime.getRoom().getRoomType(); // vd: "CINEMAX IMAX"
 
-        return new ShowtimeInfo(showtime.getMovie().getTitle(), startTimeLabel, roomName, formatLabel);
+        return new ShowtimeInfo(showtime.getMovie().getTitle(), showtime.getMovie().getPosterUrl(),
+                startTimeLabel, roomName, formatLabel);
     }
 
     public record SelectedCombo(String name, int quantity, BigDecimal lineTotal) {
     }
 
-    public record ShowtimeInfo(String movieTitle, String startTime, String roomName, String formatLabel) {
+    public record ShowtimeInfo(String movieTitle, String posterUrl, String startTime, String roomName, String formatLabel) {
     }
 }
