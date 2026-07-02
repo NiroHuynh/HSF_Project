@@ -697,6 +697,8 @@ input, textarea, select {
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
 }
 .filter-chip:hover {
   border-color: var(--color-border-strong);
