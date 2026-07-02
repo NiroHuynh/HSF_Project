@@ -18,4 +18,6 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
             "AND :now BETWEEN p.startDate AND p.endDate")
     List<Promotion> findActivePromotions(@Param("now") LocalDateTime now);
     Optional<Promotion> findByCodeIgnoreCaseAndIsDeletedFalse(String code);
+    List<Promotion> findByStatusAndIsDeletedFalse(String status);
+
 }
