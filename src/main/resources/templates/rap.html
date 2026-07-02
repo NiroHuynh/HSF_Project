@@ -308,10 +308,11 @@
                   <div class="mtitle" th:text="${firstSlot.movie.title}">JOKER</div>
                   <div class="mmeta">
                     <!-- Age rating chip -->
-                    <span th:text="${firstSlot.movie.ageRating == 'C' ? 'C18' : firstSlot.movie.ageRating}"
-                          th:classappend="${firstSlot.movie.ageRating == 'C' or firstSlot.movie.ageRating == 'T18'} ? 'cc18'
+                    <span th:text="${firstSlot.movie.ageRating}"
+                          th:classappend="${firstSlot.movie.ageRating == 'T18'} ? 'cc18'
                                         : (${firstSlot.movie.ageRating == 'T16'} ? 'ct16'
-                                        : (${firstSlot.movie.ageRating == 'T13'} ? 'ct13' : 'cp'))"
+                                        : (${firstSlot.movie.ageRating == 'T13'} ? 'ct13'
+                                        : (${firstSlot.movie.ageRating == 'K'} ? 'ck' : 'cp')))"
                           class="chip">P</span>
                     <span th:text="${firstSlot.movie.durationMinutes + ' phút'}">138 phút</span>
                     <span class="dot"></span>

@@ -35,6 +35,11 @@ public class AuthController {
         User u = userService.loginByEmail(email, password);
         if(u != null) {
             session.setAttribute("ttdn", u);
+            String redirectUrl = (String) session.getAttribute("redirectAfterLogin");
+            if (redirectUrl != null) {
+                session.removeAttribute("redirectAfterLogin");
+                return "redirect:" + redirectUrl;
+            }
             return "redirect:/home";
         }else{
             redirectAttributes.addFlashAttribute("error","Username or password incorrect!!");
