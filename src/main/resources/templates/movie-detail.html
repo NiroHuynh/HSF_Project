@@ -130,6 +130,45 @@
             .movie-detail__poster { width: 100%; max-width: 300px; }
             .movie-detail__extra { grid-template-columns: 1fr; }
         }
+        /* --- CSS MỚI CHO PHẦN ĐÁNH GIÁ SAO --- */
+        .rating-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .rating-label {
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .stars-provider {
+            display: flex;
+            flex-direction: row-reverse; /* Thủ thuật để xử lý hover từ trái sang phải */
+            justify-content: flex-end;
+        }
+
+        /* Định nghĩa ngôi sao cơ bản (màu tối) */
+        .star-item {
+            font-size: 30px; /* Kích thước sao */
+            color: #ddd; /* Màu xám tối khi chưa chọn */
+            cursor: pointer;
+            transition: color 0.2s ease-in-out; /* Hiệu ứng đổi màu mượt mà */
+        }
+
+        /* Khi di chuột qua (hover): Làm sáng ngôi sao hiện tại và các sao bên PHẢI nó
+           (nhờ flex-direction: row-reverse nên logic hover này hoạt động đúng từ trái sang) */
+        .star-item:hover,
+        .star-item:hover ~ .star-item {
+            color: var(--color-star, #f5c518); /* Màu vàng sáng */
+        }
+
+        /* Khi một ngôi sao đã được CHỌN (có class 'selected'): Làm sáng nó và các sao bên PHẢI */
+        .star-item.selected,
+        .star-item.selected ~ .star-item {
+            color: var(--color-star, #f5c518); /* Màu vàng sáng */
+        }
     </style>
 </head>
 <body>
@@ -192,6 +231,59 @@
         <div style="margin-top: 48px;">
             <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">Đánh giá</h2>
 
+            <!-- Flash messages -->
+            <div th:if="${reviewSuccess}" class="alert alert-success" style="padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+                <span th:text="${reviewSuccess}"></span>
+            </div>
+            <div th:if="${reviewError}" class="alert alert-danger" style="padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 16px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+                <span th:text="${reviewError}"></span>
+            </div>
+
+            <!-- Review form -->
+            <div th:if="${session.ttdn != null and !alreadyReviewed}" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">Viết đánh giá của bạn</h3>
+                <form th:action="@{/phim/{id}/review(id=${movie.id})}" th:method="post" id="reviewForm">
+
+                    <div class="rating-group">
+                        <span class="rating-label">Chấm điểm:</span>
+
+                        <input type="hidden" name="ratingStar" id="ratingScore" value="0" required>
+
+                        <div class="stars-provider" id="starContainer">
+                            <span class="star-item" data-value="10">&#11088;</span>
+                            <span class="star-item" data-value="9">&#11088;</span>
+                            <span class="star-item" data-value="8">&#11088;</span>
+                            <span class="star-item" data-value="7">&#11088;</span>
+                            <span class="star-item" data-value="6">&#11088;</span>
+                            <span class="star-item" data-value="5">&#11088;</span>
+                            <span class="star-item" data-value="4">&#11088;</span>
+                            <span class="star-item" data-value="3">&#11088;</span>
+                            <span class="star-item" data-value="2">&#11088;</span>
+                            <span class="star-item" data-value="1">&#11088;</span>
+                        </div>
+
+                        <span id="ratingDisplay" style="margin-left: 10px; font-weight: bold; color: var(--color-text-secondary);">0/10</span>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 500;">Nhận xét (không bắt buộc):</label>
+                        <textarea name="comment" rows="3"
+                                  style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 14px; resize: vertical;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                </form>
+            </div>
+
+            <!-- Already reviewed message -->
+            <div th:if="${session.ttdn != null and alreadyReviewed}" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; text-align: center; color: var(--color-text-secondary);">
+                Bạn đã đánh giá phim này rồi.
+            </div>
+
+            <!-- Login prompt -->
+            <div th:if="${session.ttdn == null}" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; text-align: center; color: var(--color-text-secondary);">
+                <a th:href="@{/}" style="color: var(--color-brand-red); font-weight: 600;">Đăng nhập</a> để viết đánh giá.
+            </div>
+
+            <!-- Reviews list -->
             <div th:if="${#lists.isEmpty(reviews)}" style="text-align: center; padding: 40px 0; color: var(--color-text-secondary);">
                 Chưa có đánh giá nào
             </div>
@@ -199,10 +291,10 @@
             <div th:each="review : ${reviews}">
                 <div class="review-card">
                     <div class="review-card__header">
-                        <div class="review-card__avatar" th:text="${#strings.substring(review.user.fullName, 0, 1)}">A</div>
+                        <div class="review-card__avatar" th:text="${review.userAvatar}">A</div>
                         <div>
-                            <div class="review-card__name" th:text="${review.user.fullName}">Nguyễn Văn A</div>
-                            <div class="review-card__date" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy')}">12/06/2026</div>
+                            <div class="review-card__name" th:text="${review.userName}">Nguyễn Văn A</div>
+                            <div class="review-card__date" th:text="${review.formattedCreatedAt}">12/06/2026</div>
                         </div>
                         <div class="review-card__stars" th:if="${review.ratingStar != null}">
                             <span th:each="s : ${#numbers.sequence(1, review.ratingStar)}">&#11088;</span>
@@ -217,6 +309,61 @@
     </div>
 </main>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const starContainer = document.getElementById('starContainer');
+        const stars = starContainer.querySelectorAll('.star-item');
+        const scoreInput = document.getElementById('ratingScore');
+        const displayScore = document.getElementById('ratingDisplay');
+        const form = document.getElementById('reviewForm');
+
+        stars.forEach(star => {
+            // 1. Xử lý sự kiện CLICK: Chọn điểm
+            star.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+
+                // Cập nhật giá trị vào thẻ input ẩn và dòng chữ hiển thị
+                scoreInput.value = value;
+                displayScore.textContent = value + '/10';
+                displayScore.style.color = 'var(--color-star)'; // Đổi màu chữ điểm khi đã chọn
+
+                // Xóa class 'selected' cũ khỏi tất cả các sao
+                stars.forEach(s => s.classList.remove('selected'));
+
+                // Thêm class 'selected' vào ngôi sao vừa được click
+                // CSS sẽ tự động làm sáng ngôi sao này và các sao bên trái nó
+                this.classList.add('selected');
+            });
+
+            // 2. (Tùy chọn) Xử lý sự kiện HOVER: Cập nhật điểm hiển thị tạm thời
+            star.addEventListener('mouseover', function() {
+                const value = this.getAttribute('data-value');
+                if (scoreInput.value === "0") { // Chỉ cập nhật nếu chưa chọn điểm chính thức
+                    displayScore.textContent = value + '/10';
+                }
+            });
+        });
+
+        // (Tùy chọn) Khôi phục điểm hiển thị khi di chuột ra khỏi vùng sao mà chưa chọn
+        starContainer.addEventListener('mouseout', function() {
+            if (scoreInput.value === "0") {
+                displayScore.textContent = '0/10';
+            } else {
+                displayScore.textContent = scoreInput.value + '/10';
+            }
+        });
+
+        // 3. Kiểm tra trước khi gửi form: Đảm bảo người dùng đã chọn sao
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (scoreInput.value === "0") {
+                    e.preventDefault(); // Chặn gửi form
+                    alert('Vui lòng chọn số sao đánh giá trước khi gửi!');
+                }
+            });
+        }
+    });
+</script>
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>
