@@ -6,6 +6,8 @@
     <title>CineMax — Hệ Thống Đặt Vé Xem Phim</title>
     <!-- Nhúng Font Inter và file style.css của thiết kế CineMax -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
 </head>
 <body>
 
@@ -35,7 +37,7 @@
         <!-- Tiêu đề phân khu và nút Xem tất cả -->
         <div class="section-header">
             <h2 class="section-title">Phim Đang Chiếu</h2>
-            <a th:href="@{/movies?status='NOW_SHOWING'}" class="view-all">Xem tất cả ➔</a>
+            <a th:href="@{/movies(status='NOW_SHOWING')}" class="view-all">Xem tất cả ➔</a>
         </div>
 
         <!-- Grid danh sách phim sử dụng class .movie-grid -->
@@ -43,8 +45,10 @@
             <!-- Vòng lặp duyệt danh sách phim đang chiếu từ Controller -->
             <!-- Thay thế danh sách tĩnh dưới đây bằng biến động ${nowShowingMovies} khi map code Java -->
             <div class="movie-card" th:each="dto : ${nowShowingMovies}">
-                <!-- Ảnh poster phim tỉ lệ 2/3 -->
-                <img class="movie-card__poster" th:src="${dto.movie.posterUrl}" th:alt="${dto.movie.title}">
+                <!-- Ảnh poster phim tỉ lệ 2/3 (click để xem chi tiết) -->
+                <a th:href="@{/phim/{id}(id=${dto.movie.id})}">
+                    <img class="movie-card__poster" th:src="${dto.movie.posterUrl}" th:alt="${dto.movie.title}">
+                </a>
                 <div class="movie-card__overlay"></div>
 
                 <!-- Badge hiển thị điểm đánh giá trung bình lấy từ database -->
@@ -61,8 +65,10 @@
                         <!-- Dùng th:classappend để thay đổi class màu sắc theo enum của bạn (Ví dụ: chip-t16, chip-p) -->
                         <span class="chip" th:classappend="${'chip-' + #strings.toLowerCase(dto.movie.ageRating)}" th:text="${dto.movie.ageRating}">T16</span>
                     </div>
-                    <!-- Tên phim -->
-                    <h3 class="movie-card__title" th:text="${dto.movie.title}">Chiến Binh Cuối Cùng</h3>
+                    <!-- Tên phim (click để xem chi tiết) -->
+                    <a th:href="@{/phim/{id}(id=${dto.movie.id})}" class="movie-card__title-link">
+                        <h3 class="movie-card__title" th:text="${dto.movie.title}">Chiến Binh Cuối Cùng</h3>
+                    </a>
                     <!-- Danh sách thể loại nối chuỗi từ bảng movie_genre -->
                     <p class="movie-card__genre" th:text="${dto.genresString}">Hành động, Viễn tưởng</p>
                 </div>
@@ -79,13 +85,15 @@
     <div class="container">
         <div class="section-header">
             <h2 class="section-title">Phim Sắp Chiếu</h2>
-            <a th:href="@{/movies?status='COMING_SOON'}" class="view-all">Xem tất cả ➔</a>
+            <a th:href="@{/movies(status='COMING_SOON')}" class="view-all">Xem tất cả ➔</a>
         </div>
 
         <div class="movie-grid">
             <!-- Vòng lặp duyệt danh sách phim sắp chiếu -->
             <div class="movie-card movie-card--upcoming" th:each="dto : ${comingSoonMovies}">
-                <img class="movie-card__poster" th:src="${dto.movie.posterUrl}" th:alt="${dto.movie.title}">
+                <a th:href="@{/phim/{id}(id=${dto.movie.id})}">
+                    <img class="movie-card__poster" th:src="${dto.movie.posterUrl}" th:alt="${dto.movie.title}">
+                </a>
                 <div class="movie-card__overlay"></div>
 
                 <!-- Badge hiển thị ngày khởi chiếu (release_date) đặc trưng của mục sắp chiếu -->
@@ -96,7 +104,9 @@
                         <!-- Phân loại độ tuổi -->
                         <span class="chip" th:classappend="${'chip-' + #strings.toLowerCase(dto.movie.ageRating)}" th:text="${dto.movie.ageRating}">P</span>
                     </div>
-                    <h3 class="movie-card__title" th:text="${dto.movie.title}">Hành Trình Vô Tận</h3>
+                    <a th:href="@{/phim/{id}(id=${dto.movie.id})}" class="movie-card__title-link">
+                        <h3 class="movie-card__title" th:text="${dto.movie.title}">Hành Trình Vô Tận</h3>
+                    </a>
                     <p class="movie-card__genre" th:text="${dto.genresString}">Phiêu lưu, Kịch tính</p>
                 </div>
             </div>
@@ -114,28 +124,40 @@
             <h2 class="section-title">Ưu đãi độc quyền</h2>
         </div>
 
-        <!-- Grid hiển thị danh sách các chương trình khuyến mãi đang hoạt động -->
-        <div class="promo-grid">
+        <!-- Grid hiển thị danh sách các chương trình khuyến mãi đang hoạt động
+             (dùng chung style .voucher-card với trang /customer/vouchers) -->
+        <div class="grid">
             <!-- Vòng lặp duyệt danh sách khuyến mãi active -->
-            <div class="promo-card" th:each="promo : ${activePromotions}">
-                <!-- Ảnh banner của chương trình ưu đãi -->
-                <div class="relative">
-                    <img class="promo-card__image" th:src="@{/images/promo-banner.jpg}" alt="Promotion Banner">
-                    <!-- Nhãn phân loại loại mã giảm giá (Dựa vào trường discount_type) -->
-                    <span class="chip chip-promo promo-card__category-badge" th:text="${promo.discountType == 'PERCENT' ? 'MEMBER SPECIAL' : 'PARTNER DEALS'}">MEMBER SPECIAL</span>
+            <div class="voucher-card" th:each="promo : ${activePromotions}">
+                <div>
+                    <div class="v-badge">
+                        <span th:if="${promo.discountType == 'PERCENT'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(promo.discountValue, 0, 0)} + '%'"></span>
+                        <span th:if="${promo.discountType == 'FIXED'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(promo.discountValue, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    </div>
+
+                    <h3 class="v-name" th:text="${promo.name}">Tên Chương Trình</h3>
+                    <p class="v-desc" th:text="${promo.description}">Mô tả chi tiết voucher...</p>
                 </div>
 
-                <div class="promo-card__body">
-                    <!-- Tên chương trình khuyến mãi -->
-                    <h3 class="promo-card__title" th:text="${promo.name}">Mua 1 Tặng 1 Vé Phim 2D</h3>
-                    <!-- Mô tả ngắn điều kiện sử dụng -->
-                    <p class="promo-card__desc" th:text="${promo.description}">Áp dụng cho chủ thẻ thành viên CineMax Gold vào mỗi thứ 2 hàng tuần.</p>
-
-                    <!-- Phần chân card hiển thị Mã code độc quyền và Nút hành động bấm lấy/áp mã -->
-                    <div class="promo-card__footer">
-                        <span class="promo-card__code">🔑 CODE: <strong th:text="${promo.code}">CINEMAX50</strong></span>
-                        <button class="btn btn-primary btn-sm">NHẬN ƯU ĐÃI</button>
+                <div>
+                    <div class="v-meta">
+                        <span class="material-symbols-outlined" style="font-size:14px;">vpn_key</span>
+                        <span>Code: <strong th:text="${promo.code}" style="color: var(--color-text-primary);">CODE123</strong></span>
                     </div>
+                    <div class="v-meta">
+                        <span class="material-symbols-outlined" style="font-size:14px;">calendar_month</span>
+                        <span th:text="'HSD: ' + ${#temporals.format(promo.endDate, 'dd/MM/yyyy')}">HSD</span>
+                    </div>
+                    <div class="v-meta" th:if="${promo.usageLimit != null}">
+                        <span class="material-symbols-outlined" style="font-size:14px;">hourglass_empty</span>
+                        <span th:text="'Còn lại: ' + ${(promo.usageLimit - promo.usedCount)} + ' lượt sử dụng'">Lượt</span>
+                    </div>
+
+                    <button th:data-code="${promo.code}"
+                            onclick="navigator.clipboard.writeText(this.dataset.code); alert('Đã sao chép mã ưu đãi: ' + this.dataset.code);"
+                            class="btn-copy">
+                        Sao chép mã
+                    </button>
                 </div>
             </div>
         </div>

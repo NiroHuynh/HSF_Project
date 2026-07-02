@@ -109,6 +109,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* Sticky footer: đẩy footer xuống đáy khi nội dung ngắn */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Vùng nội dung chính co giãn để footer luôn nằm cuối trang */
+main {
+  flex: 1 0 auto;
 }
 
 img, video {
@@ -1445,6 +1454,67 @@ body{
 .offer-content{
   padding:28px;
 }
+
+/* ----------------------------------------------------------
+   25. VOUCHER CARD (dùng chung: trang /customer/vouchers & section
+   "Ưu đãi độc quyền" trên trang chủ) — style kiểu voucher rạp phim
+   ---------------------------------------------------------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-md);
+}
+
+.voucher-card {
+  background-color: var(--color-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition-fast, 150ms ease), background-color var(--transition-fast, 150ms ease);
+}
+.voucher-card:hover {
+  background-color: var(--color-surface-raised);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.voucher-card::before, .voucher-card::after {
+  content: ''; position: absolute; top: 50%; width: 16px; height: 16px;
+  background-color: var(--color-bg); border-radius: 50%; transform: translateY(-50%);
+}
+.voucher-card::before { left: -9px; border-right: 1px dashed var(--color-border-strong); }
+.voucher-card::after { right: -9px; border-left: 1px dashed var(--color-border-strong); }
+
+.v-badge {
+  background-color: var(--color-brand-red-light);
+  color: var(--color-brand-red);
+  padding: 4px 8px;
+  border-radius: var(--radius-xs, 4px);
+  font-size: var(--text-label, 12px);
+  font-weight: 700;
+  display: inline-block;
+}
+.v-name { font-size: 18px; font-weight: 700; margin: 12px 0 6px 0; }
+.v-desc { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 16px 0; line-height: 1.5; }
+.v-meta { color: var(--color-text-muted); font-size: 12px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+
+.btn-copy {
+  background-color: var(--color-brand-red);
+  color: white; border: none; padding: 10px;
+  border-radius: var(--radius-sm); font-weight: 600;
+  cursor: pointer; transition: background-color var(--transition-fast, 150ms ease);
+  text-align: center; width: 100%; margin-top: 12px;
+}
+.btn-copy:hover { background-color: var(--color-brand-red-hover); }
+
+/* Link bọc tiêu đề phim trên card (giữ nguyên màu, bỏ gạch chân) */
+.movie-card__title-link { text-decoration: none; color: inherit; }
+.movie-card__title-link:hover .movie-card__title { color: var(--color-brand-red); }
 
 .offer-footer{
   display:flex;
