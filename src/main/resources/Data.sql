@@ -822,7 +822,7 @@ VALUES
  (SELECT id FROM payment_method WHERE method_name = 'The Quoc Te'),
  612000, NULL, 'PENDING'),
 
--- CMX20261020J01 — đã thanh toán bằng Ví MoMo
+-- CMX20261020J01 — đã thanh toán bằng VNPay
 ((SELECT id FROM booking WHERE booking_code = 'CMX20261020J01'),
  (SELECT id FROM payment_method WHERE method_name = 'Vi MoMo'),
  381000, '2026-07-01 20:00:00', 'SUCCESS'),
