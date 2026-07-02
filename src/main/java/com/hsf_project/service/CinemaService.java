@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface CinemaService {
     List<Cinema> getCinemaByCityAndDate(Integer cityId);
+    List<Cinema> getCinemaWithRoomsByCityId(Integer cityId);
 }

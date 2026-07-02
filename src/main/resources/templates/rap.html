@@ -13,6 +13,9 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
 
+  <!-- style.css PHẢI load SAU bootstrap để override đúng class trùng tên (.navbar, .container, .footer...) -->
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+
   <style>
     :root {
       --red:#E31B23; --red-h:#C41219; --red-l:rgba(227,27,35,.15);
@@ -183,32 +186,8 @@
 </head>
 <body>
 
-<!-- ══ NAVBAR ══════════════════════════════════════════════ -->
-<nav class="cnav">
-  <div class="container-xl px-3">
-    <div class="inner">
-      <a th:href="@{/}" class="brand">CineMax</a>
-      <div class="nlinks">
-        <a th:href="@{/phim}"  class="nlink">Phim</a>
-        <a th:href="@{/rap}"   class="nlink active">Rạp</a>
-        <a th:href="@{/uu-dai}" class="nlink">Ưu đãi</a>
-        <a th:href="@{/ve-cua-toi}" class="nlink">Vé của tôi</a>
-      </div>
-      <div class="nactions">
-        <button class="ibtn" aria-label="Thông báo">
-          <i class="bi bi-bell fs-5"></i>
-        </button>
-        <div class="uchip">
-          <div class="uav">HT</div>
-          <div>
-            <div class="uname">Huỳnh Tấn Phong</div>
-            <div class="urole">Khách hàng</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
+<!-- NAVBAR dùng chung toàn site -->
+<div th:replace="~{fragments/header :: header}"></div>
 
 <!-- ══ PAGE HEADER ══════════════════════════════════════════ -->
 <header class="phdr">
@@ -243,7 +222,7 @@
     <!-- ── Count ── -->
     <p class="lmeta">
       Hiển thị <strong id="countNum" th:text="${#lists.size(cinemas)}">0</strong>
-      rạp tại <strong th:text="${selectedCity.name}">TP. Hồ Chí Minh</strong>
+      rạp tại <strong th:text="${selectedCity != null ? selectedCity.name : ''}">TP. Hồ Chí Minh</strong>
     </p>
     <div class="dline"></div>
 
@@ -296,7 +275,7 @@
               <span class="dn" th:text="${d.dayOfMonth}">29</span>
               <span class="dm" th:text="${'Th' + d.monthValue}">Th6</span>
               <span class="dd"
-                    th:text="${iter.index == 0 ? 'Hôm nay' : (iter.index == 1 ? 'Ngày mai' : #temporals.format(d,'EEE', new java.util.Locale('vi')))}">
+                    th:text="${iter.index == 0 ? 'Hôm nay' : (iter.index == 1 ? 'Ngày mai' : d.dayOfWeek.name())}">
                 T2</span>
             </a>
           </th:block>
@@ -375,24 +354,9 @@
   </div><!-- /container -->
 </main>
 
-<!-- ══ FOOTER ══════════════════════════════════════════════ -->
-<footer class="sfooter">
-  <div class="container-xl px-3">
-    <div class="row g-4 pb-2">
-      <div class="col-12 col-md-5">
-        <div class="fb">CineMax</div>
-        <p class="fd">Hệ thống rạp chiếu phim hiện đại bậc nhất với công nghệ IMAX và âm thanh vòm Dolby Atmos đỉnh cao.</p>
-      </div>
-      <div class="col-12 col-md-7">
-        <div class="fct">Chăm sóc khách hàng</div>
-        <div class="fci"><i class="bi bi-telephone-fill text-danger"></i>&nbsp;1900 1234</div>
-        <div class="fci"><i class="bi bi-envelope-fill text-danger"></i>&nbsp;contact@cinemax.vn</div>
-        <div class="fci"><i class="bi bi-clock-fill text-danger"></i>&nbsp;08:00 – 24:00 (Hàng ngày)</div>
-      </div>
-    </div>
-    <div class="fbot">© 2024 CineMax. All rights reserved. Cinematic Noir Experience.</div>
-  </div>
-</footer>
+<!-- FOOTER dùng chung toàn site -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:replace="~{fragments/header :: header-script}"></script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>

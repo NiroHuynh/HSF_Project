@@ -23,6 +23,7 @@ public class VoucherController {
         // Lấy danh sách voucher hợp lệ tại thời điểm hiện tại
         List<Promotion> activeVouchers = promotionRepository.findActivePromotions(LocalDateTime.now());
         model.addAttribute("vouchers", activeVouchers);
-        return "customer/vouchers";
+        model.addAttribute("activePage", "uu-dai");
+        return "vouchers";
     }
 }
