@@ -111,6 +111,12 @@
             justify-content: center;
             color: var(--color-text-muted);
             font-size: 28px;
+            overflow: hidden;
+        }
+        .order-summary__poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .price-row {
@@ -208,7 +214,9 @@
 
             <div class="order-summary__movie">
                 <div class="order-summary__poster">
-                    <span class="material-symbols-outlined">movie</span>
+                    <img th:if="${showtimeInfo.posterUrl()}" th:src="${showtimeInfo.posterUrl()}"
+                         th:alt="${showtimeInfo.movieTitle()}">
+                    <span th:unless="${showtimeInfo.posterUrl()}" class="material-symbols-outlined">movie</span>
                 </div>
                 <div>
                     <div class="ticket-card__title" style="font-size:16px;"
