@@ -9,5 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface CinemaService {
+    List<Cinema> getCinemaByCityAndDate(Integer cityId);
+    List<Cinema> getCinemaWithRoomsByCityId(Integer cityId);
     List<CinemaScheduleResponse> getCinemaByCityAndDateAndMovie(Integer cityId, LocalDate selectDate, Integer id);
 }
