@@ -28,12 +28,22 @@ public class CinemaServiceImpl implements CinemaService {
 
     @Override
     public List<CinemaScheduleResponse> getCinemaByCityAndDateAndMovie(Integer cityId, LocalDate selectDate, Integer movieId) {
-        LocalDate date = selectDate;
 
-        LocalDateTime start = date != null ? date.atStartOfDay() : null;
+        LocalDate date = (selectDate != null) ? selectDate : LocalDate.now();
+
+        LocalDateTime start ;
         LocalDateTime end = date != null ? date.plusDays(1).atStartOfDay() : null;
 
-         List<CinemaScheduleDTO> cinema = cinemaRepository.findCinemaSchedule(
+        // Nếu chọn hôm nay thì bắt đầu từ thời điểm hiện tại
+        if (date.equals(LocalDate.now())) {
+            start = LocalDateTime.now();
+        } else {
+            // Nếu là ngày mai hoặc các ngày sau thì bắt đầu từ 00:00
+            start = selectDate.atStartOfDay();
+        }
+
+
+        List<CinemaScheduleDTO> cinema = cinemaRepository.findCinemaSchedule(
                 cityId,
                 movieId,
                 start,
