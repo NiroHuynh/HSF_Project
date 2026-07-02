@@ -21,8 +21,7 @@ public class PromotionServiceImpl implements PromotionService {
             return new PromotionResult(false, "Vui lòng nhập mã.", BigDecimal.ZERO, null);
         }
 
-        Promotion promo = promotionRepository.findByCodeIgnoreCaseAndIsDeletedFalse(code.trim())
-                .orElse(null);
+        Promotion promo = promotionRepository.findByCodeIgnoreCaseAndIsDeletedFalse(code.trim()).orElse(null);
 
         if (promo == null) {
             return new PromotionResult(false, "Mã không tồn tại.", BigDecimal.ZERO, null);
