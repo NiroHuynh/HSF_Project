@@ -36,6 +36,6 @@ public interface CinemaRepository extends JpaRepository<Cinema,Integer> {
 
     @Query("SELECT DISTINCT c FROM Cinema c " +
            "LEFT JOIN FETCH c.cinemaRooms cr " +
-           "WHERE c.city.id = :cityId AND c.isDeleted = false")
+           "WHERE c.city.id = :cityId AND (c.isDeleted IS NULL OR c.isDeleted = false)")
     List<Cinema> findCinemaWithRoomsByCityId(@Param("cityId") Integer cityId);
 }
