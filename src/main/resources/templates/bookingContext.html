@@ -11,6 +11,9 @@
 </head>
 <body>
 
+<!-- NAVBAR dùng chung toàn site -->
+<div th:replace="~{fragments/header :: header}"></div>
+
 <!--
   ============================================================
   TRANG: Chi tiết phim + Chọn ngày / rạp / giờ chiếu
@@ -352,6 +355,10 @@
 
     </div>
 </main>
+
+<!-- FOOTER dùng chung toàn site -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:replace="~{fragments/header :: header-script}"></script>
 
 </body>
 </html>
