@@ -1,34 +1,37 @@
 package com.hsf_project.controller;
 
 import com.hsf_project.entity.Booking;
+import com.hsf_project.entity.User;
 import com.hsf_project.repository.BookingRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 import java.util.List;
 
 @Controller
-@RequestMapping("/customer")
 public class HistoryController {
 
     @Autowired
     private BookingRepository bookingRepository;
 
-    @GetMapping("/history")
-    public String viewBookingHistory(Model model) {
-        // Giả lập userId hiện tại là 1L.
-        // Khi nhóm bạn tích hợp Spring Security, đoạn này sẽ thay bằng logic lấy từ Principal/UserDetails
-        Long currentUserId = 1L;
+    @GetMapping("/ve-cua-toi")
+    public String viewBookingHistory(HttpSession session, Model model) {
+        // 1. Lấy đúng key "ttdn" của nhóm ra
+        User currentUser = (User) session.getAttribute("ttdn");
 
-        List<Booking> listBookings = bookingRepository.findByUserIdAndIsDeletedFalseOrderByBookingDateDesc(currentUserId);
+        if (currentUser == null) {
+            return "redirect:/login"; // Hoặc trang nào Bình làm để login
+        }
 
-        // Đẩy danh sách sang giao diện Thymeleaf
+        // 2. Truy vấn dữ liệu theo ID người dùng
+        List<Booking> listBookings = bookingRepository.findByUserIdAndIsDeletedFalseOrderByBookingDateDesc(currentUser.getId());
         model.addAttribute("bookings", listBookings);
 
-        // Trả về file HTML nằm trong thư mục: src/main/resources/templates/customer/history.html
-        return "customer/history";
+        // 3. Truyền thêm biến activePage để tô sáng menu "Vé của tôi"
+        model.addAttribute("activePage", "ve-cua-toi");
+
+        return "history";
     }
 }
