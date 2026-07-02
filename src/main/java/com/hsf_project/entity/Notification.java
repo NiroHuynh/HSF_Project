@@ -30,7 +30,7 @@ public class Notification {
 
     @Size(max = 50)
     @NotNull
-    @Nationalized
+    // Không dùng @Nationalized: cột notification.type trong DB là VARCHAR
     @Column(name = "type", nullable = false, length = 50)
     private String type;
 

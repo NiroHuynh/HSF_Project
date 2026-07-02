@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class AuthController {
@@ -18,7 +19,7 @@ public class AuthController {
 
     @GetMapping("/")
     public String login(Model model ,HttpSession session){
-        if (session.getAttribute("currentUser") != null) {
+        if (session.getAttribute("ttdn") != null) {
             return "redirect:/home";
         }
         User user = new User();
@@ -26,8 +27,8 @@ public class AuthController {
         return "login";
     }
 
-    @PostMapping("login-submit")
-    public String loginSubmit(@ModelAttribute("user") User userLogin, Model model
+    @PostMapping("/login-submit")
+    public String loginSubmit(@ModelAttribute("user") User userLogin, RedirectAttributes redirectAttributes
     , HttpSession session){
         String email = userLogin.getEmail();
         String password = userLogin.getPassword();
@@ -36,7 +37,7 @@ public class AuthController {
             session.setAttribute("ttdn", u);
             return "redirect:/home";
         }else{
-            model.addAttribute("error","Username or password incorrect!!");
+            redirectAttributes.addFlashAttribute("error","Username or password incorrect!!");
             return "redirect:/";
         }
     }

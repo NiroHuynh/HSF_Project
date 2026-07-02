@@ -22,4 +22,9 @@ public class CinemaServiceImpl implements CinemaService {
     public List<Cinema> getCinemaByCityAndDate(Integer cityId) {
         return cinemaRepository.findCinemaByCity_Id(cityId);
     }
+
+    @Override
+    public List<Cinema> getCinemaWithRoomsByCityId(Integer cityId) {
+        return cinemaRepository.findCinemaWithRoomsByCityId(cityId);
+    }
 }

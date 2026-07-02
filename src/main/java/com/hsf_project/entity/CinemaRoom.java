@@ -25,7 +25,7 @@ public class CinemaRoom {
 
     @Size(max = 20)
     @NotNull
-    @Nationalized
+    // Không dùng @Nationalized: cột cinema_room.room_type trong DB là VARCHAR (2D/3D/IMAX)
     @Column(name = "room_type", nullable = false, length = 20)
     private String roomType;
 

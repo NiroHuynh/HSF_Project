@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả đặt vé - CineMax</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        .result-wrapper {
+            max-width: 560px;
+            margin: var(--space-2xl, 48px) auto;
+            padding: 0 var(--space-md, 16px);
+        }
+        .result-card {
+            background: var(--color-surface, #111114);
+            border: 1px solid var(--color-border, rgba(255,255,255,.08));
+            border-radius: var(--radius-lg, 16px);
+            padding: var(--space-xl, 32px);
+            text-align: center;
+        }
+        .result-icon { font-size: 64px; line-height: 1; }
+        .result-icon--success { color: #22C55E; }
+        .result-icon--fail { color: var(--color-brand-red, #E31B23); }
+        .result-title { margin: var(--space-md, 16px) 0 var(--space-sm, 8px); }
+        .result-code {
+            display: inline-block;
+            margin-top: var(--space-sm, 8px);
+            padding: 6px 16px;
+            border-radius: var(--radius-pill, 9999px);
+            background: rgba(227, 27, 35, .15);
+            color: var(--color-brand-red, #E31B23);
+            font-weight: 700;
+            letter-spacing: .05em;
+        }
+        .result-detail {
+            margin-top: var(--space-lg, 24px);
+            text-align: left;
+            border-top: 1px solid var(--color-border, rgba(255,255,255,.08));
+            padding-top: var(--space-lg, 24px);
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            gap: var(--space-md, 16px);
+            margin-bottom: var(--space-sm, 8px);
+        }
+        .price-row--total {
+            margin-top: var(--space-sm, 8px);
+            padding-top: var(--space-sm, 8px);
+            border-top: 1px dashed var(--color-border, rgba(255,255,255,.16));
+            font-weight: 700;
+        }
+        .result-actions {
+            display: flex;
+            gap: var(--space-md, 16px);
+            justify-content: center;
+            margin-top: var(--space-lg, 24px);
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR dùng chung toàn site -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="result-wrapper">
+
+    <!-- ============ TH1: Không tìm thấy booking / chữ ký không hợp lệ ============ -->
+    <div class="result-card" th:if="${invalid}">
+        <div class="result-icon result-icon--fail"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <h1 class="result-title">Giao dịch không hợp lệ</h1>
+        <p class="text-secondary">Không tìm thấy đơn đặt vé hoặc dữ liệu thanh toán không hợp lệ. Vui lòng thử lại.</p>
+        <div class="result-actions">
+            <a th:href="@{/phim}" class="btn btn-primary">Về trang phim</a>
+        </div>
+    </div>
+
+    <!-- ============ TH2: Thanh toán thành công ============ -->
+    <div class="result-card" th:if="${!#bools.isTrue(invalid) and success}">
+        <div class="result-icon result-icon--success"><i class="bi bi-check-circle-fill"></i></div>
+        <h1 class="result-title">Đặt vé thành công!</h1>
+        <p class="text-secondary">Cảm ơn bạn đã đặt vé tại CineMax. Vui lòng đưa mã dưới đây cho nhân viên tại quầy.</p>
+        <div class="result-code" th:text="${booking.bookingCode}">BK260702XXXX</div>
+
+        <div class="result-detail">
+            <div class="price-row" th:if="${showtime != null}">
+                <span class="text-secondary">Phim</span>
+                <span th:text="${showtime.movie.title}">Tên phim</span>
+            </div>
+            <div class="price-row" th:if="${showtime != null}">
+                <span class="text-secondary">Suất chiếu</span>
+                <span th:text="${#temporals.format(showtime.startTime, 'HH:mm dd/MM/yyyy')}">19:00 02/07/2026</span>
+            </div>
+            <div class="price-row" th:if="${showtime != null}">
+                <span class="text-secondary">Rạp / Phòng</span>
+                <span th:text="${showtime.room.cinema.name} + ' — ' + ${showtime.room.name}">CGV — Cinema 7</span>
+            </div>
+            <div class="price-row">
+                <span class="text-secondary">Ghế</span>
+                <span>
+                    <th:block th:each="t, iterStat : ${booking.tickets}">
+                        <span th:text="${t.seat.seatCode}">A1</span><span th:unless="${iterStat.last}">, </span>
+                    </th:block>
+                </span>
+            </div>
+            <div class="price-row" th:each="bc : ${booking.bookingCombos}">
+                <span class="text-secondary" th:text="'Combo: ' + ${bc.combo.name} + ' x' + ${bc.quantity}">Combo</span>
+                <span th:text="${#numbers.formatInteger(bc.totalPrice, 0, 'POINT')} + ' đ'">0 đ</span>
+            </div>
+
+            <div class="price-row">
+                <span class="text-secondary">Tổng tiền</span>
+                <span th:text="${#numbers.formatInteger(booking.totalAmount, 0, 'POINT')} + ' đ'">0 đ</span>
+            </div>
+            <div class="price-row" th:if="${booking.discountAmount != null and booking.discountAmount > 0}">
+                <span class="text-secondary">Giảm giá</span>
+                <span th:text="'-' + ${#numbers.formatInteger(booking.discountAmount, 0, 'POINT')} + ' đ'">0 đ</span>
+            </div>
+            <div class="price-row price-row--total">
+                <span>Đã thanh toán</span>
+                <span th:text="${#numbers.formatInteger(booking.finalAmount, 0, 'POINT')} + ' đ'">0 đ</span>
+            </div>
+        </div>
+
+        <div class="result-actions">
+            <a th:href="@{/customer/history}" class="btn btn-primary">Xem vé của tôi</a>
+            <a th:href="@{/phim}" class="btn btn-secondary">Đặt vé phim khác</a>
+        </div>
+    </div>
+
+    <!-- ============ TH3: Thanh toán thất bại / bị hủy ============ -->
+    <div class="result-card" th:if="${!#bools.isTrue(invalid) and !success}">
+        <div class="result-icon result-icon--fail"><i class="bi bi-x-circle-fill"></i></div>
+        <h1 class="result-title">Thanh toán không thành công</h1>
+        <p class="text-secondary">
+            Giao dịch cho đơn <strong th:text="${booking.bookingCode}">BK...</strong> đã bị hủy hoặc thất bại.
+            Ghế bạn chọn đã được giải phóng — bạn có thể đặt lại bất cứ lúc nào.
+        </p>
+        <div class="result-actions">
+            <a th:if="${showtime != null}"
+               th:href="@{/booking/seats(showtimeId=${showtime.id})}" class="btn btn-primary">Thử lại</a>
+            <a th:href="@{/phim}" class="btn btn-secondary">Về trang phim</a>
+        </div>
+    </div>
+
+</main>
+
+<!-- FOOTER dùng chung toàn site -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:replace="~{fragments/header :: header-script}"></script>
+
+</body>
+</html>
