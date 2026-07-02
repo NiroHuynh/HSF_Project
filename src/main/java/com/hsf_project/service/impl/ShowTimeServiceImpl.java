@@ -15,7 +15,8 @@ public class ShowTimeServiceImpl implements ShowTimeService {
     private ShowTimeRepository showTimeRepository;
 
     @Override
-    public ShowTime getShowTimeById(Long id) {
-        return showTimeRepository.findById(id).get();
+    public ShowTime getById(Long showtimeId) {
+        return showTimeRepository.findDetailById(showtimeId)
+                .orElseThrow(() -> new IllegalArgumentException("Suất chiếu không tồn tại: " + showtimeId));
     }
 }

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Phim - CineMax</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .movies-page .filter-text-tab {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1;
+            text-decoration: none;
+            transition: color var(--transition-fast), font-size var(--transition-fast);
+            display: inline-block;
+        }
+        .movies-page .filter-text-tab.active {
+            color: #fff;
+            font-size: 60px;
+            font-weight: 400;
+            cursor: default;
+        }
+        .movies-page .filter-text-tab:not(.active) {
+            color: rgba(153, 153, 153, 0.40);
+            font-size: 36px;
+            font-weight: 400;
+        }
+        .movies-page .filter-text-tab:not(.active):hover {
+            color: rgba(153, 153, 153, 0.70);
+        }
+
+        .movies-page .search-bar-custom {
+            background: #1A1A2A;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 2px solid #2A2A3A;
+            padding: 24px 24px 23px 56px;
+            position: relative;
+        }
+        .movies-page .search-bar-custom input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            color: rgba(153, 153, 153, 0.50);
+            font-size: 18px;
+            font-family: 'Liberation Sans', sans-serif;
+        }
+        .movies-page .search-bar-custom input::placeholder {
+            color: rgba(153, 153, 153, 0.50);
+        }
+        .movies-page .search-bar-custom .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 23px;
+            width: 18px;
+            height: 18px;
+        }
+        .movies-page .search-bar-custom .search-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: #999;
+        }
+
+        /* --- CẤU TRÚC LẠI CARD PHIM ĐỂ THÔNG TIN ĐÈ LÊN BANNER --- */
+        .movies-page .movie-card--list {
+            background: #1A1A2A;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+            outline: 1px solid rgba(255, 255, 255, 0.05);
+            outline-offset: -1px;
+        }
+        .movies-page .movie-card--list:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card-hover);
+        }
+        .movies-page .movie-card--list .movie-card__poster-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            height: 420px; /* Điều chỉnh chiều cao hiển thị của toàn bộ banner phim */
+        }
+        .movies-page .movie-card--list .movie-card__poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Hiệu ứng phủ khi hover (nút đặt vé) */
+        .movies-page .movie-card--list .movie-card__overlay-btn {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.40);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            text-decoration: none;
+            z-index: 3; /* Nằm trên cùng khi kích hoạt */
+        }
+        .movies-page .movie-card--list:hover .movie-card__overlay-btn {
+            opacity: 1;
+        }
+
+        /* Định vị đánh giá góc trên phải */
+        .movies-page .movie-card--list .movie-card__rating {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.60);
+            backdrop-filter: blur(6px);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: #FACC15;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            z-index: 2;
+        }
+
+        /* Định vị ngày chiếu góc trên trái */
+        .movies-page .movie-card--list .movie-card__date-badge {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: var(--color-brand-red);
+            color: white;
+            font-size: var(--text-label);
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: var(--radius-xs);
+            line-height: 1.5;
+            z-index: 2;
+        }
+
+        /* Đẩy phần thông tin phim xuống đáy và tạo dải màu mờ tránh chìm chữ */
+        .movies-page .movie-card--list .movie-card__info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 24px 16px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 2;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%);
+            box-sizing: border-box;
+        }
+        .movies-page .movie-card--list .movie-card__tags {
+            display: flex;
+            gap: 8px;
+        }
+        .movies-page .movie-card--list .movie-card__title {
+            font-size: 20px;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            line-height: 28px;
+            color: #fff;
+            padding-top: 4px;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .movies-page .movie-card--list .movie-card__genre {
+            font-size: 14px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-weight: 400;
+            line-height: 20px;
+            color: #E9BCB6;
+            margin: 0;
+        }
+
+        .movies-page .section-title-lg {
+            margin-bottom: 0;
+        }
+        .movies-page .filter-row {
+            margin-bottom: 24px;
+        }
+        .movies-page .pagination-info {
+            color: var(--color-text-secondary);
+            font-size: var(--text-body-sm);
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="section movies-page">
+    <div class="container">
+        <div class="section-title-lg" style="display: flex; align-items: baseline; gap: 24px; margin-bottom: 32px;">
+            <a class="filter-text-tab"
+               th:classappend="${currentStatus.name() == 'NOW_SHOWING'} ? 'active' : ''"
+               th:href="@{/phim(status='NOW_SHOWING', search=${search})}">Phim Đang Chiếu</a>
+            <a class="filter-text-tab"
+               th:classappend="${currentStatus.name() == 'COMING_SOON'} ? 'active' : ''"
+               th:href="@{/phim(status='COMING_SOON', search=${search})}">Phim Sắp Chiếu</a>
+            <a class="filter-text-tab"
+               th:classappend="${currentStatus.name() == 'ENDED'} ? 'active' : ''"
+               th:href="@{/phim(status='ENDED', search=${search})}">Đã Chiếu</a>
+        </div>
+
+        <form th:action="@{/phim}" method="GET" style="margin-bottom: 24px;">
+            <input type="hidden" name="status" th:value="${currentStatus.name()}">
+            <div class="search-bar-custom">
+                <span class="search-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                </span>
+                <input type="text" name="search" th:value="${search}"
+                       placeholder="Tìm kiếm phim, đạo diễn, diễn viên...">
+            </div>
+        </form>
+
+        <div class="filter-row">
+            <button class="filter-chip active">Tất cả</button>
+            <button class="filter-chip">Hành động</button>
+            <button class="filter-chip">Lãng mạn</button>
+            <button class="filter-chip">Hài hước</button>
+            <button class="filter-chip">Hoạt hình</button>
+            <button class="filter-chip">Kinh dị</button>
+            <button class="filter-chip">Viễn tưởng</button>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 24px;">
+            <span style="color: var(--color-text-secondary);">Sắp xếp:</span>
+            <a th:href="@{/phim(status=${currentStatus.name()}, sort='title', direction='asc', search=${search})}"
+               th:classappend="${sort == 'title'} ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm'">Tên A-Z</a>
+            <a th:href="@{/phim(status=${currentStatus.name()}, sort='releaseDate', direction='desc', search=${search})}"
+               th:classappend="${sort == 'releaseDate'} ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm'">Ngày chiếu</a>
+            <a th:href="@{/phim(status=${currentStatus.name()}, sort='averageRating', direction='desc', search=${search})}"
+               th:classappend="${sort == 'averageRating'} ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm'">Đánh giá</a>
+        </div>
+
+        <div th:if="${moviePage.totalElements == 0}" style="text-align: center; padding: 60px 0;">
+            <p style="font-size: 18px; color: var(--color-text-secondary);">
+                <span th:if="${search != null and !search.isEmpty()}">Không tìm thấy kết quả cho "<span th:text="${search}"></span>"</span>
+                <span th:if="${search == null or search.isEmpty()}">Chưa có phim nào</span>
+            </p>
+        </div>
+
+        <div class="movie-grid" th:if="${moviePage.totalElements > 0}">
+            <div class="movie-card--list" th:each="dto : ${moviePage.content}">
+
+                <div class="movie-card__poster-wrapper">
+                    <a th:href="@{/phim/{id}(id=${dto.movie.id})}">
+                        <img class="movie-card__poster" th:src="${dto.movie.posterUrl}" th:alt="${dto.movie.title}">
+                    </a>
+
+                    <div class="movie-card__rating" th:if="${dto.movie.averageRating != null}">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="#FACC15" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 0L7.35 4.05H11.7L8.175 6.6L9.525 10.65L6 8.1L2.475 10.65L3.825 6.6L0.3 4.05H4.65L6 0Z"/>
+                        </svg>
+                        <span th:text="${dto.movie.averageRating}">8.9</span>
+                    </div>
+
+                    <div class="movie-card__date-badge"
+                         th:if="${currentStatus.name() == 'COMING_SOON'}"
+                         th:text="${#temporals.format(dto.movie.releaseDate, 'dd.MM.yyyy')}">22.03.2026</div>
+
+                    <a th:href="@{/phim/{id}(id=${dto.movie.id})}" class="movie-card__overlay-btn">
+                        <span class="btn btn-primary" style="padding: 12px 24px; font-size: 16px;">Đặt Vé</span>
+                    </a>
+
+                    <div class="movie-card__info">
+                        <div class="movie-card__tags">
+                            <span class="chip chip-imax">IMAX</span>
+                            <span class="chip"
+                                  th:classappend="${'chip-' + #strings.toLowerCase(dto.movie.ageRating)}"
+                                  th:text="${dto.movie.ageRating}">T16</span>
+                        </div>
+                        <h3 class="movie-card__title" th:text="${dto.movie.title}">Tên phim</h3>
+                        <p class="movie-card__genre" th:text="${dto.genresString}">Hành động, Viễn tưởng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${moviePage.totalPages > 1}" style="display: flex; justify-content: center; gap: 8px; margin-top: 40px;">
+            <a th:if="${moviePage.hasPrevious()}"
+               th:href="@{/phim(status=${currentStatus.name()}, page=${moviePage.number - 1}, size=${moviePage.size}, sort=${sort}, direction=${direction}, search=${search})}"
+               class="btn btn-outline btn-sm">&#9664; Trước</a>
+
+            <span th:each="i : ${#numbers.sequence(0, moviePage.totalPages - 1)}">
+                <a th:if="${i == moviePage.number}"
+                   class="btn btn-primary btn-sm" th:text="${i + 1}">1</a>
+                <a th:if="${i != moviePage.number}"
+                   th:href="@{/phim(status=${currentStatus.name()}, page=${i}, size=${moviePage.size}, sort=${sort}, direction=${direction}, search=${search})}"
+                   class="btn btn-outline btn-sm" th:text="${i + 1}">1</a>
+            </span>
+
+            <a th:if="${moviePage.hasNext()}"
+               th:href="@{/phim(status=${currentStatus.name()}, page=${moviePage.number + 1}, size=${moviePage.size}, sort=${sort}, direction=${direction}, search=${search})}"
+               class="btn btn-outline btn-sm">Sau &#9654;</a>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

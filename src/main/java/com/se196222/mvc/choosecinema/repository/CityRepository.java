@@ -1,0 +1,10 @@
+package com.se196222.mvc.choosecinema.repository;
+
+import com.se196222.mvc.choosecinema.entity.City;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface CityRepository extends JpaRepository<City, Integer> {
+    List<City> findByIsDeletedFalseOrderByName();
+}
