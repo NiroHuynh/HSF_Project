@@ -25,8 +25,8 @@ public interface ShowTimeRepository extends JpaRepository<ShowTime, Long> {
             "JOIN FETCH st.movie m " +
             "WHERE r.cinema.id = :cinemaId " +
             "AND st.startTime >= :startOfDay AND st.startTime < :endOfDay " +
-            "AND st.isDeleted = false " +
-            "AND r.isDeleted = false " +
+            "AND (st.isDeleted IS NULL OR st.isDeleted = false) " +
+            "AND (r.isDeleted IS NULL OR r.isDeleted = false) " +
             "ORDER BY m.title, r.roomType, st.startTime")
     List<ShowTime> findByCinemaAndDate(
             @Param("cinemaId") Integer cinemaId,
