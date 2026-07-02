@@ -324,19 +324,19 @@
         <!-- ===================== 4. DANH SÁCH RẠP + GIỜ CHIẾU ===================== -->
         <div class="cinema-schedule-list" th:if="${not #lists.isEmpty(cinemaSchedules)}">
             <div class="cinema-schedule-card" th:each="cinema : ${cinemaSchedules}">
-                <h3 class="cinema-schedule-card__name" th:text="${cinema.name}"></h3>
+                <h3 class="cinema-schedule-card__name" th:text="${cinema.cinemaName}"></h3>
                 <p class="cinema-schedule-card__address">
                     <span class="material-symbols-outlined"></span>
                     <span th:text="${cinema.address}"></span>
                 </p>
 
-                <div class="cinema-schedule-card__format-group" th:each="group : ${cinema.cinemaRooms}">
+                <div class="cinema-schedule-card__format-group" th:each="group : ${cinema.rooms}">
                     <span class="label-sm cinema-schedule-card__format-label" th:text="${group.roomType}"></span>
                     <div class="showtime-row">
                         <a th:each="slot : ${group.showTimes}"
                            class="showtime-btn"
                            th:text="${#temporals.format(slot.startTime, 'HH:mm')}"
-                           th:href="@{/booking/seats(showtimeId=${slot.id})}">
+                           th:href="@{/booking/seats(showtimeId=${slot.showTimeId})}">
 
                         </a>
                     </div>
