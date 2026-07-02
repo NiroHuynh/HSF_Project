@@ -46,59 +46,8 @@
             margin-bottom: var(--space-lg);
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: var(--space-md);
-        }
-
-        /* Hiệu ứng cắt răng cưa phong cách Voucher rạp phim */
-        .voucher-card {
-            background-color: var(--color-surface);
-            border: 1px dashed var(--color-border-strong);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: var(--shadow-card);
-            transition: transform var(--transition-fast, 150ms ease), background-color var(--transition-fast, 150ms ease);
-        }
-        .voucher-card:hover {
-            background-color: var(--color-surface-raised);
-            box-shadow: var(--shadow-card-hover);
-            transform: translateY(-2px);
-        }
-
-        .voucher-card::before, .voucher-card::after {
-            content: ''; position: absolute; top: 50%; width: 16px; height: 16px;
-            background-color: var(--color-bg); border-radius: 50%; transform: translateY(-50%);
-        }
-        .voucher-card::before { left: -9px; border-right: 1px dashed var(--color-border-strong); }
-        .voucher-card::after { right: -9px; border-left: 1px dashed var(--color-border-strong); }
-
-        .v-badge {
-            background-color: var(--color-brand-red-light);
-            color: var(--color-brand-red);
-            padding: 4px 8px;
-            border-radius: var(--radius-xs);
-            font-size: var(--text-label, 12px);
-            font-weight: 700;
-            display: inline-block;
-        }
-        .v-name { font-size: 18px; font-weight: 700; margin: 12px 0 6px 0; }
-        .v-desc { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 16px 0; line-height: 1.5; }
-        .v-meta { color: var(--color-text-muted); font-size: 12px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
-
-        .btn-copy {
-            background-color: var(--color-brand-red);
-            color: white; border: none; padding: 10px;
-            border-radius: var(--radius-sm); font-weight: 600;
-            cursor: pointer; transition: background-color var(--transition-fast, 150ms ease);
-            text-align: center; width: 100%; margin-top: 12px;
-        }
-        .btn-copy:hover { background-color: var(--color-brand-red-hover); }
+        /* Style .grid + .voucher-card đã chuyển sang static/css/style.css để
+           dùng chung với section "Ưu đãi độc quyền" trên trang chủ. */
     </style>
 </head>
 <body>
@@ -113,7 +62,7 @@
         <div th:each="v : ${vouchers}" class="voucher-card">
             <div>
                 <div class="v-badge">
-                    <span th:if="${v.discountType == 'PERCENTAGE'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(v.discountValue, 0, 0)} + '%'"></span>
+                    <span th:if="${v.discountType == 'PERCENT'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(v.discountValue, 0, 0)} + '%'"></span>
                     <span th:if="${v.discountType == 'FIXED'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(v.discountValue, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                 </div>
 
