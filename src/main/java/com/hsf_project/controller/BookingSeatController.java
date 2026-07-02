@@ -54,7 +54,7 @@ public class BookingSeatController {
     @GetMapping("/seats")
     public String showSeatPage(@RequestParam Long showtimeId, Model model) {
 
-        ShowTime showtime = showTimeService.getShowTimeById(showtimeId);
+        ShowTime showtime = showTimeService.getById(showtimeId);
         List<SeatRowResponse> rows = seatService.getSeatMap(showtime.getRoom().getId(),showtimeId);
         int totalSeats = showtime.getRoom().getTotalSeats();
         int bookedCount = rows.stream()

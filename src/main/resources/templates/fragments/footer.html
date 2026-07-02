@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"></head>
+<body>
+
+<!-- ============================================================
+     FRAGMENT: FOOTER
+     Cách dùng ở trang khác:
+     <div th:replace="~{fragments/footer :: footer}"></div>
+     ============================================================ -->
+<footer class="footer" th:fragment="footer">
+  <div class="container">
+    <div class="footer__grid">
+
+      <!-- Brand + mô tả -->
+      <div class="footer__brand">
+        <div class="brand-name">CineMax</div>
+        <p class="brand-desc">
+          Hệ thống rạp chiếu phim hiện đại bậc nhất với công nghệ IMAX và âm thanh vòm Dolby Atmos đỉnh cao.
+        </p>
+      </div>
+
+      <!-- Thông tin liên hệ -->
+      <div class="footer__contact">
+        <div class="contact-title">Chăm sóc khách hàng</div>
+        <div class="contact-item"><i class="bi bi-telephone-fill text-accent"></i> 1900 1234</div>
+        <div class="contact-item"><i class="bi bi-envelope-fill text-accent"></i> contact@cinemax.vn</div>
+        <div class="contact-item"><i class="bi bi-clock-fill text-accent"></i> 08:00 - 24:00 (Hàng ngày)</div>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      &copy; <span th:text="${#dates.year(#dates.createNow())}">2026</span> CineMax. Bảo lưu mọi quyền.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

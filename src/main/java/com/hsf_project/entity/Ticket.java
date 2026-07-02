@@ -123,6 +123,10 @@ public class Ticket {
     public void setBookedAt(LocalDateTime bookedAt) {
         this.bookedAt = bookedAt;
     }
+
+    public Boolean getIsDeleted() { return isDeleted; }
+
+    public void setIsDeleted(Boolean isDeleted) { this.isDeleted = isDeleted; }
 }
 
 
