@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByEmailAndPasswordAndIsDeletedFalseAndStatus(String email, String password, String status);
+
+    Optional<User> findByEmailAndIsDeletedFalse(String email);
 }

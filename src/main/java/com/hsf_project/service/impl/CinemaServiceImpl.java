@@ -105,7 +105,18 @@ public class CinemaServiceImpl implements CinemaService {
         return new ArrayList<>(cinemaMap.values());
     }
 
+    @Override
+    public List<Cinema> getCinemaByCityAndDate(Integer cityId) {
+        return List.of();
+    }
+
+    @Override
+    public List<Cinema> getCinemaWithRoomsByCityId(Integer cityId) {
+        return cinemaRepository.findCinemaWithRoomsByCityId(cityId);
+    }
 }
+
+
 
 
 

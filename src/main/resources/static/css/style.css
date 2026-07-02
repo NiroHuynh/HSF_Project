@@ -295,7 +295,9 @@ input, textarea, select {
 }
 
 .nav-link:hover,
-.nav-link.active {
+.nav-link.active,
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
   color: var(--color-text-primary);
 }
 
