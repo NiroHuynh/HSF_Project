@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kho Voucher - CineMax</title>
+    <title>Ưu Đãi Độc Quyền - CineMax</title>
 
     <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css"/>
 
@@ -11,165 +11,93 @@
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
 
     <style>
-        :root {
-            --color-brand-red:        #E31B23;
-            --color-brand-red-hover:  #C41219;
-            --color-brand-red-light:  rgba(227, 27, 35, 0.15);
-            --color-bg:               #0A0A0C;
-            --color-surface:          #111114;
-            --color-surface-raised:   #18181D;
-            --color-text-primary:     #FFFFFF;
-            --color-text-secondary:   #A0A0B0;
-            --color-text-muted:       #606070;
-            --color-border-strong:    rgba(255, 255, 255, 0.16);
-            --shadow-card:            0 4px 24px rgba(0, 0, 0, 0.45);
-            --shadow-card-hover:      0 8px 40px rgba(0, 0, 0, 0.65);
-            --radius-md:              12px;
-            --radius-sm:              8px;
-            --font-family:            'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--color-bg);
-            color: var(--color-text-primary);
-            font-family: var(--font-family);
-            margin: 0;
-        }
-
         .booking-page-content {
             padding-block: var(--space-xl);
         }
-
-        .title {
-            font-size: var(--text-headline-lg, 28px);
-            font-weight: 700;
-            margin-bottom: var(--space-lg);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: var(--space-md);
-        }
-
-        /* Hiệu ứng cắt răng cưa phong cách Voucher rạp phim */
-        .voucher-card {
-            background-color: var(--color-surface);
-            border: 1px dashed var(--color-border-strong);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: var(--shadow-card);
-            transition: transform var(--transition-fast, 150ms ease), background-color var(--transition-fast, 150ms ease);
-        }
-        .voucher-card:hover {
-            background-color: var(--color-surface-raised);
-            box-shadow: var(--shadow-card-hover);
-            transform: translateY(-2px);
-        }
-
-        .voucher-card::before, .voucher-card::after {
-            content: ''; position: absolute; top: 50%; width: 16px; height: 16px;
-            background-color: var(--color-bg); border-radius: 50%; transform: translateY(-50%);
-        }
-        .voucher-card::before { left: -9px; border-right: 1px dashed var(--color-border-strong); }
-        .voucher-card::after { right: -9px; border-left: 1px dashed var(--color-border-strong); }
-
-        .v-badge {
-            background-color: var(--color-brand-red-light);
-            color: var(--color-brand-red);
-            padding: 4px 8px;
-            border-radius: var(--radius-xs);
-            font-size: var(--text-label, 12px);
-            font-weight: 700;
-            display: inline-block;
-        }
-        .v-name { font-size: 18px; font-weight: 700; margin: 12px 0 6px 0; }
-        .v-desc { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 16px 0; line-height: 1.5; }
-        .v-meta { color: var(--color-text-muted); font-size: 12px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
-
-        .btn-copy {
-            background-color: var(--color-brand-red);
-            color: white; border: none; padding: 10px;
-            border-radius: var(--radius-sm); font-weight: 600;
-            cursor: pointer; transition: background-color var(--transition-fast, 150ms ease);
-            text-align: center; width: 100%; margin-top: 12px;
-        }
-        .btn-copy:hover { background-color: var(--color-brand-red-hover); }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="container">
-        <a th:href="@{/}" class="navbar-brand">CineMax</a>
-        <ul class="navbar-nav">
-            <li><a th:href="@{/phim}" class="nav-link">Phim</a></li>
-            <li><a th:href="@{/rap}" class="nav-link">Rạp</a></li>
-            <li><a th:href="@{/uu-bai}" class="nav-link active">Ưu đãi</a></li>
-            <li><a th:href="@{/customer/history}" class="nav-link">Vé của tôi</a></li>
-        </ul>
-        <div class="navbar-actions">
-            <button class="icon-btn" type="button" aria-label="Thông báo">
-                <span class="material-symbols-outlined">notifications</span>
-            </button>
-            <div class="user-chip">
-                <div class="user-avatar">HP</div>
-                <div class="user-info">
-                    <div class="user-name">Huỳnh Tấn Phong</div>
-                    <div class="user-role">Khách hàng</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
+<div th:replace="~{fragments/header :: header}"></div>
 
 <main class="container booking-page-content">
-    <h1 class="title">Ưu Đãi Độc Quyền Dành Cho Bạn</h1>
-
-    <div class="grid">
-        <div th:each="v : ${vouchers}" class="voucher-card">
-            <div>
-                <div class="v-badge">
-                    <span th:if="${v.discountType == 'PERCENTAGE'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(v.discountValue, 0, 0)} + '%'"></span>
-                    <span th:if="${v.discountType == 'FIXED'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(v.discountValue, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                </div>
-
-                <h3 class="v-name" th:text="${v.name}">Tên Chương Trình</h3>
-                <p class="v-desc" th:text="${v.description}">Mô tả chi tiết voucher...</p>
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Ưu đãi độc quyền</h2>
             </div>
 
-            <div>
-                <div class="v-meta">
-                    <span class="material-symbols-outlined" style="font-size:14px;">vpn_key</span>
-                    <span>Code: <strong th:text="${v.code}" style="color: var(--color-text-primary);">CODE123</strong></span>
-                </div>
-                <div class="v-meta">
-                    <span class="material-symbols-outlined" style="font-size:14px;">calendar_month</span>
-                    <span th:text="'HSD: ' + ${#temporals.format(v.endDate, 'dd/MM/yyyy')}">HSD</span>
-                </div>
+            <div class="promo-grid">
+                <div class="promo-card" th:each="promo : ${vouchers}">
+                    <div class="relative">
+                        <img class="promo-card__image" th:src="@{/images/promo-banner.jpg}" alt="Promotion Banner">
 
-                <div class="v-meta" th:if="${v.usageLimit != null}">
-                    <span class="material-symbols-outlined" style="font-size:14px;">hourglass_empty</span>
-                    <span th:text="'Còn lại: ' + ${(v.usageLimit - v.usedCount)} + ' lượt sử dụng'">Lượt</span>
-                </div>
+                        <span class="chip chip-promo promo-card__category-badge"
+                              th:text="${promo.discountType == 'PERCENT' ? 'MEMBER SPECIAL' : 'PARTNER DEALS'}">MEMBER SPECIAL</span>
+                    </div>
 
-                <button th:onclick="'navigator.clipboard.writeText(\'' + ${v.code} + '\'); alert(\'Đã sao chép mã ưu đãi: ' + ${v.code} + '\');'"
-                        class="btn-copy">
-                    Sao chép mã
-                </button>
+                    <div class="promo-card__body">
+                        <h3 class="promo-card__title" th:text="${promo.name}">Mua 1 Tặng 1 Vé Phim 2D</h3>
+
+                        <p class="promo-card__desc" th:text="${promo.description}">Áp dụng cho chủ thẻ thành viên CineMax Gold vào mỗi thứ 2 hàng tuần.</p>
+
+                        <p class="promo-card__desc" style="color: var(--color-brand-red); font-weight: 700; margin-top: 8px;">
+                            <span th:if="${promo.discountType == 'PERCENT'}"
+                                  th:text="'Ưu đãi: Giảm ' + ${#numbers.formatInteger(promo.discountValue, 0, 'POINT')} + '%'"></span>
+                            <span th:if="${promo.discountType == 'FIXED'}"
+                                  th:text="'Ưu đãi: Giảm ' + ${#numbers.formatDecimal(promo.discountValue, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </p>
+
+                        <p class="promo-card__desc" style="font-size: 12px; color: var(--color-text-muted);">
+                            Hạn dùng: <span th:text="${#temporals.format(promo.endDate, 'dd.MM.yyyy')}">31/12/2026</span>
+                        </p>
+
+                        <div class="promo-card__desc" style="font-size: 12px; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; margin-top: 4px;"
+                             th:if="${promo.usageLimit != null}">
+                            <span class="material-symbols-outlined" style="font-size:14px;">hourglass_empty</span>
+                            <span th:text="'Còn lại: ' + ${(promo.usageLimit - promo.usedCount)} + ' lượt sử dụng'">Lượt</span>
+                        </div>
+                        <div class="promo-card__desc" style="font-size: 12px; color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; margin-top: 4px;"
+                             th:if="${promo.usageLimit == null}">
+                            <span class="material-symbols-outlined" style="font-size:14px;">hourglass_empty</span>
+                            <span>Còn lại: Vô hạn lượt sử dụng</span>
+                        </div>
+
+                        <div class="promo-card__footer">
+                            <span class="promo-card__code">🔑 CODE: <strong th:text="${promo.code}">CINEMAX50</strong></span>
+
+                            <button class="btn btn-primary btn-sm copy-code-btn"
+                                    th:attr="data-code=${promo.code}">
+                                NHẬN ƯU ĐÃI
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${vouchers == null or #lists.isEmpty(vouchers)}" style="text-align: center; color: var(--color-text-muted); padding: var(--space-2xl) 0;">
+                <span class="material-symbols-outlined" style="font-size: 48px; margin-bottom: var(--space-xs);">sentiment_dissatisfied</span>
+                <div class="body-md">Hiện tại chưa có chương trình ưu đãi nào khả dụng. Hãy quay lại sau nhé!</div>
             </div>
         </div>
-    </div>
-
-    <div th:if="${#lists.isEmpty(vouchers)}" style="text-align: center; color: var(--color-text-muted); padding-block: var(--space-2xl);">
-        <span class="material-symbols-outlined" style="font-size: 48px; margin-bottom: var(--space-xs);">sentiment_dissatisfied</span>
-        <div class="body-md">Hiện tại chưa có mã ưu đãi mới nào khả dụng. Hãy quay lại sau nhé!</div>
-    </div>
+    </section>
 </main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.copy-code-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const code = btn.getAttribute('data-code');
+                navigator.clipboard.writeText(code);
+                alert('Đã sao chép mã ưu đãi thành công: ' + code);
+            });
+        });
+    });
+</script>
+
+<script th:replace="~{fragments/header :: header-script}"></script>
 
 </body>
 </html>
