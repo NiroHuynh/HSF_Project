@@ -103,29 +103,8 @@
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="container">
-        <a th:href="@{/}" class="navbar-brand">CineMax</a>
-        <ul class="navbar-nav">
-            <li><a th:href="@{/phim}" class="nav-link">Phim</a></li>
-            <li><a th:href="@{/rap}" class="nav-link">Rạp</a></li>
-            <li><a th:href="@{/uu-bai}" class="nav-link active">Ưu đãi</a></li>
-            <li><a th:href="@{/customer/history}" class="nav-link">Vé của tôi</a></li>
-        </ul>
-        <div class="navbar-actions">
-            <button class="icon-btn" type="button" aria-label="Thông báo">
-                <span class="material-symbols-outlined">notifications</span>
-            </button>
-            <div class="user-chip">
-                <div class="user-avatar">HP</div>
-                <div class="user-info">
-                    <div class="user-name">Huỳnh Tấn Phong</div>
-                    <div class="user-role">Khách hàng</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
+<!-- NAVBAR dùng chung toàn site -->
+<div th:replace="~{fragments/header :: header}"></div>
 
 <main class="container booking-page-content">
     <h1 class="title">Ưu Đãi Độc Quyền Dành Cho Bạn</h1>
@@ -157,7 +136,10 @@
                     <span th:text="'Còn lại: ' + ${(v.usageLimit - v.usedCount)} + ' lượt sử dụng'">Lượt</span>
                 </div>
 
-                <button th:onclick="'navigator.clipboard.writeText(\'' + ${v.code} + '\'); alert(\'Đã sao chép mã ưu đãi: ' + ${v.code} + '\');'"
+                <!-- Thymeleaf không cho nối chuỗi biến trong th:onclick (chống XSS)
+                     → đưa mã vào data-code rồi đọc lại trong handler -->
+                <button th:data-code="${v.code}"
+                        onclick="navigator.clipboard.writeText(this.dataset.code); alert('Đã sao chép mã ưu đãi: ' + this.dataset.code);"
                         class="btn-copy">
                     Sao chép mã
                 </button>
@@ -170,6 +152,10 @@
         <div class="body-md">Hiện tại chưa có mã ưu đãi mới nào khả dụng. Hãy quay lại sau nhé!</div>
     </div>
 </main>
+
+<!-- FOOTER dùng chung toàn site -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script th:replace="~{fragments/header :: header-script}"></script>
 
 </body>
 </html>
