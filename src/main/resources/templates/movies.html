@@ -177,8 +177,105 @@
         .movies-page .section-title-lg {
             margin-bottom: 0;
         }
-        .movies-page .filter-row {
+        /* --- CSS NÚT HÌNH PHỄU --- */
+        .movies-page .btn-toggle-filter {
+            background: #1A1A2A;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .movies-page .btn-toggle-filter:hover,
+        .movies-page .btn-toggle-filter.active {
+            background: #242438;
+            border-color: var(--color-brand-red, #E50914);
+            color: var(--color-brand-red, #E50914);
+        }
+
+        /* --- KHOANG CHỨA BỘ LỌC CÓ HIỆU ỨNG ĐÓNG MỞ --- */
+        .movies-page .filter-container {
+            background: #1A1A2A;
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+
+            /* Thiết lập hiệu ứng ẩn/hiện trượt mượt mà */
+            max-height: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+            margin-bottom: 0;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Khi khoang chứa bộ lọc có class .show (JavaScript kích hoạt) */
+        .movies-page .filter-container.show {
+            max-height: 500px; /* Chiều cao tối đa khi mở ra */
+            padding-top: 20px;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            opacity: 1;
+        }
+
+        /* --- GIỮ NGUYÊN CSS CHIP CHOOSE ĐÃ LÀM Ở BƯỚC TRƯỚC --- */
+        .movies-page .filter-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .movies-page .filter-row-custom {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .movies-page .filter-checkbox {
+            display: none;
+        }
+        .movies-page .filter-chip-label {
+            display: inline-block;
+            padding: 8px 18px;
+            background: #242438;
+            color: rgba(255, 255, 255, 0.6);
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .movies-page .filter-chip-label:hover {
+            background: #2E2E4A;
+            color: #fff;
+        }
+        .movies-page .filter-checkbox:checked + .filter-chip-label {
+            background: var(--color-brand-red, #E50914);
+            color: #fff;
+            font-weight: 600;
+        }
+        .movies-page .btn-apply-filter {
+            margin-top: 20px;
+            background: transparent;
+            color: var(--color-brand-red, #E50914);
+            border: 1.5px solid var(--color-brand-red, #E50914);
+            padding: 8px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .movies-page .btn-apply-filter:hover {
+            background: var(--color-brand-red, #E50914);
+            color: #fff;
         }
         .movies-page .pagination-info {
             color: var(--color-text-secondary);
@@ -216,23 +313,51 @@
             </div>
         </form>
 
-        <div class="filter-row">
-            <button class="filter-chip active">Tất cả</button>
-            <button class="filter-chip">Hành động</button>
-            <button class="filter-chip">Lãng mạn</button>
-            <button class="filter-chip">Hài hước</button>
-            <button class="filter-chip">Hoạt hình</button>
-            <button class="filter-chip">Kinh dị</button>
-            <button class="filter-chip">Viễn tưởng</button>
+        <div style="margin-bottom: 20px;">
+            <button type="button" id="toggleFilterBtn" class="btn-toggle-filter">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                <span>Bộ lọc phim</span>
+            </button>
+        </div>
+
+        <div class="filter-container" id="filterDrawer">
+            <div class="filter-label">Chọn thể loại (Có thể chọn nhiều):</div>
+
+            <form th:action="@{/phim}" method="GET" id="filterForm">
+                <input type="hidden" name="status" th:value="${currentStatus.name()}">
+                <input type="hidden" name="search" th:if="${search != null}" th:value="${search}">
+                <input type="hidden" name="sort" th:if="${sort != null}" th:value="${sort}">
+                <input type="hidden" name="direction" th:if="${direction != null}" th:value="${direction}">
+
+                <div class="filter-row-custom">
+                    <input type="checkbox" id="genre-all" class="filter-checkbox"
+                           th:checked="${selectedGenreIds == null or #lists.isEmpty(selectedGenreIds)}">
+                    <label for="genre-all" class="filter-chip-label">Tất cả</label>
+
+                    <th:block th:each="g : ${allGenres}">
+                        <input type="checkbox"
+                               name="genreIds"
+                               th:id="'genre-' + ${g.id}"
+                               th:value="${g.id}"
+                               class="filter-checkbox genre-item-checkbox"
+                               th:checked="${selectedGenreIds != null and #lists.contains(selectedGenreIds, g.id)}">
+                        <label th:for="'genre-' + ${g.id}" class="filter-chip-label" th:text="${g.name}">Thể loại</label>
+                    </th:block>
+                </div>
+
+                <button type="submit" class="btn-apply-filter">Áp dụng bộ lọc</button>
+            </form>
         </div>
 
         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 24px;">
             <span style="color: var(--color-text-secondary);">Sắp xếp:</span>
-            <a th:href="@{/phim(status=${currentStatus.name()}, sort='title', direction='asc', search=${search})}"
+            <a th:href="@{/phim(status=${currentStatus.name()}, genreIds=${genreIdsParam}, sort='title', direction='asc', search=${search})}"
                th:classappend="${sort == 'title'} ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm'">Tên A-Z</a>
-            <a th:href="@{/phim(status=${currentStatus.name()}, sort='releaseDate', direction='desc', search=${search})}"
+            <a th:href="@{/phim(status=${currentStatus.name()}, genreIds=${genreIdsParam}, sort='releaseDate', direction='desc', search=${search})}"
                th:classappend="${sort == 'releaseDate'} ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm'">Ngày chiếu</a>
-            <a th:href="@{/phim(status=${currentStatus.name()}, sort='averageRating', direction='desc', search=${search})}"
+            <a th:href="@{/phim(status=${currentStatus.name()}, genreIds=${genreIdsParam}, sort='averageRating', direction='desc', search=${search})}"
                th:classappend="${sort == 'averageRating'} ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm'">Đánh giá</a>
         </div>
 
@@ -282,24 +407,68 @@
 
         <div th:if="${moviePage.totalPages > 1}" style="display: flex; justify-content: center; gap: 8px; margin-top: 40px;">
             <a th:if="${moviePage.hasPrevious()}"
-               th:href="@{/phim(status=${currentStatus.name()}, page=${moviePage.number - 1}, size=${moviePage.size}, sort=${sort}, direction=${direction}, search=${search})}"
+               th:href="@{/phim(status=${currentStatus.name()}, genreIds=${genreIdsParam}, page=${moviePage.number - 1}, size=${moviePage.size}, sort=${sort}, direction=${direction}, search=${search})}"
                class="btn btn-outline btn-sm">&#9664; Trước</a>
 
             <span th:each="i : ${#numbers.sequence(0, moviePage.totalPages - 1)}">
                 <a th:if="${i == moviePage.number}"
                    class="btn btn-primary btn-sm" th:text="${i + 1}">1</a>
                 <a th:if="${i != moviePage.number}"
-                   th:href="@{/phim(status=${currentStatus.name()}, page=${i}, size=${moviePage.size}, sort=${sort}, direction=${direction}, search=${search})}"
+                   th:href="@{/phim(status=${currentStatus.name()}, genreIds=${genreIdsParam}, page=${i}, size=${moviePage.size}, sort=${sort}, direction=${direction}, search=${search})}"
                    class="btn btn-outline btn-sm" th:text="${i + 1}">1</a>
             </span>
 
             <a th:if="${moviePage.hasNext()}"
-               th:href="@{/phim(status=${currentStatus.name()}, page=${moviePage.number + 1}, size=${moviePage.size}, sort=${sort}, direction=${direction}, search=${search})}"
+               th:href="@{/phim(status=${currentStatus.name()}, genreIds=${genreIdsParam}, page=${moviePage.number + 1}, size=${moviePage.size}, sort=${sort}, direction=${direction}, search=${search})}"
                class="btn btn-outline btn-sm">Sau &#9654;</a>
         </div>
     </div>
 </main>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggleFilterBtn');
+        const filterDrawer = document.getElementById('filterDrawer');
+        const checkAll = document.getElementById('genre-all');
+        const genreChecks = document.querySelectorAll('.genre-item-checkbox');
+        const filterForm = document.getElementById('filterForm');
+
+        // 1. Logic ẩn/hiện khi click vào nút Hình phễu
+        toggleBtn.addEventListener('click', function() {
+            filterDrawer.classList.toggle('show');
+            this.classList.toggle('active');
+        });
+
+        // Tự động MỞ SẴN bộ lọc nếu người dùng đang thực hiện lọc (để họ thấy trạng thái đang chọn)
+        if (checkAll && !checkAll.checked) {
+            filterDrawer.classList.add('show');
+            toggleBtn.classList.add('active');
+        }
+
+        // 2. Logic phối hợp giữa nút "Tất cả" và các thể loại khác (Giống bước trước)
+        checkAll.addEventListener('change', function() {
+            if (this.checked) genreChecks.forEach(cb => cb.checked = false);
+        });
+
+        genreChecks.forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    checkAll.checked = false;
+                } else {
+                    const anyChecked = Array.from(genreChecks).some(c => c.checked);
+                    if (!anyChecked) checkAll.checked = true;
+                }
+            });
+        });
+
+        // 3. Tối ưu hóa URL sạch trước khi Submit
+        filterForm.addEventListener('submit', function() {
+            if (checkAll.checked) {
+                genreChecks.forEach(cb => cb.disabled = true);
+            }
+        });
+    });
+</script>
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

@@ -53,6 +53,12 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
     @PersistenceContext
     private EntityManager entityManager;
 
+
+    @Override
+    public String confirmBooking(Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities, Long paymentMethodId, Long promotionId, BigDecimal discountAmount) {
+        return "";
+    }
+
     @Override
     @Transactional
     public ConfirmResult confirmBooking(Long userId, Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities,
