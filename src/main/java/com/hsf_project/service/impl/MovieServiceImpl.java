@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class MovieServiceImpl implements MovieService {
 
@@ -41,6 +43,20 @@ public class MovieServiceImpl implements MovieService {
     public Page<MovieHomeDTO> searchMovies(String keyword, MovieStatus status, Pageable pageable) {
         Page<Movie> moviePage = movieRepository
                 .findByTitleContainingIgnoreCaseAndStatusAndIsDeletedFalse(keyword, status, pageable);
+        return moviePage.map(movieMapper::toMovieHomeDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MovieHomeDTO> getMoviesByGenreAndStatus(List<Integer> genreIds, MovieStatus status, Pageable pageable) {
+        Page<Movie> moviePage = movieRepository.findByGenreIdsAndStatus(genreIds, status, pageable);
+        return moviePage.map(movieMapper::toMovieHomeDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MovieHomeDTO> searchMoviesByGenre(List<Integer> genreIds, String keyword, MovieStatus status, Pageable pageable) {
+        Page<Movie> moviePage = movieRepository.findByGenreIdsAndStatusAndTitleContaining(genreIds, status, keyword, pageable);
         return moviePage.map(movieMapper::toMovieHomeDTO);
     }
 }
