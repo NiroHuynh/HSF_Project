@@ -17,18 +17,11 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    /**
-     * SỬA: Khi vừa vào localhost:8080 sẽ chuyển hướng thẳng sang trang chủ /home
-     */
     @GetMapping("/")
     public String root(HttpSession session){
         return "redirect:/home";
     }
 
-    /**
-     * SỬA: Nếu người dùng đã đăng nhập rồi mà cố tình vào lại /login,
-     * chúng ta sẽ đá họ về trang chủ /home luôn
-     */
     @GetMapping("/login")
     public String login(Model model, HttpSession session){
         if (session.getAttribute("ttdn") != null) {
@@ -39,10 +32,6 @@ public class AuthController {
         return "login";
     }
 
-    /**
-     * SỬA: Sau khi đăng nhập thành công (và không có yêu cầu chuyển hướng ngầm trước đó),
-     * hệ thống sẽ đưa người dùng về trang chủ /home thay vì /phim
-     */
     @PostMapping("/login-submit")
     public String loginSubmit(@ModelAttribute("user") User userLogin, RedirectAttributes redirectAttributes
             , HttpSession session){
@@ -63,10 +52,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * SỬA: Sau khi người dùng nhấn Đăng xuất (Logout), hủy session
-     * và đưa họ quay về màn hình trang chủ /home cho sạch sẽ
-     */
     @GetMapping("/logout")
     public String logout(HttpSession session){
         session.invalidate();
