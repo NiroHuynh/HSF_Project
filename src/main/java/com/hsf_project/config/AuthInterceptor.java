@@ -22,7 +22,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                 redirectUrl += "?" + query;
             }
             request.getSession(true).setAttribute("redirectAfterLogin", redirectUrl);
-            response.sendRedirect(request.getContextPath() + "/");
+            response.sendRedirect(request.getContextPath() + "/login");
             return false;
         }
         return true;

@@ -47,18 +47,24 @@
     <!-- Khu vực bên phải -->
     <div class="navbar-actions">
 
-<!--       TH1: Đã đăng nhập -> hiện avatar + tên-->
-      <div class="user-chip" th:if="${session.ttdn != null}">
-        <!-- Đã bọc thêm #strings.trim() để đảm bảo không lấy nhầm khoảng trắng -->
-        <div class="user-avatar" th:text="${#strings.substring(#strings.trim(session.ttdn.fullName), 0, 1)}">A</div>
-        <div class="user-info">
-          <div class="user-name" th:text="${session.ttdn.fullName}">Nguyễn Văn A</div>
-          <div class="user-role" th:text="${session.ttdn.role.roleName}"></div>
+<!--       TH1: Đã đăng nhập -> hiện avatar + tên + dropdown -->
+      <div class="user-chip-wrapper" th:if="${session.ttdn != null}" style="position: relative;">
+        <div class="user-chip" onclick="toggleUserMenu()" style="cursor: pointer;">
+          <div class="user-avatar" th:text="${#strings.substring(#strings.trim(session.ttdn.fullName), 0, 1)}">A</div>
+          <div class="user-info">
+            <div class="user-name" th:text="${session.ttdn.fullName}">Nguyễn Văn A</div>
+            <div class="user-role" th:text="${session.ttdn.role.roleName}"></div>
+          </div>
+        </div>
+        <div class="user-dropdown" id="userDropdown" style="display:none; position:absolute; top:100%; right:0; background:#fff; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.15); min-width:160px; z-index:1000; margin-top:6px; overflow:hidden;">
+          <a th:href="@{/logout}" style="display:block; padding:12px 20px; color:#e74c3c; text-decoration:none; font-size:14px; font-weight:500; transition: background .2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+            Đăng xuất
+          </a>
         </div>
       </div>
 
       <!-- TH2: Chưa đăng nhập -> hiện nút Đăng nhập/Đăng ký -->
-      <a th:if="${session.ttdn == null}" th:href="@{/}" class="btn btn-primary btn-sm">
+      <a th:if="${session.ttdn == null}" th:href="@{/login}" class="btn btn-primary btn-sm">
         Đăng nhập / Đăng ký
       </a>
     </div>
@@ -70,6 +76,17 @@
   function toggleNavbar() {
     document.querySelector('.navbar-nav').classList.toggle('is-open');
   }
+  function toggleUserMenu() {
+    var dd = document.getElementById('userDropdown');
+    dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+  }
+  document.addEventListener('click', function(e) {
+    var wrapper = document.querySelector('.user-chip-wrapper');
+    var dd = document.getElementById('userDropdown');
+    if (wrapper && dd && !wrapper.contains(e.target)) {
+      dd.style.display = 'none';
+    }
+  });
 </script>
 
 </body>
