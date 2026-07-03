@@ -16,7 +16,6 @@ public class HomeController {
     @Autowired
     private HomeService homeService;
 
-    // CHỈ GIỮ LẠI ĐÚNG ĐƯỜNG DẪN NÀY
     @GetMapping("/home")
     public String viewHomePage(Model model) {
         List<MovieHomeDTO> nowShowing = homeService.getMoviesForHome(MovieStatus.NOW_SHOWING);
