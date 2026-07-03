@@ -62,6 +62,7 @@
             align-items: center;
             transition: transform var(--transition-base, 250ms ease), background-color var(--transition-base, 250ms ease);
             box-shadow: var(--shadow-card);
+            cursor: pointer; /* Hiển thị con trỏ tay khi hover */
         }
 
         .ticket-item:hover {
@@ -95,7 +96,6 @@
             text-transform: uppercase;
         }
 
-        /* Đồng bộ màu trạng thái của hệ thống */
         .status-pending { background-color: rgba(245, 197, 24, 0.15); color: #F5C518; }
         .status-confirmed { background-color: var(--color-brand-red-light); color: var(--color-brand-red); }
         .status-completed { background-color: rgba(45, 122, 79, 0.15); color: #2D7A4F; }
@@ -117,19 +117,64 @@
             text-decoration: line-through;
             margin-top: 4px;
         }
+
+        /* ==============================================
+           CSS CHO POP-UP HÓA ĐƠN CHI TIẾT (BILL MODAL)
+           ============================================== */
+        .bill-modal {
+            position: fixed; inset: 0; z-index: 9999;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 200ms ease;
+            backdrop-filter: blur(5px);
+        }
+        .bill-modal.is-active { opacity: 1; pointer-events: auto; }
+
+        .invoice-wrapper {
+            width: 100%; max-width: 480px; background-color: #111114;
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.6); transform: scale(0.9); transition: transform 200ms ease;
+        }
+        .bill-modal.is-active .invoice-wrapper { transform: scale(1); }
+        .invoice-header { padding: 20px; background: linear-gradient(135deg, rgba(227, 27, 35, 0.1) 0%, rgba(0, 0, 0, 0) 100%); border-bottom: 1px dashed rgba(255, 255, 255, 0.16); position: relative; }
+        .invoice-header::before, .invoice-header::after { content: ''; position: absolute; bottom: -10px; width: 20px; height: 20px; background-color: #0A0A0C; border-radius: 50%; }
+        .invoice-header::before { left: -11px; } .invoice-header::after { right: -11px; }
+        .invoice-body { padding: 20px; }
+        .info-grid-bill { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .bill-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; }
+        .bill-value { font-size: 14px; font-weight: 600; color: #fff; margin-top: 4px; }
+        .price-row-summary { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; color: var(--color-text-secondary); }
+        .price-row-summary.total-final { font-size: 18px; font-weight: 800; color: var(--color-brand-red); margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.16); }
+        .close-bill-btn { background: none; border: none; color: var(--color-text-muted); cursor: pointer; }
+        .close-bill-btn:hover { color: #fff; }
     </style>
 </head>
 <body>
 
-<!-- Bỏ phần cứng navbar cũ đi, thay bằng dòng này ngay sau thẻ <body> -->
 <div th:if="${session.ttdn != null}" th:replace="~{fragments/header :: header}"></div>
-
 
 <main class="container booking-page-content">
     <h1 class="title">Lịch Sử Giao Dịch</h1>
 
     <div class="ticket-list">
-        <div th:each="b : ${bookings}" class="ticket-item">
+        <div th:each="b : ${bookings}" class="ticket-item" th:onclick="showBill(this)"
+             th:attr="data-code=${b.bookingCode},
+                       data-date=${#temporals.format(b.bookingDate, 'dd/MM/yyyy HH:mm')},
+                       data-total=${#numbers.formatDecimal(b.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ',
+                       data-discount=${b.discountAmount != null ? #numbers.formatDecimal(b.discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'},
+                       data-final=${#numbers.formatDecimal(b.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ',
+                       data-status=${b.status}">
+
+            <div class="hidden-data" style="display: none;">
+                <span class="h-title" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.movie.title} : 'N/A'"></span>
+                <span class="h-poster" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.movie.posterUrl} : ''"></span>
+                <span class="h-room" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.room.name} : 'N/A'"></span>
+                <span class="h-time" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${#temporals.format(b.tickets[0].showtime.startTime, 'HH:mm')} : '---'"></span>
+                <div class="h-seats-box">
+                    <span th:each="t : ${b.tickets}" th:text="${t.seat.rowLabel + t.seat.seatNumber} + ' '"></span>
+                </div>
+            </div>
+
             <div class="info-group">
                 <h3 th:text="'Mã đặt vé: ' + ${b.bookingCode}">MÃ ĐẶT VÉ</h3>
 
@@ -161,6 +206,73 @@
         </div>
     </div>
 </main>
+
+<div class="bill-modal" id="billModal" onclick="document.getElementById('billModal').classList.remove('is-active')">
+    <div class="invoice-wrapper" onclick="event.stopPropagation()">
+        <div class="invoice-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span class="bill-label">CHI TIẾT VÉ</span>
+                    <h2 style="margin: 4px 0 0 0; font-size: 22px; font-weight: 800;" id="m-code">MÃ VÉ</h2>
+                </div>
+                <button class="close-bill-btn" onclick="document.getElementById('billModal').classList.remove('is-active')">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        </div>
+        <div class="invoice-body">
+            <div style="display: flex; gap: 16px; margin-bottom: 20px;">
+                <img id="m-poster" src="" style="width: 70px; height: 100px; object-fit: cover; border-radius: 6px;" alt="Poster">
+                <div>
+                    <h3 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700;" id="m-movie">Tên Phim</h3>
+                    <p style="margin: 0; font-size: 14px; color: #2D7A4F; font-weight: 600;" id="m-status">Trạng thái</p>
+                </div>
+            </div>
+            <div class="info-grid-bill">
+                <div><span class="bill-label">Suất Chiếu</span><div class="bill-value" id="m-time">00:00</div></div>
+                <div><span class="bill-label">Phòng Chiếu</span><div class="bill-value" id="m-room">Phòng</div></div>
+                <div style="grid-column: span 2;"><span class="bill-label">Ghế Đã Chọn</span><div class="bill-value" style="color: var(--color-brand-red);" id="m-seats">---</div></div>
+            </div>
+            <div style="background-color: #18181D; padding: 12px; border-radius: 8px;">
+                <div class="price-row-summary"><span>Tổng tiền gốc</span><span id="m-total">0 đ</span></div>
+                <div class="price-row-summary"><span>Giảm giá</span><span style="color: #2D7A4F;" id="m-discount">0 đ</span></div>
+                <div class="price-row-summary" style="font-size: 12px; color: var(--color-text-muted);"><span>Ngày đặt</span><span id="m-date">---</span></div>
+                <div class="price-row-summary total-final"><span>TỔNG THANH TOÁN</span><span id="m-final">0 đ</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    function showBill(element) {
+        // Lấy data từ attributes cơ bản
+        document.getElementById('m-code').textContent = element.dataset.code;
+        document.getElementById('m-total').textContent = element.dataset.total;
+        document.getElementById('m-discount').textContent = '- ' + element.dataset.discount;
+        document.getElementById('m-final').textContent = element.dataset.final;
+        document.getElementById('m-date').textContent = element.dataset.date;
+        document.getElementById('m-status').textContent = 'Trạng thái: ' + element.dataset.status;
+
+        // Quét dữ liệu từ khối ẩn bằng DOM để tuyệt đối không lỗi biên dịch
+        document.getElementById('m-movie').textContent = element.querySelector('.h-title').textContent;
+        document.getElementById('m-room').textContent = element.querySelector('.h-room').textContent;
+        document.getElementById('m-time').textContent = element.querySelector('.h-time').textContent;
+        document.getElementById('m-poster').src = element.querySelector('.h-poster').textContent || 'https://placehold.co/70x100?text=No+Image';
+
+        // Gộp danh sách ghế
+        const seatSpans = element.querySelectorAll('.h-seats-box span');
+        let seatsArr = [];
+        seatSpans.forEach(span => {
+            let s = span.textContent.trim();
+            if(s) seatsArr.push(s);
+        });
+        document.getElementById('m-seats').textContent = seatsArr.length > 0 ? seatsArr.join(', ') : '---';
+
+        // Bật hiển thị Popup
+        document.getElementById('billModal').classList.add('is-active');
+    }
+</script>
+
 <script th:replace="~{fragments/header :: header-script}"></script>
 </body>
 </html>
