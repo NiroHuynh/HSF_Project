@@ -18,9 +18,14 @@ public class AuthController {
     private UserService userService;
 
     @GetMapping("/")
-    public String login(Model model ,HttpSession session){
+    public String root(HttpSession session){
+        return "redirect:/phim";
+    }
+
+    @GetMapping("/login")
+    public String login(Model model, HttpSession session){
         if (session.getAttribute("ttdn") != null) {
-            return "redirect:/home";
+            return "redirect:/phim";
         }
         User user = new User();
         model.addAttribute("user", user);
@@ -40,10 +45,10 @@ public class AuthController {
                 session.removeAttribute("redirectAfterLogin");
                 return "redirect:" + redirectUrl;
             }
-            return "redirect:/home";
+            return "redirect:/phim";
         }else{
             redirectAttributes.addFlashAttribute("error","Username or password incorrect!!");
-            return "redirect:/";
+            return "redirect:/login";
         }
     }
 
@@ -55,7 +60,7 @@ public class AuthController {
     @GetMapping("/logout")
     public String logout(HttpSession session){
         session.invalidate();
-        return "redirect:/";
+        return "redirect:/phim";
     }
 
 
