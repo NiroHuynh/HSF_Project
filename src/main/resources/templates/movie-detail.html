@@ -280,7 +280,7 @@
 
             <!-- Login prompt -->
             <div th:if="${session.ttdn == null}" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; text-align: center; color: var(--color-text-secondary);">
-                <a th:href="@{/}" style="color: var(--color-brand-red); font-weight: 600;">Đăng nhập</a> để viết đánh giá.
+                <a th:href="@{/login}" style="color: var(--color-brand-red); font-weight: 600;">Đăng nhập</a> để viết đánh giá.
             </div>
 
             <!-- Reviews list -->
@@ -365,5 +365,6 @@
     });
 </script>
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script th:replace="~{fragments/header :: header-script}"></script>
 </body>
 </html>
