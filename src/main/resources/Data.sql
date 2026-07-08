@@ -1,37 +1,14 @@
 /* ============================================================
-   CINEMAX — DATA SEED SCRIPT  (khớp chính xác với create.sql)
-   File: data.sql
-
-   GHI CHÚ THÊM:
-   • Bảng users đã thêm cột cinema_id (chi nhánh làm việc của STAFF).
-     Vì bảng cinema được tạo SAU bảng users trong create.sql, FK
-     được gắn bằng ALTER TABLE ngay sau khi cinema được CREATE.
-     Trong data.sql, users insert trước với cinema_id = NULL, sau
-     đó UPDATE gán cinema_id cho 6 staff khi cinema đã có dữ liệu
-     (xem mục 12. CINEMA) — mỗi rạp có đúng 1 staff phụ trách.
-   • Bảng movie có cột age_rating VARCHAR(10) với CHECK ('P','T13','T16','T18').
-     Khớp với AgeRating enum trong Movie entity.
-   • Bảng ticket_price trong create.sql đơn giản hơn file data.sql
-     cũ: chỉ có room_id + seat_type + price (không có screen_format,
-     day_type, time_slot). File này seed theo đúng schema thật.
-   • Bảng ticket dùng booking_id (FK) thay vì customer_id/booking_code
-     như file data.sql cũ đã sai.
-   • Cột combo.name, combo.description, promotion.code/name/description
-     là VARCHAR → dùng chuỗi không dấu để tránh lỗi collation.
-
+   CINEMAX — SEED DATA (bản gộp, chạy sau create.sql)
+   • 10 người dùng tên thật: 1 ADMIN + 1 NHÂN VIÊN + 8 KHÁCH HÀNG.
+   • 13 phòng đa loại (2D/3D/IMAX), ghế: hàng thường (A–D) & VIP (E–H)
+     10 ghế/hàng, Sweetbox (I) 8 ghế → 88 ghế/phòng (×13 = 1144).
+   • Suất chiếu: 03/07 (chỉ 12h–22h) + 04/07 (cả ngày), 8 phim NOW_SHOWING.
+   • 3 phương thức thanh toán: VNPay, Thẻ Quốc Tế, Thẻ ATM Nội Địa.
    QUY ƯỚC:
-   • Mọi FK resolve bằng subquery theo khóa tự nhiên (email, code…)
-     thay vì hard-code ID, giúp script chạy đúng dù IDENTITY
-     không bắt đầu từ 1.
-   • ĐÃ CHUẨN HOÁ PHÒNG CHIẾU: 13 phòng (mỗi chi nhánh 1..3 phòng, đa
-     loại 2D/3D/IMAX), layout ghế cố định 72 ghế/phòng (A–D thường,
-     E–H VIP, I Sweetbox, 8 ghế/hàng). Suất chiếu seed cho ngày
-     02/07 & 03/07/2026 (8 phim NOW_SHOWING).
-   • Giá vé (ticket_price) GIỐNG NHAU mọi chi nhánh, khác theo LOẠI
-     PHÒNG × LOẠI GHẾ. Đơn demo trang Thanh toán (CMX20260520D01):
-     2 ghế VIP IMAX × 155.000 = 310.000 + BT21 Single 299.000
-     + phí 3.000 = Tổng 612.000đ. (Giá đã đổi so với mockup gốc.)
-
+   • FK resolve bằng khóa tự nhiên (email/title/code/name) — không hard-code ID.
+   • Text tiếng Việt dùng N'...'; các cột combo/promotion/payment_method
+     PHẢI là NVARCHAR (đã sửa trong create.sql) mới lưu đúng dấu.
    ============================================================ */
 
 USE HSF_PROJECT;
@@ -48,48 +25,42 @@ INSERT INTO role (role_name, is_deleted) VALUES
 GO
 
 /* ============================================================
-   2. USERS  (11 nguoi dung: 1 admin, 6 staff, 4 khach hang)
-   role_id hard-code: 1=ADMIN  2=STAFF  3=CUSTOMER
-   6 staff tuong ung 6 rap — gan cinema_id o muc 12. CINEMA.
+   2. USERS  (10 người dùng: 1 ADMIN, 1 NHÂN VIÊN, 8 KHÁCH HÀNG — tên thật)
+   role_id: 1=ADMIN  2=STAFF  3=CUSTOMER.  Nhân viên gán chi nhánh ở mục 12.
    ============================================================ */
 INSERT INTO users
 (role_id, first_name, last_name, email, phone_number, password,
  date_of_birth, gender, status, is_deleted)
 VALUES
     (1, N'Minh',  N'Nguyễn Quang', 'admin@cinemax.vn',      '0900000001',
-     '123456', '1990-01-15', N'Nam', 'ACTIVE',   0),
+     '123456', '1990-01-15', N'Nam', 'ACTIVE', 0),
 
--- 6 STAFF — moi nguoi phu trach 1 rap (gan cinema_id sau khi seed cinema)
-    (2, N'Hà',    N'Trần Thị',     'staff.ha@cinemax.vn',     '0900000002',
-     '123456', '1996-03-22', N'Nữ',  'ACTIVE',   0),
+    (2, N'Bảo',   N'Hồ Nguyễn',    'staff.bao@cinemax.vn',  '0900000002',
+     '123456', '1996-07-25', N'Nam', 'ACTIVE', 0),
 
-    (2, N'Tuấn',  N'Lê Văn',       'staff.tuan@cinemax.vn',   '0900000003',
-     '123456', '1995-06-10', N'Nam', 'ACTIVE',   0),
-
-    (2, N'Thảo',  N'Phan Thị',     'staff.thao@cinemax.vn',   '0900000004',
-     '123456', '1997-02-18', N'Nữ',  'ACTIVE',   0),
-
-    (2, N'Đức',   N'Vũ Quang',     'staff.duc@cinemax.vn',    '0900000005',
-     '123456', '1994-09-05', N'Nam', 'ACTIVE',   0),
-
-    (2, N'Trang', N'Đỗ Thị',       'staff.trang@cinemax.vn',  '0900000006',
-     '$2a$10$placeholderHashStaff006', '1998-12-01', N'Nữ',  'ACTIVE',   0),
-
-    (2, N'Bảo',   N'Hồ Nguyễn',    'staff.bao@cinemax.vn',    '0900000007',
-     '123456', '1996-07-25', N'Nam', 'ACTIVE',   0),
-
--- 4 CUSTOMER
     (3, N'Phong', N'Huỳnh Tấn',    'phong.huynh@gmail.com', '0901234567',
-     '123456', '1999-07-08',  N'Nam', 'ACTIVE',   0),
+     '123456', '1999-07-08', N'Nam', 'ACTIVE', 0),
 
     (3, N'Mai',   N'Nguyễn Thị',   'mai.nguyen@gmail.com',  '0912345678',
-     '123456', '2001-11-02',  N'Nữ',  'ACTIVE',   0),
+     '123456', '2001-11-02', N'Nữ',  'ACTIVE', 0),
 
     (3, N'Khánh', N'Trần Gia',     'khanh.tran@gmail.com',  '0923456789',
-     '$2a$10$placeholderHashCust005', '1998-05-19',  N'Nam', 'ACTIVE',   0),
+     '123456', '1998-05-19', N'Nam', 'ACTIVE', 0),
 
     (3, N'Linh',  N'Phạm Thuỳ',    'linh.pham@gmail.com',   '0934567890',
-     '$2a$10$placeholderHashCust006', '2000-09-30',  N'Nữ',  'INACTIVE', 0);
+     '123456', '2000-09-30', N'Nữ',  'ACTIVE', 0),
+
+    (3, N'Nam',   N'Đặng Hoài',    'nam.dang@gmail.com',    '0945678901',
+     '123456', '1997-04-12', N'Nam', 'ACTIVE', 0),
+
+    (3, N'Hương', N'Lê Thị',       'huong.le@gmail.com',    '0956789012',
+     '123456', '1995-08-23', N'Nữ',  'ACTIVE', 0),
+
+    (3, N'Quân',  N'Vũ Minh',      'quan.vu@gmail.com',     '0967890123',
+     '123456', '2002-01-17', N'Nam', 'ACTIVE', 0),
+
+    (3, N'Trâm',  N'Đỗ Bảo',       'tram.do@gmail.com',     '0978901234',
+     '123456', '1999-12-05', N'Nữ',  'ACTIVE', 0);
 GO
 
 /* ============================================================
@@ -355,61 +326,50 @@ INSERT INTO movie_review (movie_id, user_id, rating_star, comment) VALUES
 GO
 
 /* ============================================================
-   9. COMBO  (khớp đúng 6 combo trong ảnh Bắp Nước)
-   Tên/mô tả viết không dấu vì cột là VARCHAR (xem ghi chú đầu file).
+   9. COMBO  (khớp đúng 6 combo trong ảnh Bắp Nước) — mô tả có dấu
    ============================================================ */
 INSERT INTO combo (name, description, price, quantity, status, is_deleted) VALUES
-                                                                               ('P CGV Combo',
-                                                                                '01 Bap ngot lon, 02 Nuoc ngot sieu lon, 01 Snack',
+                                                                               (N'P CGV Combo',
+                                                                                N'01 Bắp ngọt lớn, 02 Nước ngọt siêu lớn, 01 Snack',
                                                                                 135000, 200, 'ACTIVE', 0),
-
-                                                                               ('BT21 VN Single',
-                                                                                '01 Ly BT21 Vietnam Edition, 01 Nuoc ngot sieu lon, 01 Bap ngot lon',
+                                                                               (N'BT21 VN Single',
+                                                                                N'01 Ly BT21 Vietnam Edition, 01 Nước ngọt siêu lớn, 01 Bắp ngọt lớn',
                                                                                 299000, 80, 'ACTIVE', 0),
-
-                                                                               ('Hotdog Combo',
-                                                                                '01 Hotdog, 01 Nuoc ngot lon (Tang +2.000 Upsize nuoc)',
+                                                                               (N'Hotdog Combo',
+                                                                                N'01 Hotdog, 01 Nước ngọt lớn (Tặng +2.000 Upsize nước)',
                                                                                 64000, 150, 'ACTIVE', 0),
-
-                                                                               ('Michael Combo',
-                                                                                '01 Hop bap non fedora Michael, 01 Nuoc ngot sieu lon, 01 Bap ngot lon',
+                                                                               (N'Michael Combo',
+                                                                                N'01 Hộp bắp non fedora Michael, 01 Nước ngọt siêu lớn, 01 Bắp ngọt lớn',
                                                                                 259000, 60, 'ACTIVE', 0),
-
-                                                                               ('Topokki Combo',
-                                                                                '01 Topokki pho mai lac, 01 Nuoc ngot lon',
+                                                                               (N'Topokki Combo',
+                                                                                N'01 Topokki phô mai lắc, 01 Nước ngọt lớn',
                                                                                 110000, 100, 'ACTIVE', 0),
-
-                                                                               ('BT21 VN Full Set',
-                                                                                '07 Ly BT21 Vietnam Edition, 02 Nuoc ngot sieu lon, 01 Bap ngot lon',
+                                                                               (N'BT21 VN Full Set',
+                                                                                N'07 Ly BT21 Vietnam Edition, 02 Nước ngọt siêu lớn, 01 Bắp ngọt lớn',
                                                                                 1599000, 20, 'ACTIVE', 0);
 GO
 
 /* ============================================================
-   10. PROMOTION
-   Code/name/description viết không dấu vì cột là VARCHAR.
+   10. PROMOTION  (name/description có dấu)
    ============================================================ */
 INSERT INTO promotion
 (code, name, description, discount_type, discount_value,
  start_date, end_date, usage_limit, used_count, status, is_deleted)
 VALUES
-    ('SUMMER10',    'Uu dai mua he',
-     'Giam 10% cho moi don dat ve trong mua he',
+    ('SUMMER10',    N'Ưu đãi mùa hè',
+     N'Giảm 10% cho mọi đơn đặt vé trong mùa hè',
      'PERCENT', 10,    '2026-06-01', '2026-09-30', 1000, 12, 'ACTIVE',   0),
-
-    ('WELCOME50K',  'Chao mung thanh vien',
-     'Giam ngay 50.000d cho don dat ve dau tien',
+    ('WELCOME50K',  N'Chào mừng thành viên',
+     N'Giảm ngay 50.000đ cho đơn đặt vé đầu tiên',
      'FIXED',   50000, '2026-01-01', '2026-12-31',  500, 45, 'ACTIVE',   0),
-
-    ('VIPMEMBER15', 'Uu dai hoi vien VIP',
-     'Giam 15% danh rieng cho hoi vien VIP',
+    ('VIPMEMBER15', N'Ưu đãi hội viên VIP',
+     N'Giảm 15% dành riêng cho hội viên VIP',
      'PERCENT', 15,    '2026-01-01', '2026-12-31', NULL,  8, 'ACTIVE',   0),
-
-    ('FLASHSALE30', 'Flash Sale 24h',
-     'Giam ngay 30.000d chi ap dung trong 24 gio',
+    ('FLASHSALE30', N'Flash Sale 24h',
+     N'Giảm ngay 30.000đ chỉ áp dụng trong 24 giờ',
      'FIXED',   30000, '2026-07-01', '2026-07-02',  200,  5, 'ACTIVE',   0),
-
-    ('COMBO20',     'Uu dai bap nuoc',
-     'Giam 20% khi mua kem combo bap nuoc',
+    ('COMBO20',     N'Ưu đãi bắp nước',
+     N'Giảm 20% khi mua kèm combo bắp nước',
      'PERCENT', 20,    '2026-03-01', '2026-12-31', NULL, 30, 'INACTIVE', 0);
 GO
 
@@ -453,30 +413,10 @@ INSERT INTO cinema (name, address, city_id, is_deleted) VALUES
                                                              (SELECT id FROM city WHERE name = N'Cần Thơ'), 0);
 GO
 
--- Gán chi nhánh làm việc cho 6 STAFF — phải làm SAU khi cinema đã có dữ liệu.
--- Mỗi rạp có ít nhất 1 STAFF phụ trách. ADMIN và CUSTOMER giữ cinema_id = NULL.
+-- Gán chi nhánh làm việc cho NHÂN VIÊN (sau khi cinema đã có dữ liệu).
+-- ADMIN và CUSTOMER giữ cinema_id = NULL.
 UPDATE users
 SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Vincom Nguyễn Chí Thanh')
-WHERE email = 'staff.ha@cinemax.vn';
-
-UPDATE users
-SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Pandora City')
-WHERE email = 'staff.tuan@cinemax.vn';
-
-UPDATE users
-SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Liberty Citypoint')
-WHERE email = 'staff.thao@cinemax.vn';
-
-UPDATE users
-SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Gigamall Thủ Đức')
-WHERE email = 'staff.duc@cinemax.vn';
-
-UPDATE users
-SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Vincom Đà Nẵng')
-WHERE email = 'staff.trang@cinemax.vn';
-
-UPDATE users
-SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Sense City Cần Thơ')
 WHERE email = 'staff.bao@cinemax.vn';
 GO
 
@@ -488,29 +428,29 @@ GO
      Pandora    : 2D + 3D             Cần Thơ  : 2D
    ============================================================ */
 INSERT INTO cinema_room (name, room_type, total_seats, cinema_id, is_deleted) VALUES
-                                                                                  (N'Vincom NCT - 2D',   '2D',   72, (SELECT id FROM cinema WHERE name = N'CGV Vincom Nguyễn Chí Thanh'), 0),
-                                                                                  (N'Vincom NCT - 3D',   '3D',   72, (SELECT id FROM cinema WHERE name = N'CGV Vincom Nguyễn Chí Thanh'), 0),
-                                                                                  (N'Vincom NCT - IMAX', 'IMAX', 72, (SELECT id FROM cinema WHERE name = N'CGV Vincom Nguyễn Chí Thanh'), 0),
+                                                                                  (N'Vincom NCT - 2D',   '2D',   88, (SELECT id FROM cinema WHERE name = N'CGV Vincom Nguyễn Chí Thanh'), 0),
+                                                                                  (N'Vincom NCT - 3D',   '3D',   88, (SELECT id FROM cinema WHERE name = N'CGV Vincom Nguyễn Chí Thanh'), 0),
+                                                                                  (N'Vincom NCT - IMAX', 'IMAX', 88, (SELECT id FROM cinema WHERE name = N'CGV Vincom Nguyễn Chí Thanh'), 0),
 
-                                                                                  (N'Liberty - 2D',      '2D',   72, (SELECT id FROM cinema WHERE name = N'CGV Liberty Citypoint'), 0),
-                                                                                  (N'Liberty - 3D',      '3D',   72, (SELECT id FROM cinema WHERE name = N'CGV Liberty Citypoint'), 0),
-                                                                                  (N'Liberty - IMAX',    'IMAX', 72, (SELECT id FROM cinema WHERE name = N'CGV Liberty Citypoint'), 0),
+                                                                                  (N'Liberty - 2D',      '2D',   88, (SELECT id FROM cinema WHERE name = N'CGV Liberty Citypoint'), 0),
+                                                                                  (N'Liberty - 3D',      '3D',   88, (SELECT id FROM cinema WHERE name = N'CGV Liberty Citypoint'), 0),
+                                                                                  (N'Liberty - IMAX',    'IMAX', 88, (SELECT id FROM cinema WHERE name = N'CGV Liberty Citypoint'), 0),
 
-                                                                                  (N'Pandora - 2D',      '2D',   72, (SELECT id FROM cinema WHERE name = N'CGV Pandora City'), 0),
-                                                                                  (N'Pandora - 3D',      '3D',   72, (SELECT id FROM cinema WHERE name = N'CGV Pandora City'), 0),
+                                                                                  (N'Pandora - 2D',      '2D',   88, (SELECT id FROM cinema WHERE name = N'CGV Pandora City'), 0),
+                                                                                  (N'Pandora - 3D',      '3D',   88, (SELECT id FROM cinema WHERE name = N'CGV Pandora City'), 0),
 
-                                                                                  (N'Gigamall - 2D',     '2D',   72, (SELECT id FROM cinema WHERE name = N'CGV Gigamall Thủ Đức'), 0),
-                                                                                  (N'Gigamall - IMAX',   'IMAX', 72, (SELECT id FROM cinema WHERE name = N'CGV Gigamall Thủ Đức'), 0),
+                                                                                  (N'Gigamall - 2D',     '2D',   88, (SELECT id FROM cinema WHERE name = N'CGV Gigamall Thủ Đức'), 0),
+                                                                                  (N'Gigamall - IMAX',   'IMAX', 88, (SELECT id FROM cinema WHERE name = N'CGV Gigamall Thủ Đức'), 0),
 
-                                                                                  (N'Da Nang - 2D',      '2D',   72, (SELECT id FROM cinema WHERE name = N'CGV Vincom Đà Nẵng'), 0),
-                                                                                  (N'Da Nang - 3D',      '3D',   72, (SELECT id FROM cinema WHERE name = N'CGV Vincom Đà Nẵng'), 0),
+                                                                                  (N'Da Nang - 2D',      '2D',   88, (SELECT id FROM cinema WHERE name = N'CGV Vincom Đà Nẵng'), 0),
+                                                                                  (N'Da Nang - 3D',      '3D',   88, (SELECT id FROM cinema WHERE name = N'CGV Vincom Đà Nẵng'), 0),
 
-                                                                                  (N'Can Tho - 2D',      '2D',   72, (SELECT id FROM cinema WHERE name = N'CGV Sense City Cần Thơ'), 0);
+                                                                                  (N'Can Tho - 2D',      '2D',   88, (SELECT id FROM cinema WHERE name = N'CGV Sense City Cần Thơ'), 0);
 GO
 
 /* ============================================================
-   14. SEAT  (layout CỐ ĐỊNH mọi phòng: A–D STANDARD, E–H VIP, I SWEETBOX;
-   mỗi hàng 8 ghế → 72 ghế/phòng × 13 = 936 ghế)
+   14. SEAT  (hàng thường A–D & VIP E–H: 10 ghế/hàng; Sweetbox I: 8 ghế
+   → 4×10 + 4×10 + 8 = 88 ghế/phòng × 13 phòng = 1144 ghế)
    ============================================================ */
 ;WITH rows_def (row_label, seat_type) AS (
     SELECT 'A','STANDARD' UNION ALL
@@ -524,7 +464,7 @@ GO
     SELECT 'I','SWEETBOX'
 ),
       nums (n) AS (
-          SELECT 1 UNION ALL SELECT n + 1 FROM nums WHERE n < 8
+          SELECT 1 UNION ALL SELECT n + 1 FROM nums WHERE n < 10
       )
  INSERT INTO seat (room_id, row_label, seat_number, seat_code, type, is_active, is_deleted)
  SELECT cr.id,
@@ -536,7 +476,8 @@ GO
  FROM cinema_room cr
           CROSS JOIN rows_def rd
           CROSS JOIN nums nm
- WHERE cr.total_seats = 72
+ WHERE cr.total_seats = 88
+   AND (rd.seat_type <> 'SWEETBOX' OR nm.n <= 8)   -- Sweetbox chỉ 8 ghế/hàng
  OPTION (MAXRECURSION 100);
 GO
 
@@ -561,39 +502,36 @@ GO
  SELECT cr.id, pd.seat_type, pd.price, 0
  FROM cinema_room cr
           JOIN price_def pd ON pd.room_type = cr.room_type
- WHERE cr.total_seats = 72;
+ WHERE cr.total_seats = 88;
 GO
 
 /* ============================================================
-   16. SHOW_TIME  (02/07 & 03/07/2026 — 8 phim NOW_SHOWING)
-   screening_plan = (giờ, phim, loại phòng); JOIN cinema_room theo room_type
-   → mỗi chi nhánh có phòng loại đó nhận đúng 1 suất.
-     • 2D  : mọi phim → phủ đủ 6 chi nhánh (≥1 suất/phim).
-     • 3D / IMAX : suất thứ 2 cho một số phim (Joker/Dune ưu tiên IMAX).
-   end_time = DATEADD(MINUTE, duration_minutes, start_time).
-   Các suất trong CÙNG phòng cách ≥ 3 giờ nên không đè giờ.
-   Tổng: 2D 8×6 + 3D 4×4 + IMAX 4×3 = 76 suất.
+   16. SHOW_TIME  (03/07 & 04/07/2026 — 8 phim NOW_SHOWING; bỏ 02/07)
+   • 03/07: chỉ khung 12h–22h.   • 04/07: cả ngày.
+   plan=(giờ, phim, loại phòng); JOIN theo room_type → mỗi chi nhánh có
+   phòng loại đó nhận 1 suất. Mỗi phim có 1 suất 2D (phủ đủ 6 chi nhánh)
+   + có thể thêm 1 suất 3D/IMAX (Joker & Dune ưu tiên IMAX).
+   Suất cùng phòng cách ≥ 3h nên không đè giờ.  Tổng = 76 suất.
    ============================================================ */
 ;WITH screening_plan (start_dt, movie_title, room_type) AS (
-    -- 2D (mọi chi nhánh)
-    SELECT CAST('2026-07-02 09:00:00' AS DATETIME2), N'Joker: Folie à Deux', '2D' UNION ALL
-    SELECT CAST('2026-07-02 12:00:00' AS DATETIME2), N'Dune: Part Two',      '2D' UNION ALL
-    SELECT CAST('2026-07-02 15:00:00' AS DATETIME2), N'Lằn Ranh Sinh Tử',    '2D' UNION ALL
-    SELECT CAST('2026-07-02 18:00:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức',   '2D' UNION ALL
-    SELECT CAST('2026-07-03 09:00:00' AS DATETIME2), N'Đảo Bão',             '2D' UNION ALL
-    SELECT CAST('2026-07-03 12:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng',  '2D' UNION ALL
-    SELECT CAST('2026-07-03 15:00:00' AS DATETIME2), N'Biệt Đội Săn Bão',    '2D' UNION ALL
-    SELECT CAST('2026-07-03 18:00:00' AS DATETIME2), N'Trò Chơi Sinh Tồn',   '2D' UNION ALL
-    -- 3D (Vincom NCT, Liberty, Pandora, Đà Nẵng)
-    SELECT CAST('2026-07-02 13:30:00' AS DATETIME2), N'Lằn Ranh Sinh Tử',    '3D' UNION ALL
-    SELECT CAST('2026-07-02 19:00:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức',   '3D' UNION ALL
-    SELECT CAST('2026-07-03 13:30:00' AS DATETIME2), N'Biệt Đội Săn Bão',    '3D' UNION ALL
-    SELECT CAST('2026-07-03 19:00:00' AS DATETIME2), N'Trò Chơi Sinh Tồn',   '3D' UNION ALL
-    -- IMAX (Vincom NCT, Liberty, Gigamall)
-    SELECT CAST('2026-07-02 10:30:00' AS DATETIME2), N'Joker: Folie à Deux', 'IMAX' UNION ALL
-    SELECT CAST('2026-07-02 20:00:00' AS DATETIME2), N'Dune: Part Two',      'IMAX' UNION ALL
-    SELECT CAST('2026-07-03 10:30:00' AS DATETIME2), N'Đảo Bão',             'IMAX' UNION ALL
-    SELECT CAST('2026-07-03 20:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng',  'IMAX'
+    -- ===== 03/07/2026 (12h–22h) =====
+    SELECT CAST('2026-07-03 12:00:00' AS DATETIME2), N'Joker: Folie à Deux', '2D'   UNION ALL
+    SELECT CAST('2026-07-03 15:00:00' AS DATETIME2), N'Dune: Part Two',      '2D'   UNION ALL
+    SELECT CAST('2026-07-03 18:00:00' AS DATETIME2), N'Lằn Ranh Sinh Tử',    '2D'   UNION ALL
+    SELECT CAST('2026-07-03 21:00:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức',   '2D'   UNION ALL
+    SELECT CAST('2026-07-03 13:30:00' AS DATETIME2), N'Lằn Ranh Sinh Tử',    '3D'   UNION ALL
+    SELECT CAST('2026-07-03 19:30:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức',   '3D'   UNION ALL
+    SELECT CAST('2026-07-03 12:30:00' AS DATETIME2), N'Joker: Folie à Deux', 'IMAX' UNION ALL
+    SELECT CAST('2026-07-03 20:00:00' AS DATETIME2), N'Dune: Part Two',      'IMAX' UNION ALL
+    -- ===== 04/07/2026 (cả ngày) =====
+    SELECT CAST('2026-07-04 09:00:00' AS DATETIME2), N'Đảo Bão',             '2D'   UNION ALL
+    SELECT CAST('2026-07-04 12:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng',  '2D'   UNION ALL
+    SELECT CAST('2026-07-04 15:00:00' AS DATETIME2), N'Biệt Đội Săn Bão',    '2D'   UNION ALL
+    SELECT CAST('2026-07-04 18:00:00' AS DATETIME2), N'Trò Chơi Sinh Tồn',   '2D'   UNION ALL
+    SELECT CAST('2026-07-04 10:30:00' AS DATETIME2), N'Biệt Đội Săn Bão',    '3D'   UNION ALL
+    SELECT CAST('2026-07-04 20:30:00' AS DATETIME2), N'Trò Chơi Sinh Tồn',   '3D'   UNION ALL
+    SELECT CAST('2026-07-04 10:00:00' AS DATETIME2), N'Đảo Bão',             'IMAX' UNION ALL
+    SELECT CAST('2026-07-04 21:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng',  'IMAX'
 )
  INSERT INTO show_time (start_time, end_time, room_id, movie_id)
  SELECT p.start_dt,
@@ -603,11 +541,11 @@ GO
  FROM screening_plan p
           JOIN movie       mv ON mv.title     = p.movie_title
           JOIN cinema_room cr ON cr.room_type = p.room_type
- WHERE cr.total_seats = 72;
+ WHERE cr.total_seats = 88;
 GO
 
 /* ============================================================
-   17. BOOKING  (6 đơn demo — dựng lại trên phòng & suất mới 02/07)
+   17. BOOKING  (6 đơn demo — dựng lại trên phòng & suất mới 03/07)
    Phí dịch vụ 3.000đ:  final_amount = total_amount − discount_amount + 3000.
    Giá theo bảng mới, nên số tiền KHÁC ảnh mockup cũ (VD IMAX VIP = 155k).
    Phân tích CMX20260520D01 (trang Thanh toán):
@@ -622,20 +560,20 @@ INSERT INTO booking
  total_amount, discount_amount, final_amount,
  status, note)
 VALUES
--- 1. Phong — Dune, Vincom NCT - IMAX 02/07 20:00, ghế E1+E2 (VIP), BT21 VN Single
+-- 1. Phong — Dune, Vincom NCT - IMAX 03/07 20:00, ghế E1+E2 (VIP), BT21 VN Single
 ((SELECT user_id FROM users WHERE email = 'phong.huynh@gmail.com'),
  NULL, 'CMX20260520D01',
  609000, 0, 612000,
  'PENDING', N'Đơn hàng đang chờ thanh toán (khớp ảnh trang Thanh toán)'),
 
--- 2. Mai — Joker, Pandora - 2D 02/07 09:00, ghế B1+B2, P CGV Combo ×2, mã SUMMER10 −10%
+-- 2. Mai — Joker, Pandora - 2D 03/07 09:00, ghế B1+B2, P CGV Combo ×2, mã SUMMER10 −10%
 ((SELECT user_id FROM users WHERE email = 'mai.nguyen@gmail.com'),
  (SELECT id FROM promotion WHERE code = 'SUMMER10'),
  'CMX20261020J01',
  420000, 42000, 381000,
  'PAID', NULL),
 
--- 3. Khánh — Joker, Vincom NCT - IMAX 02/07 10:30, ghế A1+A2, Hotdog Combo
+-- 3. Khánh — Joker, Vincom NCT - IMAX 03/07 10:30, ghế A1+A2, Hotdog Combo
 ((SELECT user_id FROM users WHERE email = 'khanh.tran@gmail.com'),
  NULL, 'CMX20260520J03',
  254000, 0, 257000,
@@ -648,13 +586,13 @@ VALUES
  150000, 50000, 103000,
  'CANCELLED', N'Khách hủy do đổi lịch'),
 
--- 5. Phong — Lằn Ranh Sinh Tử, Gigamall - 2D 02/07 15:00, ghế A3+A4, Topokki Combo
+-- 5. Phong — Lằn Ranh Sinh Tử, Gigamall - 2D 03/07 15:00, ghế A3+A4, Topokki Combo
 ((SELECT user_id FROM users WHERE email = 'phong.huynh@gmail.com'),
  NULL, 'CMX20261021L01',
  260000, 0, 263000,
  'PAID', NULL),
 
--- 6. Mai — Dune, Liberty - IMAX 02/07 20:00, ghế D1+D2, Michael Combo
+-- 6. Mai — Dune, Liberty - IMAX 03/07 20:00, ghế D1+D2, Michael Combo
 ((SELECT user_id FROM users WHERE email = 'mai.nguyen@gmail.com'),
  NULL, 'CMX20261021D02',
  449000, 0, 452000,
@@ -692,16 +630,14 @@ INSERT INTO booking_combo (booking_id, combo_id, quantity, unit_price, total_pri
 GO
 
 /* ============================================================
-   19. TICKET  (10 vé — 5 đơn có ghế; đơn CANCELLED không có vé)
-   showtime resolve theo start_time + room_id (vì nhiều chi nhánh
-   trùng giờ), seat & ticket_price resolve theo room_id.
+   19. TICKET  (10 vé — 5 đơn có ghế; đơn CANCELLED không vé)
+   showtime resolve theo start_time + room_id; seat & ticket_price theo room_id.
    ============================================================ */
 INSERT INTO ticket
 (booking_id, showtime_id, seat_id, ticket_price_id, status, paid_at)
 VALUES
-/* ── CMX20260520D01 (PENDING) — Dune, Vincom NCT - IMAX 20:00, E1 + E2 (VIP) ── */
     ((SELECT id FROM booking WHERE booking_code = 'CMX20260520D01'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 20:00:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 20:00:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
      (SELECT id FROM seat WHERE seat_code = 'E1'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
@@ -710,7 +646,7 @@ VALUES
         AND seat_type = 'VIP'),
      'PENDING', NULL),
     ((SELECT id FROM booking WHERE booking_code = 'CMX20260520D01'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 20:00:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 20:00:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
      (SELECT id FROM seat WHERE seat_code = 'E2'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
@@ -718,70 +654,62 @@ VALUES
       WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')
         AND seat_type = 'VIP'),
      'PENDING', NULL),
-
-/* ── CMX20261020J01 (PAID) — Joker, Pandora - 2D 09:00, B1 + B2 (STANDARD) ── */
     ((SELECT id FROM booking WHERE booking_code = 'CMX20261020J01'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 09:00:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 12:00:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Pandora - 2D')),
      (SELECT id FROM seat WHERE seat_code = 'B1'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Pandora - 2D')),
      (SELECT id FROM ticket_price
       WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Pandora - 2D')
         AND seat_type = 'STANDARD'),
-     'PAID', '2026-07-01 20:00:00'),
+     'PAID', '2026-07-02 20:00:00'),
     ((SELECT id FROM booking WHERE booking_code = 'CMX20261020J01'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 09:00:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 12:00:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Pandora - 2D')),
      (SELECT id FROM seat WHERE seat_code = 'B2'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Pandora - 2D')),
      (SELECT id FROM ticket_price
       WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Pandora - 2D')
         AND seat_type = 'STANDARD'),
-     'PAID', '2026-07-01 20:00:00'),
-
-/* ── CMX20260520J03 (PAID) — Joker, Vincom NCT - IMAX 10:30, A1 + A2 (STANDARD) ── */
+     'PAID', '2026-07-02 20:00:00'),
     ((SELECT id FROM booking WHERE booking_code = 'CMX20260520J03'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 10:30:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 12:30:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
      (SELECT id FROM seat WHERE seat_code = 'A1'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
      (SELECT id FROM ticket_price
       WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')
         AND seat_type = 'STANDARD'),
-     'PAID', '2026-07-01 21:00:00'),
+     'PAID', '2026-07-02 21:00:00'),
     ((SELECT id FROM booking WHERE booking_code = 'CMX20260520J03'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 10:30:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 12:30:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
      (SELECT id FROM seat WHERE seat_code = 'A2'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
      (SELECT id FROM ticket_price
       WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')
         AND seat_type = 'STANDARD'),
-     'PAID', '2026-07-01 21:00:00'),
-
-/* ── CMX20261021L01 (PAID) — Lằn Ranh, Gigamall - 2D 15:00, A3 + A4 (STANDARD) ── */
+     'PAID', '2026-07-02 21:00:00'),
     ((SELECT id FROM booking WHERE booking_code = 'CMX20261021L01'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 15:00:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 18:00:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Gigamall - 2D')),
      (SELECT id FROM seat WHERE seat_code = 'A3'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Gigamall - 2D')),
      (SELECT id FROM ticket_price
       WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Gigamall - 2D')
         AND seat_type = 'STANDARD'),
-     'PAID', '2026-07-01 22:00:00'),
+     'PAID', '2026-07-02 22:00:00'),
     ((SELECT id FROM booking WHERE booking_code = 'CMX20261021L01'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 15:00:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 18:00:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Gigamall - 2D')),
      (SELECT id FROM seat WHERE seat_code = 'A4'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Gigamall - 2D')),
      (SELECT id FROM ticket_price
       WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Gigamall - 2D')
         AND seat_type = 'STANDARD'),
-     'PAID', '2026-07-01 22:00:00'),
-
-/* ── CMX20261021D02 (PENDING) — Dune, Liberty - IMAX 20:00, D1 + D2 (STANDARD) ── */
+     'PAID', '2026-07-02 22:00:00'),
     ((SELECT id FROM booking WHERE booking_code = 'CMX20261021D02'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 20:00:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 20:00:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Liberty - IMAX')),
      (SELECT id FROM seat WHERE seat_code = 'D1'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Liberty - IMAX')),
@@ -790,7 +718,7 @@ VALUES
         AND seat_type = 'STANDARD'),
      'PENDING', NULL),
     ((SELECT id FROM booking WHERE booking_code = 'CMX20261021D02'),
-     (SELECT id FROM show_time WHERE start_time = '2026-07-02 20:00:00'
+     (SELECT id FROM show_time WHERE start_time = '2026-07-03 20:00:00'
                                  AND room_id = (SELECT id FROM cinema_room WHERE name = N'Liberty - IMAX')),
      (SELECT id FROM seat WHERE seat_code = 'D2'
                             AND room_id = (SELECT id FROM cinema_room WHERE name = N'Liberty - IMAX')),
@@ -801,14 +729,12 @@ VALUES
 GO
 
 /* ============================================================
-   20. PAYMENT_METHOD  (khớp 5 phương thức trong ảnh Thanh toán)
+   20. PAYMENT_METHOD  (3 phương thức: VNPay, Thẻ Quốc Tế, Thẻ ATM Nội Địa)
    ============================================================ */
 INSERT INTO payment_method (method_name, provider, description, is_active) VALUES
-                                                                               ('Vi MoMo',         'MoMo',    'Thanh toan nhanh qua ung dung MoMo',    1),
-                                                                               ('ZaloPay',         'ZaloPay', 'Giam gia them 10k cho chu the ZaloPay', 1),
-                                                                               ('ShopeePay',       'Shopee',  'Su dung Shopee xu de duoc giam gia',    1),
-                                                                               ('The Quoc Te',     NULL,      'Visa, Mastercard, JCB, Amex',           1),
-                                                                               ('The ATM Noi Dia', NULL,      'Ho tro 40+ ngan hang tai Viet Nam',     1);
+                                                                               (N'VNPay',           N'VNPAY', N'Thanh toán qua ví điện tử & ứng dụng ngân hàng VNPay', 1),
+                                                                               (N'Thẻ Quốc Tế',     N'INTERNATIONAL_CARD', N'Visa, Mastercard, JCB, Amex',             1),
+                                                                               (N'Thẻ ATM Nội Địa', N'DOMESTIC_ATM',       N'Hỗ trợ hơn 40 ngân hàng nội địa tại Việt Nam', 1);
 GO
 
 /* ============================================================
@@ -817,43 +743,37 @@ GO
 INSERT INTO payment
 (booking_id, payment_method_id, amount, payment_time, payment_status)
 VALUES
--- CMX20260520D01 — chờ thanh toán bằng Thẻ Quốc Tế (khớp ảnh Thanh toán)
-((SELECT id FROM booking WHERE booking_code = 'CMX20260520D01'),
- (SELECT id FROM payment_method WHERE method_name = 'The Quoc Te'),
- 612000, NULL, 'PENDING'),
+    ((SELECT id FROM booking WHERE booking_code = 'CMX20260520D01'),
+     (SELECT id FROM payment_method WHERE provider = 'INTERNATIONAL_CARD'),
+     612000, NULL, 'PENDING'),
 
--- CMX20261020J01 — đã thanh toán bằng VNPay
-((SELECT id FROM booking WHERE booking_code = 'CMX20261020J01'),
- (SELECT id FROM payment_method WHERE method_name = 'Vi MoMo'),
- 381000, '2026-07-01 20:00:00', 'SUCCESS'),
+    ((SELECT id FROM booking WHERE booking_code = 'CMX20261020J01'),
+     (SELECT id FROM payment_method WHERE provider = 'VNPAY'),
+     381000, '2026-07-02 20:00:00', 'SUCCESS'),
 
--- CMX20260520J03 — đã thanh toán bằng Thẻ ATM Nội Địa
-((SELECT id FROM booking WHERE booking_code = 'CMX20260520J03'),
- (SELECT id FROM payment_method WHERE method_name = 'The ATM Noi Dia'),
- 257000, '2026-07-01 21:00:00', 'SUCCESS'),
+    ((SELECT id FROM booking WHERE booking_code = 'CMX20260520J03'),
+     (SELECT id FROM payment_method WHERE provider = 'DOMESTIC_ATM'),
+     257000, '2026-07-02 21:00:00', 'SUCCESS'),
 
--- CMX20261020M01 — ZaloPay thất bại → khách hủy đơn
-((SELECT id FROM booking WHERE booking_code = 'CMX20261020M01'),
- (SELECT id FROM payment_method WHERE method_name = 'ZaloPay'),
- 103000, '2026-07-01 18:00:00', 'FAILED'),
+    ((SELECT id FROM booking WHERE booking_code = 'CMX20261020M01'),
+     (SELECT id FROM payment_method WHERE provider = 'VNPAY'),
+     103000, '2026-07-02 18:00:00', 'FAILED'),
 
--- CMX20261021L01 — đã thanh toán bằng ShopeePay
-((SELECT id FROM booking WHERE booking_code = 'CMX20261021L01'),
- (SELECT id FROM payment_method WHERE method_name = 'ShopeePay'),
- 263000, '2026-07-01 22:00:00', 'SUCCESS'),
+    ((SELECT id FROM booking WHERE booking_code = 'CMX20261021L01'),
+     (SELECT id FROM payment_method WHERE provider = 'VNPAY'),
+     263000, '2026-07-02 22:00:00', 'SUCCESS'),
 
--- CMX20261021D02 — chờ thanh toán
-((SELECT id FROM booking WHERE booking_code = 'CMX20261021D02'),
- (SELECT id FROM payment_method WHERE method_name = 'Vi MoMo'),
- 452000, NULL, 'PENDING');
+    ((SELECT id FROM booking WHERE booking_code = 'CMX20261021D02'),
+     (SELECT id FROM payment_method WHERE provider = 'INTERNATIONAL_CARD'),
+     452000, NULL, 'PENDING');
 GO
 
 /* ============================================================
    TỔNG KẾT (bản gộp)
-   role(3)  users(11)  notification(6)  user_notification(7)
-   movie(17)  genre(9)  movie_genre  movie_review
-   combo(6)  promotion  city(5)  cinema(6)
-   cinema_room(13)  seat(936)  ticket_price(39)  show_time(76)
+   role(3)  users(10: 1 admin + 1 nhân viên + 8 khách)
+   notification(6)  movie(17)  genre(9)  combo(6)  promotion(5)
+   city(5)  cinema(6)
+   cinema_room(13)  seat(1144)  ticket_price(39)  show_time(76)
    booking(6)  booking_combo(5)  ticket(10)
-   payment_method(5)  payment(6)
+   payment_method(3)  payment(6)
    ============================================================ */
