@@ -4,6 +4,7 @@ import com.hsf_project.entity.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +17,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     // Tra cứu booking theo mã (vnp_TxnRef từ VNPay trả về)
     Optional<Booking> findByBookingCodeAndIsDeletedFalse(String bookingCode);
+
+    List<Booking> findByStatusAndExpiredAtBeforeAndIsDeletedFalse(String pending, LocalDateTime now);
 }

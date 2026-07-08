@@ -19,6 +19,7 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
         AND t.showtime.id = :showtimeId
         AND t.status <> 'CANCELLED'
         AND t.isDeleted = false
+        AND (t.booking.status = 'PAID' OR (t.booking.status = 'PENDING' AND t.booking.expiredAt > CURRENT_TIMESTAMP))
     """)
     boolean existsBookedSeat(
             @Param("seatId") Long seatId,

@@ -59,6 +59,101 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         return "";
     }
 
+//    @Override
+//    @Transactional
+//    public ConfirmResult confirmBooking(Long userId, Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities,
+//                                        Long paymentMethodId, Long promotionId,
+//                                        BigDecimal discountAmount) {
+//
+//        LocalDateTime now = LocalDateTime.now();
+//        ShowTime showtime = showTimeService.getById(showtimeId);
+//        Integer roomId = showtime.getRoom().getId();
+//
+//        List<Seat> seats = new ArrayList<>();
+//        List<TicketPrice> ticketPrices = new ArrayList<>();
+//        BigDecimal seatTotal = BigDecimal.ZERO;
+//
+//        for (String seatCode : seatCodes) {
+//            Seat seat = seatRepository.findByRoomIdAndSeatCodeAndIsDeletedFalse(roomId, seatCode)
+//                    .orElseThrow(() -> new IllegalArgumentException("Ghế không tồn tại: " + seatCode));
+//            TicketPrice ticketPrice = ticketPriceRepository
+//                    .findByRoomIdAndSeatTypeAndIsDeletedFalse(roomId, seat.getType())
+//                    .orElseThrow(() -> new IllegalArgumentException("Chưa có giá vé cho loại ghế: " + seat.getType()));
+//
+//            seats.add(seat);
+//            ticketPrices.add(ticketPrice);
+//            seatTotal = seatTotal.add(ticketPrice.getPrice());
+//        }
+//
+//        List<Combo> combos = new ArrayList<>();
+//        BigDecimal comboTotal = BigDecimal.ZERO;
+//
+//        for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
+//            Combo combo = comboService.getById(entry.getKey());
+//            combos.add(combo);
+//            comboTotal = comboTotal.add(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+//        }
+//
+//        BigDecimal totalAmount = seatTotal.add(comboTotal);
+//        BigDecimal finalAmount = totalAmount.subtract(discountAmount);
+//
+//        Booking booking = new Booking();
+//        booking.setUser(entityManager.getReference(User.class, userId));
+//        booking.setPromotion(promotionId != null ? entityManager.getReference(Promotion.class, promotionId) : null);
+//        booking.setBookingCode(generateBookingCode());
+//        booking.setBookingDate(now);
+//        booking.setTotalAmount(totalAmount);
+//        booking.setDiscountAmount(discountAmount);
+//        booking.setFinalAmount(finalAmount);
+//        // PENDING chờ kết quả VNPay; finalizeBooking sẽ chuyển sang PAID/CANCELLED
+//        booking.setStatus("PENDING");
+//        booking.setCreatedAt(now);
+//        booking.setUpdatedAt(now);
+//        booking.setIsDeleted(false);
+//        booking = bookingRepository.save(booking);
+//
+//        for (int i = 0; i < seats.size(); i++) {
+//            Ticket ticket = new Ticket();
+//            ticket.setBooking(booking);
+//            ticket.setShowtime(showtime);
+//            ticket.setSeat(seats.get(i));
+//            ticket.setTicketPrice(ticketPrices.get(i));
+//            ticket.setStatus("PENDING");
+//            ticket.setBookedAt(now);
+//            ticket.setPaidAt(null);
+//            ticket.setIsDeleted(false);
+//            ticketRepository.save(ticket);
+//        }
+//
+//        int idx = 0;
+//        for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
+//            Combo combo = combos.get(idx++);
+//            BookingCombo line = new BookingCombo();
+//            line.setBooking(booking);
+//            line.setCombo(combo);
+//            line.setQuantity(entry.getValue());
+//            line.setUnitPrice(combo.getPrice());
+//            line.setTotalPrice(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+//            line.setCreatedAt(now);
+//            bookingComboRepository.save(line);
+//        }
+//
+//        PaymentMethod paymentMethod = entityManager.getReference(PaymentMethod.class, paymentMethodId);
+//
+//        Payment payment = new Payment();
+//        payment.setBooking(booking);
+//        payment.setPaymentMethod(paymentMethod);
+//        payment.setAmount(finalAmount);
+//        payment.setPaymentTime(null);
+//        payment.setPaymentStatus("PENDING");
+//        payment.setCreatedAt(now);
+//        paymentRepository.save(payment);
+//
+//        // Voucher chỉ được đánh dấu đã dùng khi thanh toán thành công (finalizeBooking)
+//
+//        return new ConfirmResult(booking.getBookingCode(), finalAmount, toVnpBankCode(paymentMethod));
+//    }
+
     @Override
     @Transactional
     public ConfirmResult confirmBooking(Long userId, Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities,
@@ -66,6 +161,9 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
                                         BigDecimal discountAmount) {
 
         LocalDateTime now = LocalDateTime.now();
+        //ĐỒNG BỘ 15 PHÚT VỚI VNPAY
+        LocalDateTime expiredTime = now.plusMinutes(15);
+
         ShowTime showtime = showTimeService.getById(showtimeId);
         Integer roomId = showtime.getRoom().getId();
 
@@ -85,18 +183,21 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             seatTotal = seatTotal.add(ticketPrice.getPrice());
         }
 
+        // Xử lý combo (nếu ban đầu chưa chọn thì map truyền vào sẽ trống, không sao cả)
         List<Combo> combos = new ArrayList<>();
         BigDecimal comboTotal = BigDecimal.ZERO;
-
-        for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
-            Combo combo = comboService.getById(entry.getKey());
-            combos.add(combo);
-            comboTotal = comboTotal.add(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+        if (comboQuantities != null) {
+            for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
+                Combo combo = comboService.getById(entry.getKey());
+                combos.add(combo);
+                comboTotal = comboTotal.add(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+            }
         }
 
         BigDecimal totalAmount = seatTotal.add(comboTotal);
         BigDecimal finalAmount = totalAmount.subtract(discountAmount);
 
+        //TẠO BOOKING TẠM THỜI (PENDING)
         Booking booking = new Booking();
         booking.setUser(entityManager.getReference(User.class, userId));
         booking.setPromotion(promotionId != null ? entityManager.getReference(Promotion.class, promotionId) : null);
@@ -105,53 +206,62 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         booking.setTotalAmount(totalAmount);
         booking.setDiscountAmount(discountAmount);
         booking.setFinalAmount(finalAmount);
-        // PENDING chờ kết quả VNPay; finalizeBooking sẽ chuyển sang PAID/CANCELLED
-        booking.setStatus("PENDING");
+        booking.setStatus(BookingStatus.PENDING.name());
         booking.setCreatedAt(now);
         booking.setUpdatedAt(now);
+        booking.setExpiredAt(expiredTime); //Lưu thời gian hết hạn vào DB
         booking.setIsDeleted(false);
         booking = bookingRepository.save(booking);
 
+        //KHÓA GHẾ TẠM THỜI (Tạo ticket PENDING)
         for (int i = 0; i < seats.size(); i++) {
             Ticket ticket = new Ticket();
             ticket.setBooking(booking);
             ticket.setShowtime(showtime);
             ticket.setSeat(seats.get(i));
             ticket.setTicketPrice(ticketPrices.get(i));
-            ticket.setStatus("PENDING");
+            ticket.setStatus(TicketStatus.PENDING.name());
             ticket.setBookedAt(now);
             ticket.setPaidAt(null);
             ticket.setIsDeleted(false);
             ticketRepository.save(ticket);
         }
 
-        int idx = 0;
-        for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
-            Combo combo = combos.get(idx++);
-            BookingCombo line = new BookingCombo();
-            line.setBooking(booking);
-            line.setCombo(combo);
-            line.setQuantity(entry.getValue());
-            line.setUnitPrice(combo.getPrice());
-            line.setTotalPrice(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
-            line.setCreatedAt(now);
-            bookingComboRepository.save(line);
+        // 🌟 SỬA ĐOẠN LƯU CHI TIẾT COMBO (Thêm check combos.size() > 0)
+        if (comboQuantities != null && !combos.isEmpty()) {
+            int idx = 0;
+            for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
+                Combo combo = combos.get(idx++);
+                BookingCombo line = new BookingCombo();
+                line.setBooking(booking);
+                line.setCombo(combo);
+                line.setQuantity(entry.getValue());
+                line.setUnitPrice(combo.getPrice());
+                line.setTotalPrice(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
+                line.setCreatedAt(now);
+                bookingComboRepository.save(line);
+            }
         }
 
-        PaymentMethod paymentMethod = entityManager.getReference(PaymentMethod.class, paymentMethodId);
+        // 🌟 SỬA ĐOẠN TẠO PAYMENT (Chỉ tạo nếu có paymentMethodId được truyền vào)
+        String bankCode = null;
+        if (paymentMethodId != null) {
+            PaymentMethod paymentMethod = entityManager.getReference(PaymentMethod.class, paymentMethodId);
 
-        Payment payment = new Payment();
-        payment.setBooking(booking);
-        payment.setPaymentMethod(paymentMethod);
-        payment.setAmount(finalAmount);
-        payment.setPaymentTime(null);
-        payment.setPaymentStatus("PENDING");
-        payment.setCreatedAt(now);
-        paymentRepository.save(payment);
+            Payment payment = new Payment();
+            payment.setBooking(booking);
+            payment.setPaymentMethod(paymentMethod);
+            payment.setAmount(finalAmount);
+            payment.setPaymentTime(null);
+            payment.setPaymentStatus(BookingStatus.PENDING.name());
+            payment.setCreatedAt(now);
+            paymentRepository.save(payment);
 
-        // Voucher chỉ được đánh dấu đã dùng khi thanh toán thành công (finalizeBooking)
+            bankCode = toVnpBankCode(paymentMethod);
+        }
 
-        return new ConfirmResult(booking.getBookingCode(), finalAmount, toVnpBankCode(paymentMethod));
+        // Trả về kết quả bình thường, bankCode lúc này ở bước 1 sẽ là null (hoàn toàn hợp lệ)
+        return new ConfirmResult(booking.getBookingCode(), finalAmount, bankCode);
     }
 
     @Override
