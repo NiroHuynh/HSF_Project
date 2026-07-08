@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -43,8 +44,13 @@ public class VnPayServiceImpl implements VnPayService {
     private String version;
 
     @Override
-    public String buildPaymentUrl(String bookingCode, BigDecimal finalAmount, String bankCode, String clientIp) {
+    public String buildPaymentUrl(String bookingCode, BigDecimal finalAmount, String bankCode, String clientIp,
+                                  LocalDateTime expireAt) {
         ZonedDateTime now = ZonedDateTime.now(VN_ZONE);
+        // Hạn thanh toán trùng với hạn giữ ghế để VNPay không cho trả tiền khi ghế đã nhả
+        ZonedDateTime expire = expireAt != null
+                ? expireAt.atZone(ZoneId.systemDefault()).withZoneSameInstant(VN_ZONE)
+                : now.plusMinutes(15);
 
         if (clientIp == null || clientIp.contains(":")) {
             clientIp = "127.0.0.1";
@@ -65,7 +71,7 @@ public class VnPayServiceImpl implements VnPayService {
         params.put("vnp_ReturnUrl", returnUrl);
         params.put("vnp_IpAddr", clientIp);
         params.put("vnp_CreateDate", now.format(VNP_DATE_FORMAT));
-        params.put("vnp_ExpireDate", now.plusMinutes(15).format(VNP_DATE_FORMAT));
+        params.put("vnp_ExpireDate", expire.format(VNP_DATE_FORMAT));
         if (bankCode != null && !bankCode.isBlank()) {
             params.put("vnp_BankCode", bankCode);
         }

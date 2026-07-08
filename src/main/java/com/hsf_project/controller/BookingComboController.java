@@ -8,6 +8,7 @@ import com.hsf_project.repository.BookingRepository;
 import com.hsf_project.service.ComboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,36 +26,8 @@ import java.util.Map;
 @RequestMapping("/booking")
 public class BookingComboController {
 
-//    @Autowired
-//    private ComboService bookingComboService;
-//    @Autowired
-//    private BookingRepository bookingRepository;
-//
-//    @GetMapping("/combo")
-//    public String showComboPage(
-//            @RequestParam Long showtimeId,
-//            @RequestParam String seatIds,
-//            @RequestParam(defaultValue = "0") BigDecimal seatTotal,
-//            Model model) {
-//
-//        List<String> selectedSeats = Arrays.stream(seatIds.split(","))
-//                .map(String::trim)
-//                .filter(s -> !s.isEmpty())
-//                .toList();
-//
-//        List<Combo> combos = bookingComboService.getActiveCombos();
-//
-//        model.addAttribute("showtimeId", showtimeId);
-//        model.addAttribute("seatIds", seatIds);
-//        model.addAttribute("selectedSeats", selectedSeats);
-//        model.addAttribute("seatTotal", seatTotal);
-//        model.addAttribute("combos", combos);
-//
-//        return "bookingCombo";
-//    }
-
     @Autowired
-    private ComboService comboService; // Đổi tên biến cho đúng ngữ nghĩa dịch vụ Combo
+    private ComboService comboService;
 
     @Autowired
     private BookingRepository bookingRepository;
@@ -69,8 +42,10 @@ public class BookingComboController {
         Booking booking = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy mã đơn hàng: " + bookingCode));
 
-        // 2. Tính toán số giây đếm ngược còn lại (Khóa 15 phút tổng)
-        long secondsLeft = Duration.between(LocalDateTime.now(), booking.getExpiredAt()).toSeconds();
+        // 2. Tính toán số giây đếm ngược còn lại (Khóa 15 phút tổng);
+        // booking cũ không có expiredAt thì coi như đã hết hạn
+        long secondsLeft = booking.getExpiredAt() == null ? 0
+                : Duration.between(LocalDateTime.now(), booking.getExpiredAt()).toSeconds();
 
         // Nếu lỡ quá giờ giữ ghế trước khi kịp load trang, lập tức đá user về trang chọn phim/suất chiếu
         if (secondsLeft <= 0) {
@@ -96,6 +71,7 @@ public class BookingComboController {
     }
 
     @PostMapping("/combo/save")
+    @Transactional
     public String saveBookingCombos(
             @RequestParam String bookingCode,
             @RequestParam Map<String, String> allParams // Hứng toàn bộ dữ liệu combo_* từ form gửi lên
@@ -105,7 +81,7 @@ public class BookingComboController {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng: " + bookingCode));
 
         // Kiểm tra nếu đơn hàng đã hết hạn giữ ghế thì không cho thao tác tiếp
-        if (java.time.LocalDateTime.now().isAfter(booking.getExpiredAt())) {
+        if (booking.getExpiredAt() == null || LocalDateTime.now().isAfter(booking.getExpiredAt())) {
             return "redirect:/movies/error?error=timeout";
         }
 
@@ -127,9 +103,8 @@ public class BookingComboController {
             }
         }
 
-        // 3. Xóa các combo cũ đã lưu trước đó của Booking này (nếu có - đề phòng trường hợp user quay lại sửa)
-        // Giả sử em dùng bookingComboRepository để dọn dẹp theo booking.getId()
-        // bookingComboRepository.deleteByBookingId(booking.getId());
+        // 3. Xóa combo cũ của booking (user quay lại sửa lựa chọn thì không bị nhân đôi dòng)
+        bookingComboRepository.deleteByBookingId(booking.getId());
 
         // 4. Lưu danh sách combo mới vào bảng trung gian booking_combo
         for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
@@ -140,12 +115,11 @@ public class BookingComboController {
             line.setQuantity(entry.getValue());
             line.setUnitPrice(combo.getPrice());
             line.setTotalPrice(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
-            line.setCreatedAt(java.time.LocalDateTime.now());
-            bookingComboRepository.save(line); // Tiêm Repository tương ứng vào nhé
+            line.setCreatedAt(LocalDateTime.now());
+            bookingComboRepository.save(line);
         }
 
-        // 5. Tính toán lại tổng tiền vé (đã lưu sẵn) + tổng tiền combo vừa chọn
-        // Giả sử tiền vé ban đầu được tính lại từ danh sách Ticket gắn với Booking này
+        // 5. Tính lại tổng tiền = tiền vé (từ danh sách Ticket) + tiền combo vừa chọn
         BigDecimal seatTotal = booking.getTickets().stream()
                 .map(t -> t.getTicketPrice().getPrice())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -153,25 +127,12 @@ public class BookingComboController {
         BigDecimal totalAmount = seatTotal.add(comboTotal);
         BigDecimal finalAmount = totalAmount.subtract(booking.getDiscountAmount());
 
-        // ============================================================
-        // BƯỚC 6: CẬP NHẬT HOÁ ĐƠN VÀ KHÓA CHẶT THỜI GIAN GỐC
-        // ============================================================
-
-        // Đọc lại thời gian hết hạn gốc trước khi save để chắc chắn không bị Hibernate làm mất dữ liệu
-        LocalDateTime originalExpiredAt = booking.getExpiredAt();
-
         booking.setTotalAmount(totalAmount);
         booking.setFinalAmount(finalAmount);
-        booking.setUpdatedAt(java.time.LocalDateTime.now());
-
-        // Ép buộc đối tượng booking sử dụng lại mốc expiredAt cũ từ bước chọn ghế
-        if (originalExpiredAt != null) {
-            booking.setExpiredAt(originalExpiredAt);
-        }
-
+        booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
-        // 7. CHUYỂN TRANG: Điều hướng sang trang thanh toán gọn gàng bằng đúng mã đơn
+        // 6. Điều hướng sang trang thanh toán bằng đúng mã đơn
         return "redirect:/booking/payment?bookingCode=" + bookingCode;
     }
 
