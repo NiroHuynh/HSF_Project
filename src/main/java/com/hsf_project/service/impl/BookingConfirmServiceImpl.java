@@ -53,107 +53,6 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
     @PersistenceContext
     private EntityManager entityManager;
 
-
-    @Override
-    public String confirmBooking(Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities, Long paymentMethodId, Long promotionId, BigDecimal discountAmount) {
-        return "";
-    }
-
-//    @Override
-//    @Transactional
-//    public ConfirmResult confirmBooking(Long userId, Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities,
-//                                        Long paymentMethodId, Long promotionId,
-//                                        BigDecimal discountAmount) {
-//
-//        LocalDateTime now = LocalDateTime.now();
-//        ShowTime showtime = showTimeService.getById(showtimeId);
-//        Integer roomId = showtime.getRoom().getId();
-//
-//        List<Seat> seats = new ArrayList<>();
-//        List<TicketPrice> ticketPrices = new ArrayList<>();
-//        BigDecimal seatTotal = BigDecimal.ZERO;
-//
-//        for (String seatCode : seatCodes) {
-//            Seat seat = seatRepository.findByRoomIdAndSeatCodeAndIsDeletedFalse(roomId, seatCode)
-//                    .orElseThrow(() -> new IllegalArgumentException("Ghế không tồn tại: " + seatCode));
-//            TicketPrice ticketPrice = ticketPriceRepository
-//                    .findByRoomIdAndSeatTypeAndIsDeletedFalse(roomId, seat.getType())
-//                    .orElseThrow(() -> new IllegalArgumentException("Chưa có giá vé cho loại ghế: " + seat.getType()));
-//
-//            seats.add(seat);
-//            ticketPrices.add(ticketPrice);
-//            seatTotal = seatTotal.add(ticketPrice.getPrice());
-//        }
-//
-//        List<Combo> combos = new ArrayList<>();
-//        BigDecimal comboTotal = BigDecimal.ZERO;
-//
-//        for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
-//            Combo combo = comboService.getById(entry.getKey());
-//            combos.add(combo);
-//            comboTotal = comboTotal.add(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
-//        }
-//
-//        BigDecimal totalAmount = seatTotal.add(comboTotal);
-//        BigDecimal finalAmount = totalAmount.subtract(discountAmount);
-//
-//        Booking booking = new Booking();
-//        booking.setUser(entityManager.getReference(User.class, userId));
-//        booking.setPromotion(promotionId != null ? entityManager.getReference(Promotion.class, promotionId) : null);
-//        booking.setBookingCode(generateBookingCode());
-//        booking.setBookingDate(now);
-//        booking.setTotalAmount(totalAmount);
-//        booking.setDiscountAmount(discountAmount);
-//        booking.setFinalAmount(finalAmount);
-//        // PENDING chờ kết quả VNPay; finalizeBooking sẽ chuyển sang PAID/CANCELLED
-//        booking.setStatus("PENDING");
-//        booking.setCreatedAt(now);
-//        booking.setUpdatedAt(now);
-//        booking.setIsDeleted(false);
-//        booking = bookingRepository.save(booking);
-//
-//        for (int i = 0; i < seats.size(); i++) {
-//            Ticket ticket = new Ticket();
-//            ticket.setBooking(booking);
-//            ticket.setShowtime(showtime);
-//            ticket.setSeat(seats.get(i));
-//            ticket.setTicketPrice(ticketPrices.get(i));
-//            ticket.setStatus("PENDING");
-//            ticket.setBookedAt(now);
-//            ticket.setPaidAt(null);
-//            ticket.setIsDeleted(false);
-//            ticketRepository.save(ticket);
-//        }
-//
-//        int idx = 0;
-//        for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
-//            Combo combo = combos.get(idx++);
-//            BookingCombo line = new BookingCombo();
-//            line.setBooking(booking);
-//            line.setCombo(combo);
-//            line.setQuantity(entry.getValue());
-//            line.setUnitPrice(combo.getPrice());
-//            line.setTotalPrice(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
-//            line.setCreatedAt(now);
-//            bookingComboRepository.save(line);
-//        }
-//
-//        PaymentMethod paymentMethod = entityManager.getReference(PaymentMethod.class, paymentMethodId);
-//
-//        Payment payment = new Payment();
-//        payment.setBooking(booking);
-//        payment.setPaymentMethod(paymentMethod);
-//        payment.setAmount(finalAmount);
-//        payment.setPaymentTime(null);
-//        payment.setPaymentStatus("PENDING");
-//        payment.setCreatedAt(now);
-//        paymentRepository.save(payment);
-//
-//        // Voucher chỉ được đánh dấu đã dùng khi thanh toán thành công (finalizeBooking)
-//
-//        return new ConfirmResult(booking.getBookingCode(), finalAmount, toVnpBankCode(paymentMethod));
-//    }
-
     @Override
     @Transactional
     public ConfirmResult confirmBooking(Long userId, Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities,
@@ -161,7 +60,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
                                         BigDecimal discountAmount) {
 
         LocalDateTime now = LocalDateTime.now();
-        //ĐỒNG BỘ 15 PHÚT VỚI VNPAY
+        // Đồng bộ 15 phút giữ ghế với hạn thanh toán VNPay
         LocalDateTime expiredTime = now.plusMinutes(15);
 
         ShowTime showtime = showTimeService.getById(showtimeId);
@@ -174,6 +73,13 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         for (String seatCode : seatCodes) {
             Seat seat = seatRepository.findByRoomIdAndSeatCodeAndIsDeletedFalse(roomId, seatCode)
                     .orElseThrow(() -> new IllegalArgumentException("Ghế không tồn tại: " + seatCode));
+
+            // Trang chọn ghế có thể đã cũ: re-check ghế còn trống ngay lúc tạo booking
+            if (ticketRepository.existsBookedSeat(seat.getId(), showtimeId)) {
+                throw new IllegalArgumentException(
+                        "Ghế " + seatCode + " vừa được người khác đặt. Vui lòng chọn ghế khác.");
+            }
+
             TicketPrice ticketPrice = ticketPriceRepository
                     .findByRoomIdAndSeatTypeAndIsDeletedFalse(roomId, seat.getType())
                     .orElseThrow(() -> new IllegalArgumentException("Chưa có giá vé cho loại ghế: " + seat.getType()));
@@ -183,7 +89,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             seatTotal = seatTotal.add(ticketPrice.getPrice());
         }
 
-        // Xử lý combo (nếu ban đầu chưa chọn thì map truyền vào sẽ trống, không sao cả)
+        // Combo có thể chưa chọn ở bước này (map trống/null)
         List<Combo> combos = new ArrayList<>();
         BigDecimal comboTotal = BigDecimal.ZERO;
         if (comboQuantities != null) {
@@ -194,10 +100,12 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             }
         }
 
+        if (discountAmount == null) {
+            discountAmount = BigDecimal.ZERO;
+        }
         BigDecimal totalAmount = seatTotal.add(comboTotal);
         BigDecimal finalAmount = totalAmount.subtract(discountAmount);
 
-        //TẠO BOOKING TẠM THỜI (PENDING)
         Booking booking = new Booking();
         booking.setUser(entityManager.getReference(User.class, userId));
         booking.setPromotion(promotionId != null ? entityManager.getReference(Promotion.class, promotionId) : null);
@@ -209,11 +117,11 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         booking.setStatus(BookingStatus.PENDING.name());
         booking.setCreatedAt(now);
         booking.setUpdatedAt(now);
-        booking.setExpiredAt(expiredTime); //Lưu thời gian hết hạn vào DB
+        booking.setExpiredAt(expiredTime);
         booking.setIsDeleted(false);
         booking = bookingRepository.save(booking);
 
-        //KHÓA GHẾ TẠM THỜI (Tạo ticket PENDING)
+        // Khóa ghế tạm thời bằng ticket PENDING
         for (int i = 0; i < seats.size(); i++) {
             Ticket ticket = new Ticket();
             ticket.setBooking(booking);
@@ -227,7 +135,6 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             ticketRepository.save(ticket);
         }
 
-        // 🌟 SỬA ĐOẠN LƯU CHI TIẾT COMBO (Thêm check combos.size() > 0)
         if (comboQuantities != null && !combos.isEmpty()) {
             int idx = 0;
             for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
@@ -243,7 +150,6 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             }
         }
 
-        // 🌟 SỬA ĐOẠN TẠO PAYMENT (Chỉ tạo nếu có paymentMethodId được truyền vào)
         String bankCode = null;
         if (paymentMethodId != null) {
             PaymentMethod paymentMethod = entityManager.getReference(PaymentMethod.class, paymentMethodId);
@@ -253,15 +159,73 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             payment.setPaymentMethod(paymentMethod);
             payment.setAmount(finalAmount);
             payment.setPaymentTime(null);
-            payment.setPaymentStatus(BookingStatus.PENDING.name());
+            payment.setPaymentStatus("PENDING");
             payment.setCreatedAt(now);
             paymentRepository.save(payment);
 
             bankCode = toVnpBankCode(paymentMethod);
         }
 
-        // Trả về kết quả bình thường, bankCode lúc này ở bước 1 sẽ là null (hoàn toàn hợp lệ)
-        return new ConfirmResult(booking.getBookingCode(), finalAmount, bankCode);
+        return new ConfirmResult(booking.getBookingCode(), finalAmount, bankCode, expiredTime);
+    }
+
+    @Override
+    @Transactional
+    public ConfirmResult preparePayment(String bookingCode, Long userId, Long paymentMethodId, String promoCode) {
+        Booking booking = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy booking: " + bookingCode));
+
+        if (!booking.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Đơn hàng không thuộc về tài khoản đang đăng nhập.");
+        }
+        if (!BookingStatus.PENDING.name().equals(booking.getStatus())) {
+            throw new IllegalArgumentException("Đơn hàng đã được xử lý trước đó.");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        if (booking.getExpiredAt() == null || now.isAfter(booking.getExpiredAt())) {
+            throw new IllegalArgumentException("Đơn hàng đã hết thời gian giữ ghế, vui lòng đặt lại.");
+        }
+
+        // Validate lại mã khuyến mãi phía server — không nhận số tiền giảm từ form
+        BigDecimal discount = BigDecimal.ZERO;
+        if (promoCode != null && !promoCode.isBlank()) {
+            PromotionService.PromotionResult promoResult =
+                    promotionService.validate(promoCode, booking.getTotalAmount());
+            if (!promoResult.valid()) {
+                throw new IllegalArgumentException("Mã khuyến mãi không hợp lệ: " + promoResult.message());
+            }
+            discount = promoResult.discountAmount();
+            booking.setPromotion(entityManager.getReference(Promotion.class, promoResult.promotionId()));
+        } else {
+            booking.setPromotion(null);
+        }
+
+        BigDecimal finalAmount = booking.getTotalAmount().subtract(discount);
+        if (finalAmount.compareTo(BigDecimal.ZERO) < 0) {
+            finalAmount = BigDecimal.ZERO;
+        }
+        booking.setDiscountAmount(discount);
+        booking.setFinalAmount(finalAmount);
+        booking.setUpdatedAt(now);
+        bookingRepository.save(booking);
+
+        PaymentMethod paymentMethod = entityManager.getReference(PaymentMethod.class, paymentMethodId);
+
+        // Tái sử dụng bản ghi payment PENDING nếu user quay lại bấm thanh toán lần nữa
+        Payment payment = paymentRepository.findFirstByBookingIdOrderByIdDesc(booking.getId())
+                .filter(p -> p.getPaymentTime() == null)
+                .orElseGet(Payment::new);
+        payment.setBooking(booking);
+        payment.setPaymentMethod(paymentMethod);
+        payment.setAmount(finalAmount);
+        payment.setPaymentStatus("PENDING");
+        if (payment.getId() == null) {
+            payment.setCreatedAt(now);
+        }
+        paymentRepository.save(payment);
+
+        return new ConfirmResult(booking.getBookingCode(), finalAmount,
+                toVnpBankCode(paymentMethod), booking.getExpiredAt());
     }
 
     @Override
@@ -271,32 +235,55 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         Booking booking = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy booking: " + bookingCode));
 
-        // Idempotent: user F5 lại Return URL thì booking đã được chốt, không xử lý lại
-        if (!"PENDING".equals(booking.getStatus())) {
+        boolean pending = BookingStatus.PENDING.name().equals(booking.getStatus());
+        // Scheduler có thể đã hủy đơn vì quá hạn trong lúc user đang thanh toán trên VNPay
+        boolean canceledByTimeout = BookingStatus.CANCELED.name().equals(booking.getStatus()) && success;
+        if (!pending && !canceledByTimeout) {
+            return;
+        }
+
+        Payment payment = paymentRepository.findFirstByBookingIdOrderByIdDesc(booking.getId())
+                .orElseThrow(() -> new IllegalStateException("Booking " + bookingCode + " không có bản ghi payment"));
+
+        // Idempotent: user F5 lại Return URL thì payment đã có paymentTime, không xử lý lại
+        if (payment.getPaymentTime() != null) {
             return;
         }
 
         LocalDateTime now = LocalDateTime.now();
-        Payment payment = paymentRepository.findFirstByBookingIdOrderByIdDesc(booking.getId())
-                .orElseThrow(() -> new IllegalStateException("Booking " + bookingCode + " không có bản ghi payment"));
         payment.setTransactionCode(transactionNo);
         payment.setGatewayResponse(rawParams);
         payment.setPaymentTime(now);
 
         if (success) {
-            booking.setStatus("PAID");
-            for (Ticket ticket : booking.getTickets()) {
-                ticket.setStatus("PAID");
-                ticket.setPaidAt(now);
-            }
-            payment.setPaymentStatus("SUCCESS");
-            if (booking.getPromotion() != null) {
-                promotionService.markUsed(booking.getPromotion().getId());
+            // Nếu đơn đã quá hạn, ghế có thể đã bị booking khác giữ — chỉ chốt PAID khi ghế còn nguyên
+            boolean seatsStillFree = booking.getTickets().stream().noneMatch(t ->
+                    ticketRepository.existsBookedSeatForOtherBooking(
+                            t.getSeat().getId(), t.getShowtime().getId(), booking.getId()));
+
+            if (seatsStillFree) {
+                booking.setStatus(BookingStatus.PAID.name());
+                for (Ticket ticket : booking.getTickets()) {
+                    ticket.setStatus(TicketStatus.PAID.name());
+                    ticket.setPaidAt(now);
+                    ticket.setIsDeleted(false); // khôi phục nếu scheduler đã soft-delete
+                }
+                payment.setPaymentStatus("SUCCESS");
+                if (booking.getPromotion() != null) {
+                    promotionService.markUsed(booking.getPromotion().getId());
+                }
+            } else {
+                booking.setStatus(BookingStatus.CANCELED.name());
+                booking.setNote("Thanh toán thành công sau khi hết hạn giữ ghế nhưng ghế đã có người đặt"
+                        + " - cần hoàn tiền. Mã GD VNPay: " + transactionNo);
+                for (Ticket ticket : booking.getTickets()) {
+                    ticket.setIsDeleted(true);
+                }
+                payment.setPaymentStatus("REFUND_REQUIRED");
             }
         } else {
-            booking.setStatus("CANCELLED");
-            // Ràng buộc CK_ticket_status trong DB chỉ cho PAID/PENDING nên không set
-            // ticket = CANCELLED được; soft-delete để giải phóng ghế
+            booking.setStatus(BookingStatus.CANCELED.name());
+            // Ticket không có trạng thái hủy: soft-delete để giải phóng ghế
             // (existsBookedSeat lọc isDeleted = false).
             for (Ticket ticket : booking.getTickets()) {
                 ticket.setIsDeleted(true);

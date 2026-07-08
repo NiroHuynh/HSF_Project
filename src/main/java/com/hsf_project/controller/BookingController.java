@@ -5,6 +5,8 @@ import com.hsf_project.engine.ShowDateEngine;
 import com.hsf_project.entity.Cinema;
 import com.hsf_project.entity.City;
 import com.hsf_project.entity.Movie;
+import com.hsf_project.entity.User;
+import jakarta.servlet.http.HttpSession;
 import com.hsf_project.service.BookingConfirmService;
 import com.hsf_project.service.CinemaService;
 import com.hsf_project.service.CityService;
@@ -78,24 +80,26 @@ public class BookingController {
     public String initiateBooking(
             @RequestParam Long showtimeId,
             @RequestParam String seatIds, // Nhận chuỗi dạng "A1,A2" từ Form
-            @RequestParam(required = false, defaultValue = "1") Long userId // Tạm thời lấy UserID = 1, sau này thay bằng User đăng nhập
+            HttpSession session
     ) {
+        // AuthInterceptor đã chặn /booking/** khi chưa đăng nhập nên user luôn tồn tại.
+        User currentUser = (User) session.getAttribute("ttdn");
+
         // 1. Chuyển chuỗi "A1,A2" thành List<String>
         List<String> listSeats = Arrays.stream(seatIds.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();
 
-
-        // 2. Gọi hàm confirmBooking(Giai đoạn này chưa chọn combo, voucher nên truyền null/ZERO)
+        // 2. Tạo booking PENDING giữ ghế (chưa chọn combo/voucher nên truyền null/ZERO)
         var result = bookingConfirmService.confirmBooking(
-                userId,                  // 1. Long userId
-                showtimeId,              // 2. Long showtimeId
-                listSeats,               // 3. List<String> seatCodes
-                null,                    // 4. Map<Long, Integer> comboQuantities
-                null,                    // 5. Long paymentMethodId
-                null,                    // 6. Long promotionId
-                BigDecimal.ZERO          // 7. BigDecimal discountAmount
+                currentUser.getId(),
+                showtimeId,
+                listSeats,
+                null,                    // comboQuantities
+                null,                    // paymentMethodId
+                null,                    // promotionId
+                BigDecimal.ZERO
         );
 
         // 3. Điều hướng sang trang combo kèm theo mã bookingCode vừa sinh ra
