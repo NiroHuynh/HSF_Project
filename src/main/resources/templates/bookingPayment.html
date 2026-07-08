@@ -144,21 +144,61 @@
     </div>
 </div>
 
+<div class="container">
+    <div class="alert alert-danger my-3"
+         style="background: var(--color-brand-red-light, rgba(227, 27, 35, 0.1));
+                border: 1px solid var(--color-brand-red, #e31b23);
+                padding: 0 var(--space-lg);
+                border-radius: var(--radius-md, 8px);
+                margin-top: var(--space-xl);
+                margin-bottom: var(--space-lg);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                height: 56px;">
+
+        <div style="display: flex; align-items: center; gap: 8px; height: 100%; line-height: 1;">
+            <span class="material-symbols-outlined"
+                  style="color: var(--color-brand-red); font-size: 24px; display: inline-flex; align-items: center;">
+                  alarm
+            </span>
+            <span style="color: var(--color-text-primary); font-weight: 500; font-size: 15px;">
+                Thời gian hoàn tất thanh toán còn:
+            </span>
+        </div>
+
+        <div style="display: flex; align-items: center; height: 100%;">
+            <b id="timer-box"
+               style="font-size: 22px; font-weight: 800; color: var(--color-brand-red); letter-spacing: 0.05em; line-height: 1; display: inline-flex; align-items: center;">
+                15:00
+            </b>
+        </div>
+    </div>
+</div>
+
 <!-- ============================================================
      FORM CHÍNH — mang toàn bộ dữ liệu sang /booking/confirm.
      Các input nằm rải trong 2 cột (promo, payment method) đều gắn
      form="paymentForm" để cùng submit về 1 form duy nhất.
      ============================================================ -->
+<!--<form id="paymentForm" method="post" th:action="@{/booking/confirm}">-->
+<!--    <input type="hidden" name="showtimeId" th:value="${showtimeId}"/>-->
+<!--    <input type="hidden" name="seatIds" th:value="${seatIds}"/>-->
+<!--    <input type="hidden" name="seatTotal" th:value="${seatTotal}"/>-->
+<!--    <input type="hidden" name="discountAmount" id="discountHidden" th:value="${discount}"/>-->
+<!--    <input type="hidden" name="promotionId" id="promotionIdHidden" value=""/>-->
+<!--    <input type="hidden"-->
+<!--           th:each="entry : ${comboQueryParams}"-->
+<!--           th:name="${'combo_' + entry.key}"-->
+<!--           th:value="${entry.value}"/>-->
+<!--</form>-->
+
 <form id="paymentForm" method="post" th:action="@{/booking/confirm}">
-    <input type="hidden" name="showtimeId" th:value="${showtimeId}"/>
-    <input type="hidden" name="seatIds" th:value="${seatIds}"/>
-    <input type="hidden" name="seatTotal" th:value="${seatTotal}"/>
-    <input type="hidden" name="discountAmount" id="discountHidden" th:value="${discount}"/>
+
+    <input type="hidden" name="bookingCode" th:value="${bookingCode}"/>
+    <input type="hidden" name="discountAmount" id="discountHidden" th:value="${discountAmount}"/>
     <input type="hidden" name="promotionId" id="promotionIdHidden" value=""/>
-    <input type="hidden"
-           th:each="entry : ${comboQueryParams}"
-           th:name="${'combo_' + entry.key}"
-           th:value="${entry.value}"/>
+
 </form>
 
 <main class="container checkout-page-content">
@@ -200,7 +240,7 @@
                             </div>
                         </div>
 
-                        <input type="radio" name="paymentMethod" class="form-check-input" form="paymentForm"
+                        <input type="radio" name="paymentMethodId" class="form-check-input" form="paymentForm"
                                th:value="${method.id}"
                                th:checked="${method.id == defaultPaymentMethodId}">
                     </label>
@@ -209,98 +249,153 @@
         </div>
 
         <!-- ===================== CỘT PHẢI ===================== -->
+<!--        <div class="checkout-card">-->
+<!--            <h2 class="checkout-card__title mb-md">Tóm tắt đơn hàng</h2>-->
+
+<!--            <div class="order-summary__movie">-->
+<!--                <div class="order-summary__poster">-->
+<!--                    <img th:if="${showtimeInfo.posterUrl()}" th:src="${showtimeInfo.posterUrl()}"-->
+<!--                         th:alt="${showtimeInfo.movieTitle()}">-->
+<!--                    <span th:unless="${showtimeInfo.posterUrl()}" class="material-symbols-outlined">movie</span>-->
+<!--                </div>-->
+<!--                <div>-->
+<!--                    <div class="ticket-card__title" style="font-size:16px;"-->
+<!--                         th:text="${showtimeInfo.movieTitle()}">Tên phim</div>-->
+<!--                    <div class="body-sm text-secondary">-->
+<!--                        <span th:text="${showtimeInfo.startTime()}">20/05/2026 19:30</span>-->
+<!--                        &middot;-->
+<!--                        <span th:text="${showtimeInfo.roomName()}">Screen 04</span>-->
+<!--                    </div>-->
+<!--                    <div class="body-sm text-secondary">-->
+<!--                        Ghế:-->
+<!--                        <th:block th:each="seat, iterStat : ${selectedSeats}">-->
+<!--                            <span th:text="${seat}">A1</span><span th:unless="${iterStat.last}">, </span>-->
+<!--                        </th:block>-->
+<!--                    </div>-->
+<!--                    <div class="text-accent label-sm mt-xs" th:text="${showtimeInfo.formatLabel()}">CINEMAX IMAX</div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <hr class="divider mt-lg mb-lg">-->
+
+<!--            <div class="price-row">-->
+<!--                <span class="text-secondary body-sm">Tạm tính</span>-->
+<!--                <span th:text="${#numbers.formatInteger(seatTotal, 0, 'POINT')} + ' đ'">0 đ</span>-->
+<!--            </div>-->
+
+<!--            <div class="price-row" th:each="combo : ${selectedCombos}">-->
+<!--                <span class="text-secondary body-sm"-->
+<!--                      th:text="'Combo: ' + ${combo.name()} + ' x' + ${combo.quantity()}">Combo</span>-->
+<!--                <span th:text="${#numbers.formatInteger(combo.lineTotal(), 0, 'POINT')} + ' đ'">0 đ</span>-->
+<!--            </div>-->
+
+<!--            <div class="price-row">-->
+<!--                <span class="text-secondary body-sm">Khuyến mãi</span>-->
+<!--                <span class="text-accent" id="discountDisplay"-->
+<!--                      th:text="'- ' + ${#numbers.formatInteger(discount, 0, 'POINT')} + ' đ'">- 0 đ</span>-->
+<!--            </div>-->
+
+<!--            <hr class="divider mt-lg mb-md">-->
+
+<!--            <div class="price-row price-row&#45;&#45;total">-->
+<!--                <div>-->
+<!--                    <div class="label-md">Tổng cộng</div>-->
+<!--                    <div class="label-sm text-muted">(Đã bao gồm VAT)</div>-->
+<!--                </div>-->
+<!--                <span class="text-accent" id="grandTotalDisplay" style="font-size:20px; font-weight:800;"-->
+<!--                      th:text="${#numbers.formatInteger(grandTotal, 0, 'POINT')} + ' đ'">0 đ</span>-->
+<!--            </div>-->
+
+<!--            <button type="submit" form="paymentForm" class="btn btn-primary btn-lg w-full mt-lg">-->
+<!--                Thanh toán-->
+<!--                <span class="material-symbols-outlined">arrow_forward</span>-->
+<!--            </button>-->
+
+<!--            <a class="btn btn-outline w-full mt-sm"-->
+<!--               th:href="@{/booking/combo(showtimeId=${showtimeId}, seatIds=${seatIds}, seatTotal=${seatTotal})}">-->
+<!--                Quay về-->
+<!--            </a>-->
+
+<!--            <p class="body-sm text-muted text-center mt-md">-->
+<!--                <span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle;">lock</span>-->
+<!--                Thanh toán an toàn &amp; bảo mật-->
+<!--            </p>-->
+<!--        </div>-->
+
         <div class="checkout-card">
             <h2 class="checkout-card__title mb-md">Tóm tắt đơn hàng</h2>
-
-            <div class="order-summary__movie">
-                <div class="order-summary__poster">
-                    <img th:if="${showtimeInfo.posterUrl()}" th:src="${showtimeInfo.posterUrl()}"
-                         th:alt="${showtimeInfo.movieTitle()}">
-                    <span th:unless="${showtimeInfo.posterUrl()}" class="material-symbols-outlined">movie</span>
-                </div>
-                <div>
-                    <div class="ticket-card__title" style="font-size:16px;"
-                         th:text="${showtimeInfo.movieTitle()}">Tên phim</div>
-                    <div class="body-sm text-secondary">
-                        <span th:text="${showtimeInfo.startTime()}">20/05/2026 19:30</span>
-                        &middot;
-                        <span th:text="${showtimeInfo.roomName()}">Screen 04</span>
-                    </div>
-                    <div class="body-sm text-secondary">
-                        Ghế:
-                        <th:block th:each="seat, iterStat : ${selectedSeats}">
-                            <span th:text="${seat}">A1</span><span th:unless="${iterStat.last}">, </span>
-                        </th:block>
-                    </div>
-                    <div class="text-accent label-sm mt-xs" th:text="${showtimeInfo.formatLabel()}">CINEMAX IMAX</div>
-                </div>
-            </div>
 
             <hr class="divider mt-lg mb-lg">
 
             <div class="price-row">
-                <span class="text-secondary body-sm">Tạm tính</span>
-                <span th:text="${#numbers.formatInteger(seatTotal, 0, 'POINT')} + ' đ'">0 đ</span>
+                <span class="text-secondary body-sm">Tạm tính (Tiền ghế + Combo)</span>
+                <span th:text="${#numbers.formatInteger(totalAmount, 0, 'POINT')} + ' đ'">0 đ</span>
             </div>
 
             <div class="price-row" th:each="combo : ${selectedCombos}">
-                <span class="text-secondary body-sm"
-                      th:text="'Combo: ' + ${combo.name()} + ' x' + ${combo.quantity()}">Combo</span>
+                <span class="text-secondary body-sm" th:text="'Combo: ' + ${combo.name()} + ' x' + ${combo.quantity()}">Combo</span>
                 <span th:text="${#numbers.formatInteger(combo.lineTotal(), 0, 'POINT')} + ' đ'">0 đ</span>
             </div>
 
             <div class="price-row">
                 <span class="text-secondary body-sm">Khuyến mãi</span>
-                <span class="text-accent" id="discountDisplay"
-                      th:text="'- ' + ${#numbers.formatInteger(discount, 0, 'POINT')} + ' đ'">- 0 đ</span>
+                <span class="text-accent" id="discountDisplay" th:text="'- ' + ${#numbers.formatInteger(discountAmount, 0, 'POINT')} + ' đ'">- 0 đ</span>
             </div>
 
             <hr class="divider mt-lg mb-md">
 
             <div class="price-row price-row--total">
                 <div>
-                    <div class="label-md">Tổng cộng</div>
+                    <div class="label-md">Tổng cộng số tiền cần trả</div>
                     <div class="label-sm text-muted">(Đã bao gồm VAT)</div>
                 </div>
                 <span class="text-accent" id="grandTotalDisplay" style="font-size:20px; font-weight:800;"
-                      th:text="${#numbers.formatInteger(grandTotal, 0, 'POINT')} + ' đ'">0 đ</span>
+                      th:text="${#numbers.formatInteger(finalAmount, 0, 'POINT')} + ' đ'">0 đ</span>
             </div>
 
             <button type="submit" form="paymentForm" class="btn btn-primary btn-lg w-full mt-lg">
-                Thanh toán
+                Thanh toán ngay qua VNPay
                 <span class="material-symbols-outlined">arrow_forward</span>
             </button>
 
-            <a class="btn btn-outline w-full mt-sm"
-               th:href="@{/booking/combo(showtimeId=${showtimeId}, seatIds=${seatIds}, seatTotal=${seatTotal})}">
-                Quay về
+            <a class="btn btn-outline w-full mt-sm" th:href="@{/movies}">
+                Hủy giao dịch
             </a>
-
-            <p class="body-sm text-muted text-center mt-md">
-                <span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle;">lock</span>
-                Thanh toán an toàn &amp; bảo mật
-            </p>
         </div>
-
     </div>
 </main>
 
 <script th:inline="javascript">
-    /*
-     * Áp mã khuyến mãi: gọi AJAX tới /booking/apply-promo, server validate
-     * thật bằng BookingPromotionService (bảng `promotion`).
-     */
-    const seatTotal = Number(/*[[${seatTotal}]]*/ 0);
-    const comboTotal = Number(/*[[${comboTotal}]]*/ 0);
-    let currentDiscount = Number(/*[[${discount}]]*/ 0);
-    let currentPromotionId = null; // null = chưa áp mã nào, dùng ở bước Confirm sau
+    //1. ĐỒNG HỒ ĐẾM NGƯỢC TIẾP TỤC CHẠY LIÊN THÔNG
+    let timeLeft = /*[[${secondsLeft}]]*/ 900;
+    const timerBox = document.getElementById('timer-box');
+
+    const countdown = setInterval(function () {
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            alert("Hết thời gian giữ ghế! Hệ thống sẽ tự động hủy giao dịch này.");
+            window.location.href = "/movies?error=timeout";
+            return;
+        }
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+        timerBox.innerHTML = minutes + ":" + seconds;
+        timeLeft--;
+    }, 1000);
+
+    //2. LOGIC ÁP MÃ KHUYẾN MÃI CHỐT TIỀN TỪ DATABASE
+    const orderAmount = Number(/*[[${totalAmount}]]*/ 0);
+    let currentDiscount = Number(/*[[${discountAmount}]]*/ 0);
+    let currentPromotionId = null;
 
     function formatVnd(amount) {
         return Math.round(amount).toLocaleString('vi-VN') + ' đ';
     }
 
     function recalcTotal() {
-        const grand = seatTotal + comboTotal - currentDiscount;
+        const grand = orderAmount - currentDiscount;
         document.getElementById('grandTotalDisplay').textContent = formatVnd(grand);
         document.getElementById('discountDisplay').textContent = '- ' + formatVnd(currentDiscount);
         document.getElementById('discountHidden').value = currentDiscount;
@@ -319,14 +414,12 @@
             return;
         }
 
-        const orderAmount = seatTotal + comboTotal;
-
         try {
             const res = await fetch(
                 '/booking/apply-promo?code=' + encodeURIComponent(code) + '&orderAmount=' + orderAmount,
                 { method: 'POST' }
             );
-            const result = await res.json(); // { valid, message, discountAmount, promotionId }
+            const result = await res.json();
 
             msgEl.textContent = result.message;
             msgEl.style.color = result.valid ? 'var(--color-status-done)' : 'var(--color-brand-red)';
@@ -339,20 +432,96 @@
             currentDiscount = 0;
             currentPromotionId = null;
         }
-
         recalcTotal();
     });
 
-    // Highlight phương thức thanh toán đang được chọn
+    // Cấu hình lựa chọn highlight phương thức thanh toán có sẵn của em
     document.querySelectorAll('.payment-method-item').forEach(item => {
         item.addEventListener('click', () => {
+            // 1. Xóa class active của các ô khác
             document.querySelectorAll('.payment-method-item').forEach(i => i.classList.remove('is-selected'));
+            // 2. Thêm class active cho ô vừa click
             item.classList.add('is-selected');
+
+            //THÊM DÒNG NÀY: Ép nút radio bên trong ô đó phải được tích chọn
+            const radioBtn = item.querySelector('input[type="radio"]');
+            if (radioBtn) {
+                radioBtn.checked = true;
+            }
         });
     });
 
     recalcTotal();
 </script>
+
+<!--<script th:inline="javascript">-->
+<!--    /*-->
+<!--     * Áp mã khuyến mãi: gọi AJAX tới /booking/apply-promo, server validate-->
+<!--     * thật bằng BookingPromotionService (bảng `promotion`).-->
+<!--     */-->
+<!--    const seatTotal = Number(/*[[${seatTotal}]]*/ 0);-->
+<!--    const comboTotal = Number(/*[[${comboTotal}]]*/ 0);-->
+<!--    let currentDiscount = Number(/*[[${discount}]]*/ 0);-->
+<!--    let currentPromotionId = null; // null = chưa áp mã nào, dùng ở bước Confirm sau-->
+
+<!--    function formatVnd(amount) {-->
+<!--        return Math.round(amount).toLocaleString('vi-VN') + ' đ';-->
+<!--    }-->
+
+<!--    function recalcTotal() {-->
+<!--        const grand = seatTotal + comboTotal - currentDiscount;-->
+<!--        document.getElementById('grandTotalDisplay').textContent = formatVnd(grand);-->
+<!--        document.getElementById('discountDisplay').textContent = '- ' + formatVnd(currentDiscount);-->
+<!--        document.getElementById('discountHidden').value = currentDiscount;-->
+<!--        document.getElementById('promotionIdHidden').value = currentPromotionId ?? '';-->
+<!--    }-->
+
+<!--    document.getElementById('applyPromoBtn').addEventListener('click', async () => {-->
+<!--        const code = document.getElementById('promoCodeInput').value.trim();-->
+<!--        const msgEl = document.getElementById('promoMessage');-->
+
+<!--        if (!code) {-->
+<!--            msgEl.textContent = '';-->
+<!--            currentDiscount = 0;-->
+<!--            currentPromotionId = null;-->
+<!--            recalcTotal();-->
+<!--            return;-->
+<!--        }-->
+
+<!--        const orderAmount = seatTotal + comboTotal;-->
+
+<!--        try {-->
+<!--            const res = await fetch(-->
+<!--                '/booking/apply-promo?code=' + encodeURIComponent(code) + '&orderAmount=' + orderAmount,-->
+<!--                { method: 'POST' }-->
+<!--            );-->
+<!--            const result = await res.json(); // { valid, message, discountAmount, promotionId }-->
+
+<!--            msgEl.textContent = result.message;-->
+<!--            msgEl.style.color = result.valid ? 'var(&#45;&#45;color-status-done)' : 'var(&#45;&#45;color-brand-red)';-->
+
+<!--            currentDiscount = result.valid ? Number(result.discountAmount) : 0;-->
+<!--            currentPromotionId = result.valid ? result.promotionId : null;-->
+<!--        } catch (err) {-->
+<!--            msgEl.textContent = 'Không thể kiểm tra mã lúc này, vui lòng thử lại.';-->
+<!--            msgEl.style.color = 'var(&#45;&#45;color-brand-red)';-->
+<!--            currentDiscount = 0;-->
+<!--            currentPromotionId = null;-->
+<!--        }-->
+
+<!--        recalcTotal();-->
+<!--    });-->
+
+<!--    // Highlight phương thức thanh toán đang được chọn-->
+<!--    document.querySelectorAll('.payment-method-item').forEach(item => {-->
+<!--        item.addEventListener('click', () => {-->
+<!--            document.querySelectorAll('.payment-method-item').forEach(i => i.classList.remove('is-selected'));-->
+<!--            item.classList.add('is-selected');-->
+<!--        });-->
+<!--    });-->
+
+<!--    recalcTotal();-->
+<!--</script>-->
 
 <!-- FOOTER dùng chung toàn site -->
 <div th:replace="~{fragments/footer :: footer}"></div>
