@@ -44,11 +44,13 @@ public class BookingPaymentController {
         Booking booking = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy mã đơn hàng: " + bookingCode));
 
-        // 2. Tính toán số giây đếm ngược còn lại (Đồng bộ tổng 15 phút)
-        long secondsLeft = Duration.between(LocalDateTime.now(), booking.getExpiredAt()).toSeconds();
+        // 2. Tính toán số giây đếm ngược còn lại (Đồng bộ tổng 15 phút);
+        // booking cũ không có expiredAt thì coi như đã hết hạn
+        long secondsLeft = booking.getExpiredAt() == null ? 0
+                : Duration.between(LocalDateTime.now(), booking.getExpiredAt()).toSeconds();
 
-        // Nếu quá giờ giữ ghế, lập tức đá user về trang phim
-        if (secondsLeft <= 0) {
+        // Nếu quá giờ giữ ghế hoặc booking không có vé (dữ liệu hỏng), đá user về trang phim
+        if (secondsLeft <= 0 || booking.getTickets().isEmpty()) {
             return "redirect:/home";
         }
 
