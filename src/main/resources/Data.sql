@@ -60,7 +60,9 @@ VALUES
      '123456', '2002-01-17', N'Nam', 'ACTIVE', 0),
 
     (3, N'Trâm',  N'Đỗ Bảo',       'tram.do@gmail.com',     '0978901234',
-     '123456', '1999-12-05', N'Nữ',  'ACTIVE', 0);
+     '123456', '1999-12-05', N'Nữ',  'ACTIVE', 0),
+    (2, N'Bình', N'Viết', 'binh@fpt.edu.vn', '0912345678',
+     '123456', '2004-01-01', N'Nam', 'ACTIVE', 0);
 GO
 
 /* ============================================================
@@ -653,8 +655,8 @@ GO
     UNION ALL
     SELECT CAST('2026-07-14 10:00:00' AS DATETIME2), N'Đảo Bão', 'IMAX'
     UNION ALL
-    SELECT CAST('2026-07-14 21:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', 'IMAX'
-    )
+    SELECT CAST('2026-07-14 21:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', 'IMAX')
+
  INSERT INTO show_time (start_time, end_time, room_id, movie_id)
  SELECT p.start_dt,
         DATEADD(MINUTE, mv.duration_minutes, p.start_dt),
@@ -664,6 +666,25 @@ GO
           JOIN movie       mv ON mv.title     = p.movie_title
           JOIN cinema_room cr ON cr.room_type = p.room_type
  WHERE cr.total_seats = 88;
+GO
+
+;WITH screening_plan (start_dt, movie_title, room_type) AS (
+    -- Giả lập 2 suất chiếu test cho ngày 15/07/2026 trong kế hoạch của em
+    SELECT CAST('2026-07-15 12:00:00' AS DATETIME2), N'Joker: Folie à Deux', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-15 15:00:00' AS DATETIME2), N'Dune: Part Two', '2D'
+)
+ INSERT INTO show_time (start_time, end_time, room_id, movie_id)
+ SELECT p.start_dt,
+        DATEADD(MINUTE, mv.duration_minutes, p.start_dt),
+        cr.id,
+        mv.id
+ FROM screening_plan p
+          JOIN movie mv       ON mv.title = p.movie_title
+          JOIN cinema_room cr ON cr.room_type = p.room_type
+          JOIN cinema c       ON cr.cinema_id = c.id --JOIN thêm bảng rạp/chi nhánh
+ WHERE cr.total_seats = 88
+   AND c.name LIKE N'%CGV Vincom Nguyễn Chí Thanh%'; --Đổi tên chi nhánh em muốn test ở đây!
 GO
 
 /* ============================================================

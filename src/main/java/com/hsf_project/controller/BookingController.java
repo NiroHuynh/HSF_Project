@@ -5,10 +5,12 @@ import com.hsf_project.engine.ShowDateEngine;
 import com.hsf_project.entity.Cinema;
 import com.hsf_project.entity.City;
 import com.hsf_project.entity.Movie;
+import com.hsf_project.entity.User;
 import com.hsf_project.service.BookingConfirmService;
 import com.hsf_project.service.CinemaService;
 import com.hsf_project.service.CityService;
 import com.hsf_project.service.MovieService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -77,9 +79,14 @@ public class BookingController {
     @PostMapping("/initiate")
     public String initiateBooking(
             @RequestParam Long showtimeId,
-            @RequestParam String seatIds, // Nhận chuỗi dạng "A1,A2" từ Form
-            @RequestParam(required = false, defaultValue = "1") Long userId // Tạm thời lấy UserID = 1, sau này thay bằng User đăng nhập
+            @RequestParam String seatIds,
+            HttpSession session// Nhận chuỗi dạng "A1,A2" từ Form
     ) {
+        User userSession = (User) session.getAttribute("ttdn");
+        if (userSession == null) {
+            // Nếu chưa đăng nhập (hết hạn session), đá về trang login
+            return "redirect:/login";
+        }
         // 1. Chuyển chuỗi "A1,A2" thành List<String>
         List<String> listSeats = Arrays.stream(seatIds.split(","))
                 .map(String::trim)
@@ -89,7 +96,7 @@ public class BookingController {
 
         // 2. Gọi hàm confirmBooking(Giai đoạn này chưa chọn combo, voucher nên truyền null/ZERO)
         var result = bookingConfirmService.confirmBooking(
-                userId,                  // 1. Long userId
+                userSession.getId(),                  // 1. Long userId
                 showtimeId,              // 2. Long showtimeId
                 listSeats,               // 3. List<String> seatCodes
                 null,                    // 4. Map<Long, Integer> comboQuantities
