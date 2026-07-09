@@ -87,7 +87,7 @@ public class BookingComboController {
 
         // 5. Đẩy toàn bộ dữ liệu ra Model để Thymeleaf render giao diện
         model.addAttribute("bookingCode", bookingCode);
-        model.addAttribute("secondsLeft", secondsLeft); // 🌟 Đẩy số giây đếm ngược cho JavaScript
+        model.addAttribute("secondsLeft", secondsLeft); //Đẩy số giây đếm ngược cho JavaScript
         model.addAttribute("selectedSeats", selectedSeats); // Để hiển thị cho khách xem lại họ đã chọn ghế nào
         model.addAttribute("totalAmount", booking.getTotalAmount()); // Tổng tiền ghế hiện tại
         model.addAttribute("combos", combos);

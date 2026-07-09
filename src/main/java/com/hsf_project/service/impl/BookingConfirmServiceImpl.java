@@ -227,7 +227,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             ticketRepository.save(ticket);
         }
 
-        // 🌟 SỬA ĐOẠN LƯU CHI TIẾT COMBO (Thêm check combos.size() > 0)
+        //SỬA ĐOẠN LƯU CHI TIẾT COMBO (Thêm check combos.size() > 0)
         if (comboQuantities != null && !combos.isEmpty()) {
             int idx = 0;
             for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
@@ -243,7 +243,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             }
         }
 
-        // 🌟 SỬA ĐOẠN TẠO PAYMENT (Chỉ tạo nếu có paymentMethodId được truyền vào)
+        //SỬA ĐOẠN TẠO PAYMENT (Chỉ tạo nếu có paymentMethodId được truyền vào)
         String bankCode = null;
         if (paymentMethodId != null) {
             PaymentMethod paymentMethod = entityManager.getReference(PaymentMethod.class, paymentMethodId);

@@ -358,9 +358,14 @@
                 <span class="material-symbols-outlined">arrow_forward</span>
             </button>
 
-            <a class="btn btn-outline w-full mt-sm" th:href="@{/movies}">
-                Hủy giao dịch
-            </a>
+            <form th:action="@{/booking/cancel}" method="post" style="width: 100%;">
+                <input type="hidden" name="bookingCode" th:value="${bookingCode}"/>
+
+                <button type="submit" class="btn btn-outline w-full mt-sm"
+                        onclick="return confirm('Bạn có chắc chắn muốn hủy giao dịch đặt vé này không?')">
+                    Hủy giao dịch
+                </button>
+            </form>
         </div>
     </div>
 </main>
@@ -373,8 +378,8 @@
     const countdown = setInterval(function () {
         if (timeLeft <= 0) {
             clearInterval(countdown);
-            alert("Hết thời gian giữ ghế! Hệ thống sẽ tự động hủy giao dịch này.");
-            window.location.href = "/movies?error=timeout";
+            // alert("Hết thời gian giữ ghế! Hệ thống sẽ tự động hủy giao dịch này.");
+            window.location.href = "/movies/error?error=timeout";
             return;
         }
         let minutes = Math.floor(timeLeft / 60);

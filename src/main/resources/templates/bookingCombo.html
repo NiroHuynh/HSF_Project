@@ -326,8 +326,8 @@
     const countdown = setInterval(function () {
         if (timeLeft <= 0) {
             clearInterval(countdown);
-            alert("Hết thời gian giữ ghế! Hệ thống sẽ hủy lượt đặt vé này.");
-            window.location.href = "/movies?error=timeout";
+            // alert("Hết thời gian giữ ghế! Hệ thống sẽ hủy lượt đặt vé này.");
+            window.location.href = "/movies/error?error=timeout";
             return;
         }
         let minutes = Math.floor(timeLeft / 60);
