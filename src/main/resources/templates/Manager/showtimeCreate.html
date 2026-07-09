@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Suất Chiếu - CineMax</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
+
+    <style>
+        :root {
+            --color-brand-red:#E31B23;--color-brand-red-hover:#C41219;--color-brand-red-light:rgba(227,27,35,0.15);
+            --color-bg:#0A0A0C;--color-surface:#111114;--color-surface-raised:#18181D;
+            --color-text-primary:#FFFFFF;--color-text-secondary:#A0A0B0;--color-text-muted:#606070;
+            --color-border:rgba(255,255,255,0.08);--color-border-strong:rgba(255,255,255,0.16);
+            --color-success-bg:rgba(45,122,79,0.18);--color-success:rgb(74,183,115);
+            --color-error-bg:rgba(227,27,35,0.12);
+            --radius-xs:4px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-pill:9999px;
+            --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;
+            --font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+            --text-headline-lg:clamp(24px,3.5vw,36px);--text-headline-md:clamp(18px,2.5vw,24px);
+            --text-body-md:16px;--text-body-sm:14px;--text-label:12px;
+            --lh-headline:1.15;--lh-body:1.6;
+            --transition-fast:150ms ease;--transition-base:250ms ease;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-family);font-size:var(--text-body-md);line-height:var(--lh-body);background-color:var(--color-bg);color:var(--color-text-primary);-webkit-font-smoothing:antialiased}
+        button{cursor:pointer;border:none;background:none;font-family:inherit}
+        a{text-decoration:none;color:inherit}
+
+        .container{width:100%;max-width:1200px;margin:0 auto;padding:0 var(--space-md)}
+        .mgr-page{padding-block:var(--space-xl)}
+
+        /* BREADCRUMB */
+        .breadcrumb{display:flex;align-items:center;gap:6px;font-size:var(--text-body-sm);color:var(--color-text-muted);margin-bottom:var(--space-lg)}
+        .breadcrumb a{color:var(--color-text-muted);transition:color var(--transition-fast)}
+        .breadcrumb a:hover{color:var(--color-text-primary)}
+        .breadcrumb .sep{font-size:16px;line-height:1;color:var(--color-border-strong)}
+        .breadcrumb .current{color:var(--color-text-secondary)}
+
+        /* PAGE HEADER */
+        .page-header{margin-bottom:var(--space-xl)}
+        .page-header h1{font-size:var(--text-headline-lg);font-weight:700;line-height:var(--lh-headline);letter-spacing:-0.015em}
+        .page-header p{color:var(--color-text-secondary);font-size:var(--text-body-sm);margin-top:6px}
+
+        /* LAYOUT */
+        .form-layout{display:grid;grid-template-columns:1fr 360px;gap:var(--space-lg);align-items:start}
+        @media(max-width:900px){.form-layout{grid-template-columns:1fr}}
+
+        /* CARD */
+        .card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-xl)}
+        .card-title{font-size:var(--text-body-md);font-weight:700;color:var(--color-text-primary);margin-bottom:var(--space-lg);display:flex;align-items:center;gap:var(--space-sm)}
+        .card-title .material-symbols-outlined{font-size:20px;color:var(--color-brand-red)}
+
+        /* FORM */
+        .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:var(--space-lg)}
+        .form-group:last-of-type{margin-bottom:0}
+        .form-label{font-size:var(--text-body-sm);font-weight:600;color:var(--color-text-secondary)}
+        .form-label .req{color:var(--color-brand-red);margin-left:2px}
+        .form-hint{font-size:var(--text-label);color:var(--color-text-muted);margin-top:2px}
+
+        .form-control{
+            width:100%;padding:11px var(--space-md);
+            background:var(--color-surface-raised);
+            border:1.5px solid var(--color-border);
+            border-radius:var(--radius-md);
+            color:var(--color-text-primary);
+            font-size:var(--text-body-md);font-family:var(--font-family);
+            outline:none;appearance:none;
+            transition:border-color var(--transition-fast),box-shadow var(--transition-fast);
+        }
+        .form-control::placeholder{color:var(--color-text-muted)}
+        .form-control:focus{border-color:var(--color-brand-red);box-shadow:0 0 0 3px rgba(227,27,35,0.15)}
+        .form-control:disabled{opacity:0.5;cursor:not-allowed}
+        .form-control option{background:var(--color-surface);color:var(--color-text-primary)}
+
+        /* Custom select arrow */
+        select.form-control{
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23606070' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.5 4.5L8 11l6.5-6.5' stroke='%23606070' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;background-position:right 14px center;padding-right:40px;
+        }
+
+        /* Calendar input */
+        input[type="datetime-local"].form-control::-webkit-calendar-picker-indicator{
+            filter:invert(0.5);cursor:pointer;
+        }
+
+        /* Readonly / auto-calc field */
+        .form-control-readonly{
+            width:100%;padding:11px var(--space-md);
+            background:rgba(255,255,255,0.03);
+            border:1.5px solid var(--color-border);
+            border-radius:var(--radius-md);
+            color:var(--color-text-muted);
+            font-size:var(--text-body-md);font-family:var(--font-family);
+            cursor:not-allowed;
+        }
+
+        /* Duration row */
+        .time-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)}
+
+        /* Divider */
+        .divider{border:none;border-top:1px solid var(--color-border);margin-block:var(--space-lg)}
+
+        /* ACTION BUTTONS */
+        .form-actions{display:flex;align-items:center;gap:var(--space-md);justify-content:flex-end;padding-top:var(--space-md);border-top:1px solid var(--color-border)}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:11px var(--space-lg);font-size:var(--text-body-sm);font-weight:600;border-radius:var(--radius-sm);border:1.5px solid transparent;transition:all var(--transition-fast);cursor:pointer;white-space:nowrap;font-family:var(--font-family)}
+        .btn-primary{background:var(--color-brand-red);color:#fff;border-color:var(--color-brand-red)}
+        .btn-primary:hover{background:var(--color-brand-red-hover);border-color:var(--color-brand-red-hover);box-shadow:0 4px 16px rgba(227,27,35,0.35)}
+        .btn-primary:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none}
+        .btn-outline{background:transparent;color:var(--color-text-secondary);border-color:var(--color-border-strong)}
+        .btn-outline:hover{background:var(--color-surface-raised);color:var(--color-text-primary)}
+
+        /* ---- PREVIEW CARD (right) ---- */
+        .preview-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;position:sticky;top:24px}
+        .preview-card__header{padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:var(--space-sm)}
+        .preview-card__header .material-symbols-outlined{font-size:18px;color:var(--color-text-muted)}
+        .preview-card__header span:last-child{font-size:var(--text-body-sm);font-weight:600;color:var(--color-text-secondary)}
+
+        .preview-movie{display:flex;gap:var(--space-md);padding:var(--space-lg)}
+        .preview-poster{width:72px;height:102px;border-radius:var(--radius-sm);object-fit:cover;flex-shrink:0;background:var(--color-surface-raised)}
+        .preview-poster-placeholder{width:72px;height:102px;border-radius:var(--radius-sm);flex-shrink:0;background:var(--color-surface-raised);border:1px dashed var(--color-border-strong);display:flex;align-items:center;justify-content:center}
+        .preview-poster-placeholder .material-symbols-outlined{font-size:28px;color:var(--color-text-muted)}
+        .preview-info{flex:1;min-width:0}
+        .preview-title{font-size:var(--text-body-sm);font-weight:700;color:var(--color-text-primary);line-height:1.35;margin-bottom:6px}
+        .preview-meta{font-size:var(--text-label);color:var(--color-text-muted);line-height:1.8}
+        .preview-meta strong{color:var(--color-text-secondary)}
+
+        .age-badge{display:inline-block;padding:1px 6px;border-radius:var(--radius-xs);font-size:10px;font-weight:700;background:var(--color-brand-red-light);color:var(--color-brand-red);margin-left:6px;vertical-align:middle}
+
+        .preview-details{padding:0 var(--space-lg) var(--space-lg)}
+        .preview-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-sm);padding:10px 0;border-top:1px solid var(--color-border)}
+        .preview-row:first-child{border-top:none;padding-top:0}
+        .preview-row__label{font-size:var(--text-label);color:var(--color-text-muted);white-space:nowrap;padding-top:1px}
+        .preview-row__value{font-size:var(--text-body-sm);font-weight:600;color:var(--color-text-primary);text-align:right}
+        .preview-row__value.muted{color:var(--color-text-muted);font-weight:400}
+
+        .format-badge{display:inline-block;padding:2px 8px;border-radius:var(--radius-pill);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
+        .format-2d{background:rgba(109,185,240,0.15);color:#6DB9F0}
+        .format-3d{background:rgba(245,197,24,0.15);color:#F5C518}
+        .format-imax{background:var(--color-brand-red-light);color:var(--color-brand-red)}
+
+        /* EMPTY state in preview */
+        .preview-empty{padding:var(--space-xl) var(--space-lg);text-align:center;color:var(--color-text-muted)}
+        .preview-empty .material-symbols-outlined{font-size:36px;margin-bottom:var(--space-sm);display:block;opacity:0.4}
+        .preview-empty p{font-size:var(--text-body-sm);line-height:1.5}
+
+        /* FLASH MESSAGES */
+        .alert{padding:var(--space-md);border-radius:var(--radius-sm);font-size:var(--text-body-sm);display:flex;align-items:center;gap:10px;margin-bottom:var(--space-lg)}
+        .alert-success{background:var(--color-success-bg);color:var(--color-success);border:1px solid rgba(74,183,115,0.25)}
+        .alert-error{background:var(--color-error-bg);color:var(--color-brand-red);border:1px solid rgba(227,27,35,0.25)}
+        .alert .material-symbols-outlined{font-size:18px;flex-shrink:0}
+    </style>
+</head>
+<body>
+
+<main class="container mgr-page">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h1>Thêm suất chiếu mới</h1>
+        <p>Nhập thông tin để tạo lịch chiếu cho phòng chiếu.</p>
+    </div>
+
+    <!-- DEMO: error flash (ẩn mặc định — toggle class để test) -->
+    <div class="alert alert-error" id="alertError" style="display:none">
+        <span class="material-symbols-outlined">error</span>
+        <span id="alertErrorMsg">Phòng Room 1 đã có suất chiếu trùng khung giờ này.</span>
+    </div>
+
+    <!-- MAIN LAYOUT -->
+    <div class="form-layout">
+
+        <!-- LEFT: FORM -->
+        <div class="card">
+            <p class="card-title">
+                <span class="material-symbols-outlined">movie</span>
+                Thông tin suất chiếu
+            </p>
+
+            <!-- CHỌN PHIM -->
+            <div class="form-group">
+                <label class="form-label" for="movieId">
+                    Phim <span class="req">*</span>
+                </label>
+                <select class="form-control" id="movieId" onchange="onMovieChange()">
+                    <option value="" data-duration="0" data-age="" data-status="">-- Chọn phim --</option>
+                    <option value="1" data-duration="138" data-age="T18" data-status="NOW_SHOWING"  selected>Joker: Folie à Deux (138 phút)</option>
+                    <option value="2" data-duration="166" data-age="T16" data-status="NOW_SHOWING">Dune: Part Two (166 phút)</option>
+                    <option value="3" data-duration="96"  data-age="P"   data-status="NOW_SHOWING">Inside Out 2 (96 phút)</option>
+                    <option value="4" data-duration="125" data-age="T13" data-status="COMING_SOON">Lật Mặt 8 (125 phút)</option>
+                    <option value="5" data-duration="110" data-age="T16" data-status="COMING_SOON">Lằn Ranh Sinh Tử (110 phút)</option>
+                </select>
+            </div>
+
+            <!-- CHỌN PHÒNG -->
+            <div class="form-group">
+                <label class="form-label" for="roomId">
+                    Phòng chiếu <span class="req">*</span>
+                </label>
+                <select class="form-control" id="roomId" onchange="onRoomChange()">
+                    <option value="" data-format="">-- Chọn phòng --</option>
+                    <option value="1" data-format="IMAX" data-seats="120">Room 1 — IMAX (120 ghế)</option>
+                    <option value="2" data-format="2D"   data-seats="80">Room 2 — 2D (80 ghế)</option>
+                    <option value="3" data-format="3D"   data-seats="100">Room 3 — 3D (100 ghế)</option>
+                    <option value="4" data-format="2D"   data-seats="80">Room 4 — 2D (80 ghế)</option>
+                </select>
+                <span class="form-hint">Chỉ hiển thị phòng thuộc chi nhánh của bạn</span>
+            </div>
+
+            <hr class="divider">
+
+            <!-- GIỜ CHIẾU -->
+            <div class="time-row">
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label" for="startTime">
+                        Giờ bắt đầu <span class="req">*</span>
+                    </label>
+                    <input type="datetime-local" class="form-control" id="startTime"
+                           value="2026-07-10T08:00"
+                           oninput="calcEndTime()"/>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Giờ kết thúc</label>
+                    <div class="form-control-readonly" id="endTimeDisplay">10:18 — 10/07/2026</div>
+                    <span class="form-hint">Tự tính: bắt đầu + thời lượng phim</span>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- ACTIONS -->
+            <div class="form-actions">
+                <a href="#" class="btn btn-outline">
+                    <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>
+                    Quay lại
+                </a>
+                <button class="btn btn-primary" id="submitBtn" onclick="handleSubmit()">
+                    <span class="material-symbols-outlined" style="font-size:16px">add_circle</span>
+                    Tạo suất chiếu
+                </button>
+            </div>
+        </div>
+
+        <!-- RIGHT: PREVIEW -->
+        <div class="preview-card">
+            <div class="preview-card__header">
+                <span class="material-symbols-outlined">preview</span>
+                <span>Xem trước</span>
+            </div>
+
+            <!-- Trạng thái chưa chọn -->
+            <div class="preview-empty" id="previewEmpty" style="display:none">
+                <span class="material-symbols-outlined">movie_filter</span>
+                <p>Chọn phim và phòng chiếu để xem trước thông tin suất chiếu</p>
+            </div>
+
+            <!-- Nội dung preview -->
+            <div id="previewContent">
+                <div class="preview-movie">
+                    <div class="preview-poster-placeholder" id="previewPoster">
+                        <span class="material-symbols-outlined">movie</span>
+                    </div>
+                    <div class="preview-info">
+                        <div class="preview-title" id="previewTitle">
+                            Joker: Folie à Deux
+                            <span class="age-badge" id="previewAge">T18</span>
+                        </div>
+                        <div class="preview-meta">
+                            <div>Thời lượng: <strong id="previewDuration">138 phút</strong></div>
+                            <div>Trạng thái: <strong id="previewStatus" style="color:#6DBF6D">Đang chiếu</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-details">
+                    <div class="preview-row">
+                        <span class="preview-row__label">Phòng chiếu</span>
+                        <span class="preview-row__value muted" id="previewRoom">Chưa chọn</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-row__label">Định dạng</span>
+                        <span class="preview-row__value" id="previewFormat">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-row__label">Số ghế</span>
+                        <span class="preview-row__value muted" id="previewSeats">—</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-row__label">Bắt đầu</span>
+                        <span class="preview-row__value" id="previewStart">08:00 — 10/07/2026</span>
+                    </div>
+                    <div class="preview-row">
+                        <span class="preview-row__label">Kết thúc</span>
+                        <span class="preview-row__value" id="previewEnd">10:18 — 10/07/2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.form-layout -->
+</main>
+
+<script>
+    // ─── Dữ liệu demo (Thymeleaf sẽ inject từ model thật) ─────────────────
+    const MOVIE_TITLES = {
+        "1": "Joker: Folie à Deux",
+        "2": "Dune: Part Two",
+        "3": "Inside Out 2",
+        "4": "Lật Mặt 8",
+        "5": "Lằn Ranh Sinh Tử"
+    };
+
+    // ─── Tính giờ kết thúc ─────────────────────────────────────────────────
+    function calcEndTime() {
+        const movieSel = document.getElementById('movieId');
+        const startInput = document.getElementById('startTime');
+        const endDisplay = document.getElementById('endTimeDisplay');
+        const previewEnd = document.getElementById('previewEnd');
+        const previewStart = document.getElementById('previewStart');
+
+        const duration = parseInt(movieSel.selectedOptions[0]?.dataset.duration || '0');
+        const startVal = startInput.value;
+
+        if (!startVal) {
+            endDisplay.textContent = '—';
+            previewEnd.textContent = '—';
+            previewStart.textContent = '—';
+            return;
+        }
+
+        const startDt = new Date(startVal);
+        previewStart.textContent = formatDT(startDt);
+
+        if (duration > 0) {
+            const endDt = new Date(startDt.getTime() + duration * 60000);
+            const endStr = formatDT(endDt);
+            endDisplay.textContent = endStr;
+            previewEnd.textContent = endStr;
+        } else {
+            endDisplay.textContent = 'Chọn phim trước';
+            previewEnd.textContent = '—';
+        }
+    }
+
+    function formatDT(dt) {
+        const hh = String(dt.getHours()).padStart(2,'0');
+        const mm = String(dt.getMinutes()).padStart(2,'0');
+        const dd = String(dt.getDate()).padStart(2,'0');
+        const mo = String(dt.getMonth()+1).padStart(2,'0');
+        const yy = dt.getFullYear();
+        return `${hh}:${mm} — ${dd}/${mo}/${yy}`;
+    }
+
+    // ─── Khi đổi phim ──────────────────────────────────────────────────────
+    function onMovieChange() {
+        const sel = document.getElementById('movieId');
+        const opt = sel.selectedOptions[0];
+        const duration = parseInt(opt?.dataset.duration || '0');
+        const age = opt?.dataset.age || '';
+        const status = opt?.dataset.status || '';
+        const title = opt?.text || '';
+
+        document.getElementById('previewTitle').childNodes[0].textContent =
+            opt.value ? MOVIE_TITLES[opt.value] || title : 'Chưa chọn phim';
+        document.getElementById('previewAge').textContent = age;
+        document.getElementById('previewAge').style.display = age ? 'inline-block' : 'none';
+        document.getElementById('previewDuration').textContent = duration ? duration + ' phút' : '—';
+
+        const statusEl = document.getElementById('previewStatus');
+        if (status === 'NOW_SHOWING') { statusEl.textContent = 'Đang chiếu'; statusEl.style.color = '#6DBF6D'; }
+        else if (status === 'COMING_SOON') { statusEl.textContent = 'Sắp chiếu'; statusEl.style.color = '#6DB9F0'; }
+        else { statusEl.textContent = '—'; statusEl.style.color = 'var(--color-text-muted)'; }
+
+        calcEndTime();
+    }
+
+    // ─── Khi đổi phòng ─────────────────────────────────────────────────────
+    function onRoomChange() {
+        const sel = document.getElementById('roomId');
+        const opt = sel.selectedOptions[0];
+        const format = opt?.dataset.format || '';
+        const seats = opt?.dataset.seats || '';
+
+        const roomNameEl = document.getElementById('previewRoom');
+        roomNameEl.textContent = opt.value ? opt.text : 'Chưa chọn';
+        roomNameEl.className = opt.value ? 'preview-row__value' : 'preview-row__value muted';
+
+        const fmtEl = document.getElementById('previewFormat');
+        if (format) {
+            const cls = 'format-badge format-' + format.toLowerCase();
+            fmtEl.innerHTML = `<span class="${cls}">${format}</span>`;
+        } else {
+            fmtEl.textContent = '—';
+        }
+
+        document.getElementById('previewSeats').textContent = seats ? seats + ' ghế' : '—';
+    }
+
+    // ─── Submit demo ────────────────────────────────────────────────────────
+    function handleSubmit() {
+        const movie  = document.getElementById('movieId').value;
+        const room   = document.getElementById('roomId').value;
+        const start  = document.getElementById('startTime').value;
+        if (!movie || !room || !start) {
+            showError('Vui lòng điền đầy đủ thông tin trước khi tạo suất chiếu.');
+            return;
+        }
+        // Demo: giả lập lỗi trùng lịch 1 lần, sau đó thành công
+        showError('Phòng Room 2 đã có suất chiếu trùng khung giờ này. Vui lòng chọn giờ khác hoặc phòng khác.');
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('alertError');
+        document.getElementById('alertErrorMsg').textContent = msg;
+        el.style.display = 'flex';
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // ─── Init ───────────────────────────────────────────────────────────────
+    onMovieChange();
+</script>
+</body>
+</html>
