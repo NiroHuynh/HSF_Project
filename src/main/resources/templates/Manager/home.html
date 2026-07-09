@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng Quan Chi Nhánh - CineMax</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --color-brand-red:#E31B23;--color-brand-red-hover:#C41219;--color-brand-red-light:rgba(227,27,35,0.15);
+            --color-bg:#0A0A0C;--color-surface:#111114;--color-surface-raised:#18181D;
+            --color-text-primary:#FFFFFF;--color-text-secondary:#A0A0B0;--color-text-muted:#606070;
+            --color-border:rgba(255,255,255,0.08);--color-border-strong:rgba(255,255,255,0.16);
+            --radius-xs:4px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-pill:9999px;
+            --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;
+            --font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+            --text-headline-lg:clamp(24px,3.5vw,36px);--text-headline-md:clamp(20px,2.5vw,28px);
+            --text-body-lg:18px;--text-body-md:16px;--text-body-sm:14px;--text-label:12px;
+            --lh-headline:1.15;--lh-body:1.6;
+            --transition-fast:150ms ease;--transition-base:250ms ease;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-family);font-size:var(--text-body-md);line-height:var(--lh-body);background-color:var(--color-bg);color:var(--color-text-primary);-webkit-font-smoothing:antialiased}
+        button{cursor:pointer;border:none;background:none;font-family:inherit}
+        .container{width:100%;max-width:1200px;margin:0 auto;padding:0 var(--space-md)}
+        .headline-lg{font-size:var(--text-headline-lg);font-weight:700;line-height:var(--lh-headline);letter-spacing:-0.015em}
+
+        .mgr-page{padding-block:var(--space-xl)}
+
+        /* PAGE HEADER ROW */
+        .page-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap}
+        .mgr-greeting{color:var(--color-text-secondary);font-size:var(--text-body-md);margin-top:var(--space-xs)}
+
+        /* DATE FILTER */
+        .date-filter{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:14px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
+        .date-filter__label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);white-space:nowrap}
+        .date-filter__quick-btns{display:flex;background:var(--color-surface-raised);border-radius:var(--radius-sm);padding:3px;gap:2px}
+        .date-filter__quick-btn{padding:6px 14px;font-size:var(--text-label);font-weight:600;color:var(--color-text-muted);border-radius:6px;transition:all var(--transition-fast);white-space:nowrap}
+        .date-filter__quick-btn:hover{color:var(--color-text-secondary)}
+        .date-filter__quick-btn.is-active{background:var(--color-brand-red);color:#fff}
+        .date-filter__sep{width:1px;height:24px;background:var(--color-border);flex-shrink:0}
+        .date-filter__inputs{display:flex;align-items:center;gap:8px}
+        .date-filter__input{padding:7px 12px;background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:6px;color:var(--color-text-primary);font-size:var(--text-body-sm);font-family:var(--font-family);outline:none;width:145px;transition:border-color var(--transition-fast)}
+        .date-filter__input:focus{border-color:var(--color-brand-red)}
+        .date-filter__input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+        .date-filter__to{font-size:var(--text-body-sm);color:var(--color-text-muted)}
+
+        /* 4 STAT CARDS */
+        .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md);margin-top:var(--space-lg)}
+        @media(max-width:992px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:576px){.stat-grid{grid-template-columns:1fr}}
+        .stat-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg);display:flex;flex-direction:column;gap:var(--space-sm);transition:transform var(--transition-fast),border-color var(--transition-fast)}
+        .stat-card:hover{transform:translateY(-2px);border-color:var(--color-border-strong)}
+        .stat-card__icon{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:22px}
+        .stat-card__icon--red{background:var(--color-brand-red-light);color:var(--color-brand-red)}
+        .stat-card__icon--blue{background:rgba(30,95,173,0.15);color:#6DB9F0}
+        .stat-card__icon--green{background:rgba(45,122,79,0.15);color:#2D7A4F}
+        .stat-card__icon--gold{background:rgba(245,197,24,0.15);color:#F5C518}
+        .stat-card__label{font-size:var(--text-label);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-text-muted)}
+        .stat-card__value{font-size:32px;font-weight:800;letter-spacing:-0.02em}
+
+        /* SEARCH */
+        .search-section{margin-top:var(--space-xl);display:flex;gap:var(--space-md);align-items:center}
+        .search-bar{position:relative;width:100%;max-width:480px}
+        .search-bar__icon{position:absolute;left:var(--space-md);top:50%;transform:translateY(-50%);color:var(--color-text-muted);pointer-events:none}
+        .search-bar__input{width:100%;padding:14px var(--space-md) 14px 44px;background:var(--color-surface);border:1.5px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text-primary);font-size:var(--text-body-md);font-family:var(--font-family);transition:border-color var(--transition-fast),box-shadow var(--transition-fast);outline:none}
+        .search-bar__input::placeholder{color:var(--color-text-muted)}
+        .search-bar__input:focus{border-color:var(--color-brand-red);box-shadow:0 0 0 3px rgba(227,27,35,0.15)}
+        .btn-search{padding:14px 28px;background:var(--color-brand-red);color:#fff;font-weight:600;font-size:var(--text-body-md);border-radius:var(--radius-md);transition:background var(--transition-fast);white-space:nowrap}
+        .btn-search:hover{background:var(--color-brand-red-hover)}
+        .search-error{margin-top:var(--space-sm);font-size:var(--text-body-sm);color:var(--color-brand-red);display:none}
+
+        /* CHART */
+        .chart-section{margin-top:var(--space-xl);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg)}
+        .chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);flex-wrap:wrap;gap:var(--space-md)}
+        .chart-header__title{font-size:var(--text-headline-md);font-weight:700}
+        .chart-header__subtitle{font-size:var(--text-body-sm);color:var(--color-text-muted);margin-top:2px}
+        .chart-canvas-wrapper{position:relative;width:100%;height:380px}
+        .label-md{font-size:var(--text-body-sm);font-weight:600}
+        .text-muted{color:var(--color-text-muted)}
+
+        /* POPUP */
+        .bill-modal{position:fixed;inset:0;z-index:9999;background-color:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 200ms ease;backdrop-filter:blur(5px)}
+        .bill-modal.is-active{opacity:1;pointer-events:auto}
+        /* wrapper: flex column — không tự scroll */
+        .invoice-wrapper{width:100%;max-width:520px;background-color:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:0 20px 45px rgba(0,0,0,0.6);transform:scale(0.9);transition:transform 200ms ease;display:flex;flex-direction:column;max-height:calc(100vh - 48px);overflow:hidden}
+        .bill-modal.is-active .invoice-wrapper{transform:scale(1)}
+        /* header cố định */
+        .invoice-header{flex-shrink:0;padding:16px 20px;background:linear-gradient(135deg,rgba(227,27,35,0.1) 0%,transparent 100%);border-bottom:1px dashed var(--color-border-strong);position:relative}
+        .invoice-header::before,.invoice-header::after{content:'';position:absolute;bottom:-10px;width:18px;height:18px;background-color:rgba(0,0,0,0.85);border-radius:50%}
+        .invoice-header::before{left:-10px}.invoice-header::after{right:-10px}
+        /* body scroll nội bộ, ẩn scrollbar */
+        .invoice-body{flex:1;min-height:0;padding:16px 20px;overflow-y:auto;overflow-x:hidden}
+        .invoice-body::-webkit-scrollbar{display:none}
+        .invoice-body{-ms-overflow-style:none;scrollbar-width:none}
+        .movie-info-row{display:flex;gap:14px;margin-bottom:14px}
+        .movie-info-row img{width:64px;height:92px;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0}
+        .movie-info-row h3{margin:0 0 4px;font-size:16px;font-weight:700}
+        .info-grid-bill{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--color-border)}
+        .bill-label{font-size:10px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.04em}
+        .bill-value{font-size:13px;font-weight:600;color:#fff;margin-top:3px}
+        .ticket-table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:13px}
+        .ticket-table th{text-align:left;font-size:10px;color:var(--color-text-muted);text-transform:uppercase;padding:6px 6px;border-bottom:1px solid var(--color-border)}
+        .ticket-table td{padding:6px 6px;color:var(--color-text-secondary);border-bottom:1px solid rgba(255,255,255,0.04)}
+        .ticket-table td:last-child{text-align:right;color:#fff;font-weight:600}
+        .ticket-table th:last-child{text-align:right}
+        .combo-section-title{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--color-text-muted);letter-spacing:0.04em;margin-bottom:6px}
+        .price-box{background:var(--color-surface-raised);padding:12px;border-radius:var(--radius-sm);margin-top:12px}
+        .price-row{display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px;color:var(--color-text-secondary)}
+        .price-row.total-final{font-size:16px;font-weight:800;color:var(--color-brand-red);margin-top:10px;padding-top:10px;border-top:1px dashed var(--color-border-strong);margin-bottom:0}
+        .btn-export{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--color-brand-red);color:#fff;font-weight:600;font-size:var(--text-body-sm);border-radius:var(--radius-sm);transition:background var(--transition-fast)}
+        .btn-export:hover{background:var(--color-brand-red-hover)}
+        .btn-export:disabled{background:var(--color-surface-raised);color:var(--color-text-muted);cursor:not-allowed}
+        .chip-status-popup{display:inline-block;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
+        .chip-paid{background:rgba(227,27,35,0.15);color:var(--color-brand-red)}
+        .chip-completed{background:rgba(45,122,79,0.15);color:#2D7A4F}
+        .chip-exported{background:rgba(30,95,173,0.15);color:#6DB9F0}
+        .chip-cancelled{background:rgba(255,255,255,0.05);color:var(--color-text-muted)}
+        .chip-pending{background:rgba(245,197,24,0.15);color:#F5C518}
+        .close-bill-btn{background:none;border:none;color:var(--color-text-muted);cursor:pointer}
+
+        .mgr-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .mgr-main {
+            flex: 1;
+            min-width: 0;          /* quan trọng — tránh tràn ngang */
+            padding: 32px 24px;
+            overflow-x: hidden;
+        }
+        .close-bill-btn:hover{color:#fff}
+
+        @media(max-width:768px){
+            .page-header-row{flex-direction:column}
+            .date-filter{width:100%}
+            .date-filter__inputs{width:100%}
+            .date-filter__input{flex:1;min-width:0}
+        }
+    </style>
+</head>
+<body>
+<div class="mgr-layout">                        <!-- thêm div này -->
+    <aside th:replace="~{fragments/managerSidebar :: sidebar}"></aside>
+<main class="container mgr-page">
+    <!-- PAGE HEADER + FILTER -->
+    <div class="page-header-row">
+        <div>
+            <h1 class="headline-lg">Tổng quan chi nhánh</h1>
+            <p class="mgr-greeting">
+                Quản lý và theo dõi các hoạt động của chi nhánh từ bảng điều khiển này.
+            </p>
+        </div>
+        <div class="date-filter">
+            <span class="date-filter__label">Giai đoạn xem xét</span>
+            <div class="date-filter__quick-btns">
+                <button class="date-filter__quick-btn" onclick="setQuickRange('today',this)">Hôm nay</button>
+                <button class="date-filter__quick-btn" onclick="setQuickRange('month',this)">Tháng</button>
+                <button class="date-filter__quick-btn" onclick="setQuickRange('quarter',this)">Quý</button>
+                <button class="date-filter__quick-btn is-active" onclick="setQuickRange('year',this)">Năm</button>
+            </div>
+            <div class="date-filter__sep"></div>
+            <div class="date-filter__inputs">
+                <input type="date" class="date-filter__input" id="dateFrom" value="2026-01-01" onchange="onDateChange()"/>
+                <span class="date-filter__to">đến</span>
+                <input type="date" class="date-filter__input" id="dateTo" value="2026-12-31" onchange="onDateChange()"/>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 STAT CARDS -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--gold"><span class="material-symbols-outlined">payments</span></div>
+            <span class="stat-card__label">Doanh thu (VND)</span>
+            <span class="stat-card__value" id="cardRevenue">1,273.5Mđ</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--blue"><span class="material-symbols-outlined">calendar_month</span></div>
+            <span class="stat-card__label">Suất chiếu</span>
+            <span class="stat-card__value" id="cardShowtimes">12</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--green"><span class="material-symbols-outlined">confirmation_number</span></div>
+            <span class="stat-card__label">Vé đã đặt</span>
+            <span class="stat-card__value" id="cardTickets">14,865</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--red"><span class="material-symbols-outlined">group</span></div>
+            <span class="stat-card__label">Tổng khách hàng</span>
+            <span class="stat-card__value" id="cardCustomers">24,254</span>
+        </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-section">
+        <div class="search-bar">
+            <span class="material-symbols-outlined search-bar__icon">search</span>
+            <input type="text" class="search-bar__input" id="searchInput" placeholder="Nhập mã đặt vé (VD: BK2506201530xxxx)" onkeydown="if(event.key==='Enter') openDemoPopup()"/>
+        </div>
+        <button class="btn-search" onclick="openDemoPopup()">Tra cứu</button>
+    </div>
+    <div class="search-error" id="searchError">Không tìm thấy booking với mã này tại chi nhánh của bạn.</div>
+
+    <!-- CHART -->
+    <div class="chart-section">
+        <div class="chart-header">
+            <div>
+                <div class="chart-header__title">Phân tích doanh thu</div>
+                <div class="chart-header__subtitle">Dữ liệu so sánh hiệu suất theo từng tháng</div>
+            </div>
+            <span class="label-md text-muted">Năm 2026</span>
+        </div>
+        <div class="chart-canvas-wrapper">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+</main>
+
+<!-- POPUP -->
+<div class="bill-modal" id="billModal" onclick="closeModal()">
+    <div class="invoice-wrapper" onclick="event.stopPropagation()">
+        <div class="invoice-header">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                    <span class="bill-label">Chi tiết đặt vé</span>
+                    <h2 style="margin:4px 0 0;font-size:22px;font-weight:800">BK26062015304821</h2>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px">
+                    <button class="btn-export" id="btnExport" onclick="demoExport()">
+                        <span class="material-symbols-outlined" style="font-size:18px">download</span> Xuất vé
+                    </button>
+                    <button class="close-bill-btn" onclick="closeModal()">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="invoice-body">
+            <div class="movie-info-row">
+                <img src="https://placehold.co/80x115/111114/E31B23?text=DUNE" alt="Poster"/>
+                <div>
+                    <h3>Dune: Part Two</h3>
+                    <span class="chip-status-popup chip-paid" id="m-status">PAID</span>
+                    <p style="margin:6px 0 0;font-size:13px;color:var(--color-text-muted)">Khách: Huỳnh Tấn Phong</p>
+                </div>
+            </div>
+            <div class="info-grid-bill">
+                <div><span class="bill-label">Rạp</span><div class="bill-value">CGV Pandora City</div></div>
+                <div><span class="bill-label">Phòng chiếu</span><div class="bill-value">Pandora - Room 1</div></div>
+                <div><span class="bill-label">Ngày chiếu</span><div class="bill-value">20/06/2026</div></div>
+                <div><span class="bill-label">Suất chiếu</span><div class="bill-value">15:30</div></div>
+                <div><span class="bill-label">Số lượng vé</span><div class="bill-value" style="color:var(--color-brand-red)">3</div></div>
+                <div><span class="bill-label">Ngày đặt</span><div class="bill-value">20/06/2026 14:45</div></div>
+            </div>
+            <table class="ticket-table">
+                <thead><tr><th>Ghế</th><th>Loại ghế</th><th>Trạng thái</th><th>Giá vé</th></tr></thead>
+                <tbody>
+                <tr><td style="color:#fff;font-weight:600">A1</td><td>Thường</td><td><span class="chip-status-popup chip-paid">PAID</span></td><td>75,000 đ</td></tr>
+                <tr><td style="color:#fff;font-weight:600">A2</td><td>Thường</td><td><span class="chip-status-popup chip-paid">PAID</span></td><td>75,000 đ</td></tr>
+                <tr><td style="color:#fff;font-weight:600">D5</td><td>VIP</td><td><span class="chip-status-popup chip-paid">PAID</span></td><td>120,000 đ</td></tr>
+                </tbody>
+            </table>
+            <div class="combo-section-title">Bắp nước / Combo</div>
+            <table class="ticket-table">
+                <thead><tr><th>Tên combo</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+                <tbody>
+                <tr><td style="color:#fff">Combo Couple</td><td>1</td><td>115,000 đ</td><td>115,000 đ</td></tr>
+                <tr><td style="color:#fff">Nước ngọt lớn</td><td>2</td><td>35,000 đ</td><td>70,000 đ</td></tr>
+                </tbody>
+            </table>
+            <div style="margin-bottom:8px">
+                <span style="font-size:13px;color:#2D7A4F;font-weight:600">
+                    <span class="material-symbols-outlined" style="font-size:15px;vertical-align:-3px">local_activity</span>
+                    SUMMER10 — Ưu đãi mùa hè
+                </span>
+            </div>
+            <div class="price-box">
+                <div class="price-row"><span>Tổng tiền vé</span><span>270,000 đ</span></div>
+                <div class="price-row"><span>Tổng combo</span><span>185,000 đ</span></div>
+                <div class="price-row"><span>Giảm giá (10%)</span><span style="color:#2D7A4F">- 45,500 đ</span></div>
+                <div class="price-row total-final"><span>TỔNG THANH TOÁN</span><span>409,500 đ</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === MOCK DATA FOR DEMO ===
+    const mockData = {
+        today:   { customers:'87',     showtimes:'12', tickets:'342',    revenue:'28.6Mđ',
+            labels:['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],
+            chart:[520,680,750,1400,890,920,1350,1300,1480,1100,1280,1550] },
+        year:    { customers:'24,254', showtimes:'156', tickets:'14,865', revenue:'1,273.5Mđ',
+            labels:['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],
+            chart:[520,680,750,1400,890,920,1350,1300,1480,1100,1280,1550] },
+        quarter: { customers:'6,845',  showtimes:'48', tickets:'4,320',  revenue:'410.8Mđ',
+            labels:['Quý 1','Quý 2','Quý 3','Quý 4'],
+            chart:[1950,3210,4130,3930] },
+        month:   { customers:'2,180',  showtimes:'18', tickets:'1,560',  revenue:'148.2Mđ',
+            labels:['Tuần 1','Tuần 2','Tuần 3','Tuần 4'],
+            chart:[320,410,380,370] },
+    };
+
+    function setQuickRange(mode, btn) {
+        document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+        if (mode === 'today') {
+            const todayISO = fmtISO(now);
+            document.getElementById('dateFrom').value = todayISO;
+            document.getElementById('dateTo').value = todayISO;
+        } else if (mode === 'month') {
+            document.getElementById('dateFrom').value = fmtISO(new Date(y,m,1));
+            document.getElementById('dateTo').value = fmtISO(new Date(y,m+1,0));
+        } else if (mode === 'quarter') {
+            const qs = Math.floor(m/3)*3;
+            document.getElementById('dateFrom').value = fmtISO(new Date(y,qs,1));
+            document.getElementById('dateTo').value = fmtISO(new Date(y,qs+3,0));
+        } else {
+            document.getElementById('dateFrom').value = y+'-01-01';
+            document.getElementById('dateTo').value = y+'-12-31';
+        }
+        updateDashboard(mode);
+    }
+
+    function onDateChange() {
+        document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
+        updateDashboard('year');
+    }
+
+    function updateDashboard(mode) {
+        const d = mockData[mode] || mockData.year;
+        document.getElementById('cardCustomers').textContent = d.customers;
+        document.getElementById('cardShowtimes').textContent = d.showtimes;
+        document.getElementById('cardTickets').textContent = d.tickets;
+        document.getElementById('cardRevenue').textContent = d.revenue;
+        revenueChart.data.labels = d.labels;
+        revenueChart.data.datasets[0].data = d.chart.map(v => v*1000000);
+        revenueChart.update();
+    }
+
+    function fmtISO(d) {
+        return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    }
+
+    // === CHART ===
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: mockData.year.labels,
+            datasets: [{
+                label: 'Doanh thu thực tế',
+                data: mockData.year.chart.map(v => v*1000000),
+                backgroundColor: 'rgba(227,27,35,0.7)',
+                hoverBackgroundColor: '#E31B23',
+                borderRadius: 6, borderSkipped: false, barPercentage: 0.55
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 400, easing: 'easeOutQuart' },
+            plugins: {
+                legend: { position:'bottom', labels:{ color:'#A0A0B0', usePointStyle:true, pointStyle:'circle', padding:20 } },
+                tooltip: { backgroundColor:'#18181D', titleColor:'#fff', bodyColor:'#A0A0B0', borderColor:'rgba(255,255,255,0.08)', borderWidth:1, padding:12,
+                    callbacks:{ label: function(c){ return c.parsed.y.toLocaleString('vi-VN')+' đ'; } }
+                }
+            },
+            scales: {
+                x: { ticks:{ color:'#606070' }, grid:{ display:false } },
+                y: { ticks:{ color:'#606070', callback:function(v){ return v>=1000000?(v/1000000)+'M':v>=1000?(v/1000)+'K':v; } }, grid:{ color:'rgba(255,255,255,0.04)' }, border:{ display:false } }
+            }
+        }
+    });
+
+    // === POPUP ===
+    function openDemoPopup() { document.getElementById('billModal').classList.add('is-active'); }
+    function closeModal() { document.getElementById('billModal').classList.remove('is-active'); }
+    function demoExport() {
+        const btn = document.getElementById('btnExport');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">check_circle</span> Đã xuất';
+        document.getElementById('m-status').textContent = 'EXPORTED';
+        document.getElementById('m-status').className = 'chip-status-popup chip-exported';
+        document.querySelectorAll('.ticket-table tbody .chip-paid').forEach(el => { el.textContent='EXPORTED'; el.className='chip-status-popup chip-exported'; });
+    }
+</script>
+</div>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sidebar Manager - Preview</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
+    <style>
+        /* ── PREVIEW SHELL (xóa khi dùng thật) ─────────────────────────── */
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{
+            font-family:'Inter',-apple-system,sans-serif;
+            background:#07070A;
+            display:flex;
+            min-height:100vh;
+        }
+
+        /* ── DESIGN TOKENS ─────────────────────────────────────────────── */
+        :root{
+            --color-brand-red:#E31B23;
+            --color-brand-red-hover:#C41219;
+            --color-brand-red-light:rgba(227,27,35,0.15);
+            --color-bg:#0A0A0C;
+            --color-surface:#111114;
+            --color-surface-raised:#18181D;
+            --color-text-primary:#FFFFFF;
+            --color-text-secondary:#A0A0B0;
+            --color-text-muted:#606070;
+            --color-border:rgba(255,255,255,0.08);
+            --color-border-strong:rgba(255,255,255,0.14);
+            --radius-sm:8px;--radius-md:12px;--radius-pill:9999px;
+            --sidebar-w:256px;
+            --transition-fast:150ms ease;
+        }
+
+        /* ════════════════════════════════════════════════════════════════
+           SIDEBAR
+        ════════════════════════════════════════════════════════════════ */
+        .sidebar{
+            width:var(--sidebar-w);
+            min-height:100vh;
+            background:var(--color-surface);
+            border-right:1px solid var(--color-border);
+            display:flex;
+            flex-direction:column;
+            flex-shrink:0;
+            position:sticky;
+            top:0;
+        }
+
+        /* ── BRAND ─────────────────────────────────────────────────── */
+        .sidebar__brand{
+            padding:24px 20px 20px;
+            border-bottom:1px solid var(--color-border);
+        }
+        .sidebar__brand-name{
+            font-size:20px;
+            font-weight:800;
+            color:var(--color-brand-red);
+            letter-spacing:-0.02em;
+            line-height:1.2;
+        }
+        .sidebar__branch{
+            display:flex;
+            align-items:center;
+            gap:5px;
+            margin-top:6px;
+            font-size:12px;
+            color:var(--color-text-muted);
+            font-weight:500;
+        }
+        .sidebar__branch .material-symbols-outlined{
+            font-size:14px;
+            color:var(--color-text-muted);
+        }
+        .sidebar__branch span:last-child{
+            color:var(--color-text-secondary);
+            font-weight:600;
+        }
+
+        /* ── NAV ───────────────────────────────────────────────────── */
+        .sidebar__nav{
+            flex:1;
+            padding:16px 12px;
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+            overflow-y:auto;
+        }
+        .sidebar__nav::-webkit-scrollbar{width:0}
+
+        .nav-label{
+            font-size:10px;
+            font-weight:700;
+            text-transform:uppercase;
+            letter-spacing:0.08em;
+            color:var(--color-text-muted);
+            padding:8px 8px 6px;
+            margin-top:4px;
+        }
+
+        .nav-link{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:10px 12px;
+            border-radius:var(--radius-sm);
+            text-decoration:none;
+            color:var(--color-text-secondary);
+            font-size:14px;
+            font-weight:500;
+            transition:all var(--transition-fast);
+            position:relative;
+            cursor:pointer;
+        }
+        .nav-link .material-symbols-outlined{
+            font-size:20px;
+            flex-shrink:0;
+            transition:color var(--transition-fast);
+        }
+        .nav-link:hover{
+            background:var(--color-surface-raised);
+            color:var(--color-text-primary);
+        }
+        .nav-link:hover .material-symbols-outlined{
+            color:var(--color-text-primary);
+        }
+
+        /* Active state */
+        .nav-link.is-active{
+            background:var(--color-brand-red);
+            color:#fff;
+            font-weight:600;
+        }
+        .nav-link.is-active .material-symbols-outlined{
+            color:#fff;
+        }
+        .nav-link.is-active:hover{
+            background:var(--color-brand-red-hover);
+        }
+
+        /* ── DIVIDER ───────────────────────────────────────────────── */
+        .sidebar__divider{
+            height:1px;
+            background:var(--color-border);
+            margin:4px 12px;
+        }
+
+        /* ── USER SECTION ──────────────────────────────────────────── */
+        .sidebar__footer{
+            padding:12px;
+            border-top:1px solid var(--color-border);
+            display:flex;
+            flex-direction:column;
+            gap:4px;
+        }
+
+        /* User card — click → /manager/profile */
+        .sidebar__user{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:10px 12px;
+            border-radius:var(--radius-sm);
+            text-decoration:none;
+            cursor:pointer;
+            transition:background var(--transition-fast);
+            border:none;
+            background:none;
+            width:100%;
+            text-align:left;
+        }
+        .sidebar__user:hover{
+            background:var(--color-surface-raised);
+        }
+        .sidebar__avatar{
+            width:36px;
+            height:36px;
+            border-radius:50%;
+            background:var(--color-surface-raised);
+            border:1px solid var(--color-border);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            flex-shrink:0;
+        }
+        .sidebar__avatar .material-symbols-outlined{
+            font-size:20px;
+            color:var(--color-text-muted);
+        }
+        .sidebar__user-info{
+            flex:1;
+            min-width:0;
+        }
+        .sidebar__user-name{
+            font-size:13px;
+            font-weight:600;
+            color:var(--color-text-primary);
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+        .sidebar__user-email{
+            font-size:11px;
+            color:var(--color-text-muted);
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            margin-top:1px;
+        }
+        .sidebar__user-arrow{
+            font-size:16px;
+            color:var(--color-text-muted);
+            flex-shrink:0;
+        }
+
+        /* Logout button */
+        .sidebar__logout{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:9px 12px;
+            border-radius:var(--radius-sm);
+            background:none;
+            border:none;
+            color:var(--color-text-muted);
+            font-size:13px;
+            font-weight:500;
+            font-family:'Inter',sans-serif;
+            cursor:pointer;
+            width:100%;
+            transition:all var(--transition-fast);
+            text-decoration:none;
+        }
+        .sidebar__logout:hover{
+            background:rgba(227,27,35,0.1);
+            color:var(--color-brand-red);
+        }
+        .sidebar__logout .material-symbols-outlined{
+            font-size:18px;
+        }
+
+        /* ── PREVIEW: content area placeholder ─────────────────────── */
+        .preview-content{
+            flex:1;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#2a2a30;
+            font-size:13px;
+            font-family:'Inter',sans-serif;
+            letter-spacing:0.02em;
+        }
+    </style>
+</head>
+<body>
+
+<!--
+    ╔══════════════════════════════════════════════════════╗
+    ║  THYMELEAF FRAGMENT — dùng như sau trong các trang:  ║
+    ║  <aside th:replace="~{fragments/sidebar :: sidebar}"> ║
+    ╚══════════════════════════════════════════════════════╝
+-->
+<aside class="sidebar" th:fragment="sidebar">
+
+    <!-- ── BRAND + CHI NHÁNH ──────────────────────────── -->
+    <div class="sidebar__brand">
+        <div class="sidebar__brand-name">CineMax Admin</div>
+        <div class="sidebar__branch">
+            <span class="material-symbols-outlined">location_on</span>
+            <span th:text="${managerCinemaName}">CGV Pandora City</span>
+        </div>
+    </div>
+
+    <!-- ── NAV LINKS ──────────────────────────────────── -->
+    <nav class="sidebar__nav">
+
+        <a href="/manager/dashboard"
+           class="nav-link"
+           th:classappend="${activePage == 'dashboard'} ? 'is-active'">
+            <span class="material-symbols-outlined">dashboard</span>
+            Tổng quan
+        </a>
+
+        <a href="/manager/revenue"
+           class="nav-link"
+           th:classappend="${activePage == 'revenue'} ? 'is-active'">
+            <span class="material-symbols-outlined">bar_chart</span>
+            Doanh thu
+        </a>
+
+        <div class="sidebar__divider"></div>
+
+        <a href="/manager/showtimes"
+           class="nav-link"
+           th:classappend="${activePage == 'showtimes'} ? 'is-active'">
+            <span class="material-symbols-outlined">schedule</span>
+            Suất Chiếu
+        </a>
+
+        <a href="/manager/tickets"
+           class="nav-link"
+           th:classappend="${activePage == 'tickets'} ? 'is-active'">
+            <span class="material-symbols-outlined">confirmation_number</span>
+            Vé
+        </a>
+
+        <a href="/manager/customers"
+           class="nav-link"
+           th:classappend="${activePage == 'customers'} ? 'is-active'">
+            <span class="material-symbols-outlined">group</span>
+            Khách Hàng
+        </a>
+
+    </nav>
+
+    <!-- ── FOOTER: USER + LOGOUT ──────────────────────── -->
+    <div class="sidebar__footer">
+
+        <!-- User info → profile -->
+        <a href="/manager/profile" class="sidebar__user">
+            <div class="sidebar__avatar">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="sidebar__user-info">
+                <div class="sidebar__user-name"  th:text="${managerName}">Nguyễn Thành</div>
+                <div class="sidebar__user-email" th:text="${managerEmail}">thanh@cinemax.vn</div>
+            </div>
+            <span class="material-symbols-outlined sidebar__user-arrow">chevron_right</span>
+        </a>
+
+        <!-- Logout -->
+        <a href="/logout" class="sidebar__logout">
+            <span class="material-symbols-outlined">logout</span>
+            Đăng xuất
+        </a>
+
+    </div>
+
+</aside>
+
+<!-- Preview placeholder (xóa khi dùng thật) -->
+<div class="preview-content">← Sidebar preview</div>
+
+</body>
+</html>
