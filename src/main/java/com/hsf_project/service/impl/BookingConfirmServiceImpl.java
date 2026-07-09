@@ -261,7 +261,12 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         }
 
         // Trả về kết quả bình thường, bankCode lúc này ở bước 1 sẽ là null (hoàn toàn hợp lệ)
-        return new ConfirmResult(booking.getBookingCode(), finalAmount, bankCode);
+        return new ConfirmResult(booking.getBookingCode(), finalAmount, bankCode, expiredTime);
+    }
+
+    @Override
+    public ConfirmResult preparePayment(String bookingCode, Long userId, Long paymentMethodId, String promoCode) {
+        return null;
     }
 
     @Override
