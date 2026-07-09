@@ -72,12 +72,23 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "lock_booking_until")
+    private LocalDateTime lockBookingUntil;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cinema_id")
     private Cinema cinema;  // null nếu là ADMIN hoặc CUSTOMER
 
     public Long getId() {
         return id;
+    }
+
+    public LocalDateTime getLockBookingUntil() {
+        return lockBookingUntil;
+    }
+
+    public void setLockBookingUntil(LocalDateTime lockBookingUntil) {
+        this.lockBookingUntil = lockBookingUntil;
     }
 
     public void setId(Long id) {

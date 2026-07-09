@@ -156,7 +156,7 @@ public class MovieController {
     ) {
         if ("timeout".equals(error)) {
             // Đẩy một thông báo lỗi ra giao diện để báo cho khách biết lý do bị đá văng ra ngoài
-            model.addAttribute("timeoutMessage", "Đã hết thời gian giữ ghế (15 phút). Vui lòng chọn lại suất chiếu!");
+            model.addAttribute("timeout", "Đã hết thời gian giữ ghế (15 phút). Vui lòng chọn lại suất chiếu!");
         }
 
         // Đoạn code lấy danh sách phim nowShowingMovies, comingSoonMovies... của em giữ nguyên
