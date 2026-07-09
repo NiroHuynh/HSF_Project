@@ -189,8 +189,8 @@
                 </p>
 
                 <span class="badge"
-                      th:classappend="${b.status == 'PENDING' ? 'status-pending' : (b.status == 'CONFIRMED' ? 'status-confirmed' : (b.status == 'COMPLETED' ? 'status-completed' : 'status-cancelled'))}"
-                      th:text="${b.status}">Trạng thái</span>
+                      th:classappend="${b.status == 'PENDING' ? 'status-pending' : (b.status == 'PAID' ? 'status-completed' : 'status-cancelled')}"
+                      th:text="${b.status == 'PENDING' ? 'Chờ thanh toán' : (b.status == 'PAID' ? 'Đã thanh toán' : 'Đã hủy')}">Trạng thái</span>
             </div>
 
             <div class="price-group">
