@@ -13,10 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/booking")
@@ -28,41 +24,24 @@ public class BookingConfirmController {
     @Autowired
     private VnPayService vnPayService;
 
+    /**
+     * Bước cuối của luồng đặt vé (initiate → combo → payment → confirm):
+     * booking đã tồn tại từ bước chọn ghế, ở đây chỉ chốt phương thức thanh toán
+     * và mã khuyến mãi (server tự validate lại) rồi chuyển sang VNPay.
+     */
     @PostMapping("/confirm")
     public String confirmBooking(
-            @RequestParam Long showtimeId,
-            @RequestParam String seatIds,
-            @RequestParam BigDecimal discountAmount,
-            @RequestParam(required = false) String promotionId,
-            @RequestParam Long paymentMethod,
-            @RequestParam Map<String, String> allParams,
+            @RequestParam String bookingCode,
+            @RequestParam Long paymentMethodId,
+            @RequestParam(required = false) String promoCode,
             HttpSession session,
             HttpServletRequest request) {
 
         // AuthInterceptor đã chặn /booking/** khi chưa đăng nhập nên user luôn tồn tại.
         User currentUser = (User) session.getAttribute("ttdn");
 
-        List<String> seatCodes = Arrays.stream(seatIds.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toList();
-
-        Map<Long, Integer> comboQuantities = new LinkedHashMap<>();
-        for (Map.Entry<String, String> entry : allParams.entrySet()) {
-            if (!entry.getKey().startsWith("combo_")) {
-                continue;
-            }
-            Long comboId = Long.valueOf(entry.getKey().substring("combo_".length()));
-            int qty = Integer.parseInt(entry.getValue());
-            if (qty > 0) {
-                comboQuantities.put(comboId, qty);
-            }
-        }
-
-        Long promoId = (promotionId != null && !promotionId.isBlank()) ? Long.valueOf(promotionId) : null;
-
-        ConfirmResult result = bookingConfirmService.confirmBooking(
-                currentUser.getId(), showtimeId, seatCodes, comboQuantities, paymentMethod, promoId, discountAmount);
+        ConfirmResult result = bookingConfirmService.preparePayment(
+                bookingCode, currentUser.getId(), paymentMethodId, promoCode);
 
         // Voucher giảm 100%: không cần qua VNPay, chốt thành công luôn
         if (result.finalAmount().compareTo(BigDecimal.ZERO) <= 0) {
@@ -71,7 +50,8 @@ public class BookingConfirmController {
         }
 
         String paymentUrl = vnPayService.buildPaymentUrl(
-                result.bookingCode(), result.finalAmount(), result.bankCode(), request.getRemoteAddr());
+                result.bookingCode(), result.finalAmount(), result.bankCode(),
+                request.getRemoteAddr(), result.expiresAt());
         return "redirect:" + paymentUrl;
     }
 }

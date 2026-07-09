@@ -148,4 +148,19 @@ public class MovieController {
 
         return "redirect:/phim/" + id;
     }
+
+    @GetMapping("/error")
+    public String showMoviesPage(
+            @RequestParam(value = "error", required = false) String error,
+            Model model
+    ) {
+        if ("timeout".equals(error)) {
+            // Đẩy một thông báo lỗi ra giao diện để báo cho khách biết lý do bị đá văng ra ngoài
+            model.addAttribute("timeout", "Đã hết thời gian giữ ghế (15 phút). Vui lòng chọn lại suất chiếu!");
+        }
+
+        // Đoạn code lấy danh sách phim nowShowingMovies, comingSoonMovies... của em giữ nguyên
+
+        return "home"; // Hoặc return "movies"; tùy theo file hiển thị danh sách phim của em
+    }
 }
