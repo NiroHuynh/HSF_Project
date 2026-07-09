@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Doanh Thu - CineMax</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --color-brand-red:#E31B23;--color-brand-red-hover:#C41219;--color-brand-red-light:rgba(227,27,35,0.15);
+            --color-bg:#0A0A0C;--color-surface:#111114;--color-surface-raised:#18181D;
+            --color-text-primary:#FFFFFF;--color-text-secondary:#A0A0B0;--color-text-muted:#606070;
+            --color-border:rgba(255,255,255,0.08);--color-border-strong:rgba(255,255,255,0.16);
+            --radius-xs:4px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-pill:9999px;
+            --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;
+            --font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+            --text-headline-lg:clamp(24px,3.5vw,36px);--text-headline-md:clamp(20px,2.5vw,28px);
+            --text-body-lg:18px;--text-body-md:16px;--text-body-sm:14px;--text-label:12px;
+            --lh-headline:1.15;--lh-body:1.6;
+            --transition-fast:150ms ease;--transition-base:250ms ease;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-family);font-size:var(--text-body-md);line-height:var(--lh-body);background-color:var(--color-bg);color:var(--color-text-primary);-webkit-font-smoothing:antialiased}
+        button{cursor:pointer;border:none;background:none;font-family:inherit}
+        .container{width:100%;max-width:1200px;margin:0 auto;padding:0 var(--space-md)}
+        .headline-lg{font-size:var(--text-headline-lg);font-weight:700;line-height:var(--lh-headline);letter-spacing:-0.015em}
+        .mgr-page{padding-block:var(--space-xl)}
+
+        /* BACK LINK */
+        .back-link{display:inline-flex;align-items:center;gap:6px;font-size:var(--text-body-sm);font-weight:500;color:var(--color-text-muted);margin-bottom:var(--space-lg);transition:color var(--transition-fast);text-decoration:none}
+        .back-link:hover{color:var(--color-brand-red)}
+
+        /* PAGE HEADER ROW */
+        .page-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap}
+        .page-subtitle{color:var(--color-text-secondary);font-size:var(--text-body-md);margin-top:var(--space-xs)}
+
+        /* DATE FILTER */
+        .date-filter{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:14px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
+        .date-filter__label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);white-space:nowrap}
+        .date-filter__quick-btns{display:flex;background:var(--color-surface-raised);border-radius:var(--radius-sm);padding:3px;gap:2px}
+        .date-filter__quick-btn{padding:6px 14px;font-size:var(--text-label);font-weight:600;color:var(--color-text-muted);border-radius:6px;transition:all var(--transition-fast);white-space:nowrap}
+        .date-filter__quick-btn:hover{color:var(--color-text-secondary)}
+        .date-filter__quick-btn.is-active{background:var(--color-brand-red);color:#fff}
+        .date-filter__sep{width:1px;height:24px;background:var(--color-border);flex-shrink:0}
+        .date-filter__inputs{display:flex;align-items:center;gap:8px}
+        .date-filter__input{padding:7px 12px;background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:6px;color:var(--color-text-primary);font-size:var(--text-body-sm);font-family:var(--font-family);outline:none;width:145px;transition:border-color var(--transition-fast)}
+        .date-filter__input:focus{border-color:var(--color-brand-red)}
+        .date-filter__input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+        .date-filter__to{font-size:var(--text-body-sm);color:var(--color-text-muted)}
+
+        /* 3 REVENUE CARDS */
+        .revenue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-md);margin-top:var(--space-lg)}
+        @media(max-width:768px){.revenue-grid{grid-template-columns:1fr}}
+        .rev-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg);display:flex;flex-direction:column;gap:10px;transition:transform var(--transition-fast),border-color var(--transition-fast);position:relative;overflow:hidden}
+        .rev-card:hover{transform:translateY(-2px);border-color:var(--color-border-strong)}
+        .rev-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px}
+        .rev-card--total::before{background:var(--color-brand-red)}
+        .rev-card--ticket::before{background:#6DB9F0}
+        .rev-card--combo::before{background:#F5C518}
+        .rev-card__icon-row{display:flex;align-items:center;justify-content:space-between}
+        .rev-card__icon{width:48px;height:48px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:24px}
+        .rev-card__icon--red{background:var(--color-brand-red-light);color:var(--color-brand-red)}
+        .rev-card__icon--blue{background:rgba(30,95,173,0.15);color:#6DB9F0}
+        .rev-card__icon--gold{background:rgba(245,197,24,0.15);color:#F5C518}
+        .rev-card__label{font-size:var(--text-label);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-text-muted)}
+        .rev-card__value{font-size:30px;font-weight:800;letter-spacing:-0.02em}
+        .rev-card__sub{font-size:var(--text-body-sm);color:var(--color-text-muted)}
+
+        /* CHART */
+        .chart-panel{margin-top:var(--space-xl);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg)}
+        .chart-panel__title{font-size:var(--text-headline-md);font-weight:700}
+        .chart-panel__subtitle{font-size:var(--text-body-sm);color:var(--color-text-muted);margin-top:2px}
+        .chart-panel__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);flex-wrap:wrap;gap:var(--space-sm)}
+        .chart-canvas-bar{position:relative;width:100%;height:380px}
+        .label-md{font-size:var(--text-body-sm);font-weight:600}
+        .text-muted{color:var(--color-text-muted)}
+
+        /* TOP MOVIES TABLE */
+        .top-table-section{margin-top:var(--space-xl);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg)}
+        .top-table{width:100%;border-collapse:collapse;font-size:var(--text-body-sm);margin-top:var(--space-md)}
+        .top-table th{text-align:left;font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.04em;padding:10px 8px;border-bottom:1px solid var(--color-border)}
+        .top-table td{padding:12px 8px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--color-text-secondary)}
+        .top-table td:first-child{color:#fff;font-weight:600}
+        .top-table th:last-child,.top-table td:last-child{text-align:right}
+        .top-table td:last-child{color:#fff;font-weight:700}
+        .rank-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:12px;font-weight:800}
+        .rank-1{background:var(--color-brand-red-light);color:var(--color-brand-red)}
+        .rank-2{background:rgba(245,197,24,0.15);color:#F5C518}
+        .rank-3{background:rgba(30,95,173,0.15);color:#6DB9F0}
+        .rank-other{background:rgba(255,255,255,0.05);color:var(--color-text-muted)}
+        .rev-bar-cell{display:flex;align-items:center;gap:10px}
+        .rev-bar-track{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+        .rev-bar-fill{height:100%;border-radius:3px;background:var(--color-brand-red)}
+
+        @media(max-width:768px){
+            .page-header-row{flex-direction:column}
+            .date-filter{width:100%}
+            .date-filter__inputs{width:100%}
+            .date-filter__input{flex:1;min-width:0}
+        }
+    </style>
+</head>
+<body>
+
+<main class="container mgr-page">
+
+    <!-- BACK LINK -->
+    <a href="manager-home-preview.html" class="back-link">
+        <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>
+        Quay lại tổng quan
+    </a>
+
+    <!-- PAGE HEADER + FILTER -->
+    <div class="page-header-row">
+        <div>
+            <h1 class="headline-lg">Chi tiết doanh thu</h1>
+            <p class="page-subtitle">
+                Xem báo cáo và phân tích doanh thu của chi nhánh.
+            </p>
+        </div>
+        <div class="date-filter">
+            <span class="date-filter__label">Giai đoạn xem xét</span>
+            <div class="date-filter__quick-btns">
+                <button class="date-filter__quick-btn" onclick="setQuickRange('today',this)">Hôm nay</button>
+                <button class="date-filter__quick-btn" onclick="setQuickRange('month',this)">Tháng</button>
+                <button class="date-filter__quick-btn" onclick="setQuickRange('quarter',this)">Quý</button>
+                <button class="date-filter__quick-btn is-active" onclick="setQuickRange('year',this)">Năm</button>
+            </div>
+            <div class="date-filter__sep"></div>
+            <div class="date-filter__inputs">
+                <input type="date" class="date-filter__input" id="dateFrom" value="2026-01-01" onchange="onDateChange()"/>
+                <span class="date-filter__to">đến</span>
+                <input type="date" class="date-filter__input" id="dateTo" value="2026-12-31" onchange="onDateChange()"/>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 REVENUE CARDS -->
+    <div class="revenue-grid">
+        <div class="rev-card rev-card--total">
+            <div class="rev-card__icon-row">
+                <div class="rev-card__icon rev-card__icon--red"><span class="material-symbols-outlined">payments</span></div>
+            </div>
+            <span class="rev-card__label">Tổng doanh thu</span>
+            <span class="rev-card__value" id="cardTotal">1,273.5M đ</span>
+            <span class="rev-card__sub" id="cardTotalSub">Từ 01/01/2026 đến nay</span>
+        </div>
+        <div class="rev-card rev-card--ticket">
+            <div class="rev-card__icon-row">
+                <div class="rev-card__icon rev-card__icon--blue"><span class="material-symbols-outlined">confirmation_number</span></div>
+            </div>
+            <span class="rev-card__label">Doanh thu từ vé</span>
+            <span class="rev-card__value" id="cardTicket">985.2M đ</span>
+            <span class="rev-card__sub" id="cardTicketSub">14,865 vé đã bán • Chiếm 77.4%</span>
+        </div>
+        <div class="rev-card rev-card--combo">
+            <div class="rev-card__icon-row">
+                <div class="rev-card__icon rev-card__icon--gold"><span class="material-symbols-outlined">fastfood</span></div>
+            </div>
+            <span class="rev-card__label">Doanh thu bắp nước</span>
+            <span class="rev-card__value" id="cardCombo">288.3M đ</span>
+            <span class="rev-card__sub" id="cardComboSub">6,240 combo đã bán • Chiếm 22.6%</span>
+        </div>
+    </div>
+
+    <!-- STACKED BAR CHART -->
+    <div class="chart-panel">
+        <div class="chart-panel__header">
+            <div>
+                <div class="chart-panel__title">Doanh thu theo tháng</div>
+                <div class="chart-panel__subtitle">So sánh doanh thu vé và bắp nước</div>
+            </div>
+            <span class="label-md text-muted" id="chartLabel">Năm 2026</span>
+        </div>
+        <div class="chart-canvas-bar">
+            <canvas id="stackedBarChart"></canvas>
+        </div>
+    </div>
+
+    <!-- TOP MOVIES TABLE -->
+    <div class="top-table-section">
+        <div class="chart-panel__header" style="margin-bottom:0;">
+            <div>
+                <div class="chart-panel__title">Top phim doanh thu cao nhất</div>
+                <div class="chart-panel__subtitle">Xếp hạng theo tổng doanh thu vé tại chi nhánh</div>
+            </div>
+        </div>
+        <table class="top-table">
+            <thead>
+            <tr>
+                <th style="width:50px;">#</th>
+                <th>Tên phim</th>
+                <th>Số vé</th>
+                <th style="min-width:280px;">Doanh thu</th>
+                <th>Tổng</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><span class="rank-badge rank-1">1</span></td>
+                <td style="color:#fff;font-weight:600;">Dune: Part Two</td>
+                <td>3,245</td>
+                <td><div class="rev-bar-cell"><div class="rev-bar-track"><div class="rev-bar-fill" style="width:100%"></div></div></div></td>
+                <td>285.6M đ</td>
+            </tr>
+            <tr>
+                <td><span class="rank-badge rank-2">2</span></td>
+                <td style="color:#fff;font-weight:600;">Lật Mặt 8</td>
+                <td>2,870</td>
+                <td><div class="rev-bar-cell"><div class="rev-bar-track"><div class="rev-bar-fill" style="width:82%;background:#F5C518"></div></div></div></td>
+                <td>234.2M đ</td>
+            </tr>
+            <tr>
+                <td><span class="rank-badge rank-3">3</span></td>
+                <td style="color:#fff;font-weight:600;">Joker: Folie à Deux</td>
+                <td>2,150</td>
+                <td><div class="rev-bar-cell"><div class="rev-bar-track"><div class="rev-bar-fill" style="width:65%;background:#6DB9F0"></div></div></div></td>
+                <td>186.3M đ</td>
+            </tr>
+            <tr>
+                <td><span class="rank-badge rank-other">4</span></td>
+                <td style="color:#fff;font-weight:600;">Lằn Ranh Sinh Tử</td>
+                <td>1,890</td>
+                <td><div class="rev-bar-cell"><div class="rev-bar-track"><div class="rev-bar-fill" style="width:52%;background:#606070"></div></div></div></td>
+                <td>148.5M đ</td>
+            </tr>
+            <tr>
+                <td><span class="rank-badge rank-other">5</span></td>
+                <td style="color:#fff;font-weight:600;">Inside Out 2</td>
+                <td>1,420</td>
+                <td><div class="rev-bar-cell"><div class="rev-bar-track"><div class="rev-bar-fill" style="width:38%;background:#606070"></div></div></div></td>
+                <td>108.9M đ</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<script>
+    /* ============================================================
+       MOCK DATA
+       ============================================================ */
+    const mockData = {
+        today: {
+            total:'28.6M đ', totalSub:'Hôm nay',
+            ticket:'22.1M đ', ticketSub:'342 vé • Chiếm 77.3%',
+            combo:'6.5M đ', comboSub:'128 combo • Chiếm 22.7%',
+            labels:['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],
+            ticketChart:[42,53,58,108,69,72,105,101,115,86,99,120],
+            comboChart:[10,15,17,32,20,20,30,29,33,24,29,35]
+        },
+        month: {
+            total:'148.2M đ', totalSub:'Tháng này',
+            ticket:'114.8M đ', ticketSub:'1,560 vé • Chiếm 77.5%',
+            combo:'33.4M đ', comboSub:'720 combo • Chiếm 22.5%',
+            labels:['Tuần 1','Tuần 2','Tuần 3','Tuần 4'],
+            ticketChart:[25,31,29,30],
+            comboChart:[7,9,8,9]
+        },
+        quarter: {
+            total:'410.8M đ', totalSub:'Quý này',
+            ticket:'318.4M đ', ticketSub:'4,320 vé • Chiếm 77.5%',
+            combo:'92.4M đ', comboSub:'1,980 combo • Chiếm 22.5%',
+            labels:['Quý 1','Quý 2','Quý 3','Quý 4'],
+            ticketChart:[153,249,321,262],
+            comboChart:[42,72,92,82]
+        },
+        year: {
+            total:'1,273.5M đ', totalSub:'Từ 01/01/2026 đến nay',
+            ticket:'985.2M đ', ticketSub:'14,865 vé đã bán • Chiếm 77.4%',
+            combo:'288.3M đ', comboSub:'6,240 combo đã bán • Chiếm 22.6%',
+            labels:['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],
+            ticketChart:[42,53,58,108,69,72,105,101,115,86,99,120],
+            comboChart:[10,15,17,32,20,20,30,29,33,24,29,35]
+        }
+    };
+
+    /* ============================================================
+       DATE FILTER
+       ============================================================ */
+    function setQuickRange(mode, btn) {
+        document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+        if (mode === 'today') {
+            const t = fmtISO(now);
+            document.getElementById('dateFrom').value = t;
+            document.getElementById('dateTo').value = t;
+        } else if (mode === 'month') {
+            document.getElementById('dateFrom').value = fmtISO(new Date(y,m,1));
+            document.getElementById('dateTo').value = fmtISO(new Date(y,m+1,0));
+        } else if (mode === 'quarter') {
+            const qs = Math.floor(m/3)*3;
+            document.getElementById('dateFrom').value = fmtISO(new Date(y,qs,1));
+            document.getElementById('dateTo').value = fmtISO(new Date(y,qs+3,0));
+        } else {
+            document.getElementById('dateFrom').value = y+'-01-01';
+            document.getElementById('dateTo').value = y+'-12-31';
+        }
+        updateDashboard(mode);
+    }
+
+    function onDateChange() {
+        document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
+        updateDashboard('year');
+    }
+
+    function fmtISO(d) {
+        return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    }
+
+    /* ============================================================
+       UPDATE DASHBOARD
+       ============================================================ */
+    function updateDashboard(mode) {
+        const d = mockData[mode] || mockData.year;
+
+        // Cards
+        document.getElementById('cardTotal').textContent = d.total;
+        document.getElementById('cardTotalSub').textContent = d.totalSub;
+        document.getElementById('cardTicket').textContent = d.ticket;
+        document.getElementById('cardTicketSub').textContent = d.ticketSub;
+        document.getElementById('cardCombo').textContent = d.combo;
+        document.getElementById('cardComboSub').textContent = d.comboSub;
+
+        // Chart
+        stackedChart.data.labels = d.labels;
+        stackedChart.data.datasets[0].data = d.ticketChart.map(v => v*1000000);
+        stackedChart.data.datasets[1].data = d.comboChart.map(v => v*1000000);
+        stackedChart.update();
+    }
+
+    /* ============================================================
+       STACKED BAR CHART
+       ============================================================ */
+    const initData = mockData.year;
+    const ctx = document.getElementById('stackedBarChart').getContext('2d');
+    const stackedChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: initData.labels,
+            datasets: [
+                {
+                    label: 'Doanh thu vé',
+                    data: initData.ticketChart.map(v => v*1000000),
+                    backgroundColor: 'rgba(109,185,240,0.75)',
+                    hoverBackgroundColor: '#6DB9F0',
+                    borderRadius: { topLeft:0, topRight:0, bottomLeft:6, bottomRight:6 },
+                    borderSkipped: false, barPercentage: 0.5
+                },
+                {
+                    label: 'Doanh thu bắp nước',
+                    data: initData.comboChart.map(v => v*1000000),
+                    backgroundColor: 'rgba(245,197,24,0.75)',
+                    hoverBackgroundColor: '#F5C518',
+                    borderRadius: { topLeft:6, topRight:6, bottomLeft:0, bottomRight:0 },
+                    borderSkipped: false, barPercentage: 0.5
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration:400, easing:'easeOutQuart' },
+            plugins: {
+                legend: { position:'bottom', labels:{ color:'#A0A0B0', usePointStyle:true, pointStyle:'circle', padding:20 } },
+                tooltip: {
+                    backgroundColor:'#18181D', titleColor:'#fff', bodyColor:'#A0A0B0',
+                    borderColor:'rgba(255,255,255,0.08)', borderWidth:1, padding:12,
+                    callbacks:{ label: function(c){ return c.dataset.label+': '+c.parsed.y.toLocaleString('vi-VN')+' đ'; } }
+                }
+            },
+            scales: {
+                x: { stacked:true, ticks:{ color:'#606070' }, grid:{ display:false } },
+                y: {
+                    stacked:true,
+                    ticks:{ color:'#606070', callback:function(v){ return v>=1000000?(v/1000000)+'M':v>=1000?(v/1000)+'K':v; } },
+                    grid:{ color:'rgba(255,255,255,0.04)' }, border:{ display:false }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
