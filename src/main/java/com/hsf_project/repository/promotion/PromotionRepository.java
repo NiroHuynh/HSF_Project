@@ -2,6 +2,7 @@ package com.hsf_project.repository.promotion;
 
 import com.hsf_project.entity.Promotion;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -20,4 +21,12 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
     Optional<Promotion> findByCodeIgnoreCaseAndIsDeletedFalse(String code);
     List<Promotion> findByStatusAndIsDeletedFalse(String status);
 
+    /**
+     * Tăng lượt dùng bằng UPDATE nguyên tử (tránh race khi 2 giao dịch cùng chốt),
+     * và không vượt quá usage_limit nếu có đặt giới hạn.
+     */
+    @Modifying
+    @Query("UPDATE Promotion p SET p.usedCount = COALESCE(p.usedCount, 0) + 1 " +
+            "WHERE p.id = :id AND (p.usageLimit IS NULL OR COALESCE(p.usedCount, 0) < p.usageLimit)")
+    int incrementUsedCount(@Param("id") Long id);
 }

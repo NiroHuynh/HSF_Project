@@ -161,7 +161,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
                                         BigDecimal discountAmount) {
 
         LocalDateTime now = LocalDateTime.now();
-        //ĐỒNG BỘ 15 PHÚT VỚI VNPAY
+        // Đồng bộ 15 phút giữ ghế với hạn thanh toán VNPay
         LocalDateTime expiredTime = now.plusMinutes(15);
 
         ShowTime showtime = showTimeService.getById(showtimeId);
