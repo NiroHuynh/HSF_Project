@@ -10,10 +10,14 @@ public interface BookingConfirmService {
     /**
      * Dữ liệu cần để build URL VNPay sau khi đã chốt tiền phía server.
      *
-     * @param bankCode  kênh thanh toán VNPay suy ra từ phương thức user chọn (có thể null)
-     * @param expiresAt hạn giữ ghế của booking — đồng bộ với vnp_ExpireDate
+     * @param bankCode kênh thanh toán VNPay suy ra từ phương thức user chọn (có thể null)
      */
-    record ConfirmResult(String bookingCode, BigDecimal finalAmount, String bankCode, LocalDateTime expiresAt) {}
+    record ConfirmResult(String bookingCode, BigDecimal finalAmount, String bankCode,
+                         LocalDateTime expiresAt) {
+
+    }
+
+    String confirmBooking(Long showtimeId, List<String> seatCodes, Map<Long, Integer> comboQuantities, Long paymentMethodId, Long promotionId, BigDecimal discountAmount);
 
     /**
      * Bước chọn ghế: tạo Booking/Ticket ở trạng thái PENDING, giữ ghế 15 phút.
