@@ -220,6 +220,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             ticket.setShowtime(showtime);
             ticket.setSeat(seats.get(i));
             ticket.setTicketPrice(ticketPrices.get(i));
+            ticket.setUnitPrice(ticketPrices.get(i).getPrice());
             ticket.setStatus(TicketStatus.PENDING.name());
             ticket.setBookedAt(now);
             ticket.setPaidAt(null);

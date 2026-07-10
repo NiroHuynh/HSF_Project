@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "ticket")
@@ -35,6 +36,10 @@ public class Ticket {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ticket_price_id", nullable = false)
     private TicketPrice ticketPrice;
+
+    /** Giá được chốt tại thời điểm đặt, không bị thay đổi khi admin cập nhật bảng giá. */
+    @Column(name = "unit_price", precision = 12, scale = 2)
+    private BigDecimal unitPrice;
 
     @Size(max = 20)
     @ColumnDefault("'PENDING'")
@@ -98,6 +103,14 @@ public class Ticket {
 
     public void setTicketPrice(TicketPrice ticketPrice) {
         this.ticketPrice = ticketPrice;
+    }
+
+    public BigDecimal getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
+
+    @Transient
+    public BigDecimal getDisplayPrice() {
+        return unitPrice != null ? unitPrice : (ticketPrice != null ? ticketPrice.getPrice() : BigDecimal.ZERO);
     }
 
     public String getStatus() {

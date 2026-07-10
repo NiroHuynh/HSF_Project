@@ -1,278 +1,41 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lịch Sử Giao Dịch - CineMax</title>
-
-    <link rel="stylesheet" th:href="@{/css/style.css}" href="../static/css/style.css"/>
-
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
-
-    <style>
-        :root {
-            --color-brand-red:        #E31B23;
-            --color-brand-red-light:  rgba(227, 27, 35, 0.15);
-            --color-bg:               #0A0A0C;
-            --color-surface:          #111114;
-            --color-surface-raised:   #18181D;
-            --color-text-primary:     #FFFFFF;
-            --color-text-secondary:   #A0A0B0;
-            --color-text-muted:       #606070;
-            --color-border:           rgba(255, 255, 255, 0.08);
-            --color-border-strong:    rgba(255, 255, 255, 0.16);
-            --shadow-card:            0 4px 24px rgba(0, 0, 0, 0.45);
-            --shadow-card-hover:      0 8px 40px rgba(0, 0, 0, 0.65);
-            --radius-md:              12px;
-            --radius-pill:            9999px;
-            --font-family:            'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--color-bg);
-            color: var(--color-text-primary);
-            font-family: var(--font-family);
-            margin: 0;
-        }
-
-        .booking-page-content {
-            padding-block: var(--space-xl);
-        }
-
-        .title {
-            font-size: var(--text-headline-lg, 28px);
-            font-weight: 700;
-            margin-bottom: var(--space-lg);
-        }
-
-        .ticket-list {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-md);
-        }
-
-        .ticket-item {
-            background-color: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-md);
-            padding: var(--space-md);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: transform var(--transition-base, 250ms ease), background-color var(--transition-base, 250ms ease);
-            box-shadow: var(--shadow-card);
-            cursor: pointer; /* Hiển thị con trỏ tay khi hover */
-        }
-
-        .ticket-item:hover {
-            background-color: var(--color-surface-raised);
-            border-color: var(--color-border-strong);
-            box-shadow: var(--shadow-card-hover);
-            transform: translateY(-2px);
-        }
-
-        .info-group h3 {
-            margin: 0 0 var(--space-xs) 0;
-            font-size: var(--text-body-lg, 18px);
-            font-weight: 600;
-        }
-
-        .info-group p {
-            margin: 4px 0;
-            color: var(--color-text-secondary);
-            font-size: var(--text-body-sm, 14px);
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 12px;
-            border-radius: var(--radius-pill);
-            font-size: var(--text-label, 12px);
-            font-weight: 600;
-            margin-top: var(--space-sm);
-            text-transform: uppercase;
-        }
-
-        .status-pending { background-color: rgba(245, 197, 24, 0.15); color: #F5C518; }
-        .status-confirmed { background-color: var(--color-brand-red-light); color: var(--color-brand-red); }
-        .status-completed { background-color: rgba(45, 122, 79, 0.15); color: #2D7A4F; }
-        .status-cancelled { background-color: rgba(255, 255, 255, 0.05); color: var(--color-text-muted); }
-
-        .price-group {
-            text-align: right;
-        }
-
-        .price-final {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--color-brand-red);
-        }
-
-        .price-discount {
-            font-size: var(--text-label, 12px);
-            color: var(--color-text-muted);
-            text-decoration: line-through;
-            margin-top: 4px;
-        }
-
-        /* ==============================================
-           CSS CHO POP-UP HÓA ĐƠN CHI TIẾT (BILL MODAL)
-           ============================================== */
-        .bill-modal {
-            position: fixed; inset: 0; z-index: 9999;
-            background-color: rgba(0, 0, 0, 0.85);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transition: opacity 200ms ease;
-            backdrop-filter: blur(5px);
-        }
-        .bill-modal.is-active { opacity: 1; pointer-events: auto; }
-
-        .invoice-wrapper {
-            width: 100%; max-width: 480px; background-color: #111114;
-            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.6); transform: scale(0.9); transition: transform 200ms ease;
-        }
-        .bill-modal.is-active .invoice-wrapper { transform: scale(1); }
-        .invoice-header { padding: 20px; background: linear-gradient(135deg, rgba(227, 27, 35, 0.1) 0%, rgba(0, 0, 0, 0) 100%); border-bottom: 1px dashed rgba(255, 255, 255, 0.16); position: relative; }
-        .invoice-header::before, .invoice-header::after { content: ''; position: absolute; bottom: -10px; width: 20px; height: 20px; background-color: #0A0A0C; border-radius: 50%; }
-        .invoice-header::before { left: -11px; } .invoice-header::after { right: -11px; }
-        .invoice-body { padding: 20px; }
-        .info-grid-bill { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-        .bill-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; }
-        .bill-value { font-size: 14px; font-weight: 600; color: #fff; margin-top: 4px; }
-        .price-row-summary { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; color: var(--color-text-secondary); }
-        .price-row-summary.total-final { font-size: 18px; font-weight: 800; color: var(--color-brand-red); margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.16); }
-        .close-bill-btn { background: none; border: none; color: var(--color-text-muted); cursor: pointer; }
-        .close-bill-btn:hover { color: #fff; }
-    </style>
-</head>
-<body>
-
-<div th:if="${session.ttdn != null}" th:replace="~{fragments/header :: header}"></div>
-
-<main class="container booking-page-content">
-    <h1 class="title">Lịch Sử Giao Dịch</h1>
-
-    <div class="ticket-list">
-        <div th:each="b : ${bookings}" class="ticket-item" th:onclick="showBill(this)"
-             th:attr="data-code=${b.bookingCode},
-                       data-date=${#temporals.format(b.bookingDate, 'dd/MM/yyyy HH:mm')},
-                       data-total=${#numbers.formatDecimal(b.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ',
-                       data-discount=${b.discountAmount != null ? #numbers.formatDecimal(b.discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'},
-                       data-final=${#numbers.formatDecimal(b.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ',
-                       data-status=${b.status}">
-
-            <div class="hidden-data" style="display: none;">
-                <span class="h-title" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.movie.title} : 'N/A'"></span>
-                <span class="h-poster" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.movie.posterUrl} : ''"></span>
-                <span class="h-room" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.room.name} : 'N/A'"></span>
-                <span class="h-time" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${#temporals.format(b.tickets[0].showtime.startTime, 'HH:mm')} : '---'"></span>
-                <div class="h-seats-box">
-                    <span th:each="t : ${b.tickets}" th:text="${t.seat.rowLabel + t.seat.seatNumber} + ' '"></span>
-                </div>
-            </div>
-
-            <div class="info-group">
-                <h3 th:text="'Mã đặt vé: ' + ${b.bookingCode}">MÃ ĐẶT VÉ</h3>
-
-                <p class="d-flex gap-xs" style="align-items:center;">
-                    <span class="material-symbols-outlined" style="font-size:16px;">calendar_month</span>
-                    <span th:text="'Ngày đặt: ' + ${#temporals.format(b.bookingDate, 'dd/MM/yyyy HH:mm')}">Ngày đặt</span>
-                </p>
-
-                <p th:if="${b.promotion != null}" class="d-flex gap-xs" style="align-items:center; color: #2D7A4F; font-weight: 500;">
-                    <span class="material-symbols-outlined" style="font-size:16px;">local_activity</span>
-                    <span th:text="'Khuyến mãi: ' + ${b.promotion.name}">Tên Khuyến Mãi</span>
-                </p>
-
-                <span class="badge"
-                      th:classappend="${b.status == 'PENDING' ? 'status-pending' : (b.status == 'PAID' ? 'status-completed' : 'status-cancelled')}"
-                      th:text="${b.status == 'PENDING' ? 'Chờ thanh toán' : (b.status == 'PAID' ? 'Đã thanh toán' : 'Đã hủy')}">Trạng thái</span>
-            </div>
-
-            <div class="price-group">
-                <div class="price-final" th:text="${#numbers.formatDecimal(b.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
-                <div class="price-discount" th:if="${b.discountAmount != null && b.discountAmount.doubleValue() > 0}"
-                     th:text="${#numbers.formatDecimal(b.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
-            </div>
-        </div>
-
-        <div th:if="${#lists.isEmpty(bookings)}" style="text-align: center; color: var(--color-text-muted); padding-block: var(--space-2xl);">
-            <span class="material-symbols-outlined" style="font-size: 48px; margin-bottom: var(--space-xs);">confirmation_number</span>
-            <div class="body-md">Bạn chưa thực hiện giao dịch đặt vé nào tại CineMax.</div>
-        </div>
-    </div>
-</main>
-
-<div class="bill-modal" id="billModal" onclick="document.getElementById('billModal').classList.remove('is-active')">
-    <div class="invoice-wrapper" onclick="event.stopPropagation()">
-        <div class="invoice-header">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span class="bill-label">CHI TIẾT VÉ</span>
-                    <h2 style="margin: 4px 0 0 0; font-size: 22px; font-weight: 800;" id="m-code">MÃ VÉ</h2>
-                </div>
-                <button class="close-bill-btn" onclick="document.getElementById('billModal').classList.remove('is-active')">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-        </div>
-        <div class="invoice-body">
-            <div style="display: flex; gap: 16px; margin-bottom: 20px;">
-                <img id="m-poster" src="" style="width: 70px; height: 100px; object-fit: cover; border-radius: 6px;" alt="Poster">
-                <div>
-                    <h3 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700;" id="m-movie">Tên Phim</h3>
-                    <p style="margin: 0; font-size: 14px; color: #2D7A4F; font-weight: 600;" id="m-status">Trạng thái</p>
-                </div>
-            </div>
-            <div class="info-grid-bill">
-                <div><span class="bill-label">Suất Chiếu</span><div class="bill-value" id="m-time">00:00</div></div>
-                <div><span class="bill-label">Phòng Chiếu</span><div class="bill-value" id="m-room">Phòng</div></div>
-                <div style="grid-column: span 2;"><span class="bill-label">Ghế Đã Chọn</span><div class="bill-value" style="color: var(--color-brand-red);" id="m-seats">---</div></div>
-            </div>
-            <div style="background-color: #18181D; padding: 12px; border-radius: 8px;">
-                <div class="price-row-summary"><span>Tổng tiền gốc</span><span id="m-total">0 đ</span></div>
-                <div class="price-row-summary"><span>Giảm giá</span><span style="color: #2D7A4F;" id="m-discount">0 đ</span></div>
-                <div class="price-row-summary" style="font-size: 12px; color: var(--color-text-muted);"><span>Ngày đặt</span><span id="m-date">---</span></div>
-                <div class="price-row-summary total-final"><span>TỔNG THANH TOÁN</span><span id="m-final">0 đ</span></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script th:inline="javascript">
-    function showBill(element) {
-        // Lấy data từ attributes cơ bản
-        document.getElementById('m-code').textContent = element.dataset.code;
-        document.getElementById('m-total').textContent = element.dataset.total;
-        document.getElementById('m-discount').textContent = '- ' + element.dataset.discount;
-        document.getElementById('m-final').textContent = element.dataset.final;
-        document.getElementById('m-date').textContent = element.dataset.date;
-        document.getElementById('m-status').textContent = 'Trạng thái: ' + element.dataset.status;
-
-        // Quét dữ liệu từ khối ẩn bằng DOM để tuyệt đối không lỗi biên dịch
-        document.getElementById('m-movie').textContent = element.querySelector('.h-title').textContent;
-        document.getElementById('m-room').textContent = element.querySelector('.h-room').textContent;
-        document.getElementById('m-time').textContent = element.querySelector('.h-time').textContent;
-        document.getElementById('m-poster').src = element.querySelector('.h-poster').textContent || 'https://placehold.co/70x100?text=No+Image';
-
-        // Gộp danh sách ghế
-        const seatSpans = element.querySelectorAll('.h-seats-box span');
-        let seatsArr = [];
-        seatSpans.forEach(span => {
-            let s = span.textContent.trim();
-            if(s) seatsArr.push(s);
-        });
-        document.getElementById('m-seats').textContent = seatsArr.length > 0 ? seatsArr.join(', ') : '---';
-
-        // Bật hiển thị Popup
-        document.getElementById('billModal').classList.add('is-active');
-    }
-</script>
-
-<script th:replace="~{fragments/header :: header-script}"></script>
-</body>
-</html>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Vé của tôi - CineMax</title><link rel="stylesheet" th:href="@{/css/style.css}">
+  <style>
+    .history-main{padding:42px 16px 70px;max-width:1080px;margin:auto}.history-head{margin-bottom:28px}.history-head h1{font-size:32px;margin:0 0 7px}.history-head p{color:var(--color-text-secondary);margin:0}.ticket-stack{display:grid;gap:14px}.ticket-summary{width:100%;display:flex;align-items:center;justify-content:space-between;gap:18px;text-align:left;padding:18px 20px;background:#111114;color:#fff;border:1px solid var(--color-border);border-radius:12px;cursor:pointer;box-shadow:var(--shadow-card);transition:.2s}.ticket-summary:hover{background:#18181d;border-color:var(--color-border-strong);transform:translateY(-2px)}.summary-main{display:flex;align-items:center;gap:15px;min-width:0}.summary-poster{width:54px;height:72px;object-fit:cover;border-radius:6px;background:#222}.summary-info{min-width:0}.summary-info h3{margin:0 0 7px;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.summary-info p{margin:4px 0;color:var(--color-text-secondary);font-size:12px}.summary-price{text-align:right;white-space:nowrap}.summary-price b{display:block;color:var(--color-brand-red);font-size:20px;margin-bottom:8px}.summary-price small{color:var(--color-text-muted)}.ticket-modal{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.86);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:22px}.ticket-modal.open{display:flex}.ticket-modal .e-ticket{width:min(900px,100%);max-height:92vh;overflow:auto}.e-ticket{background:#111114;border:1px solid var(--color-border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card)}
+    .ticket-top{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 22px;background:linear-gradient(120deg,rgba(227,27,35,.16),transparent);border-bottom:1px dashed var(--color-border-strong)}.ticket-code small,.label{display:block;color:var(--color-text-muted);font-size:10px;text-transform:uppercase;letter-spacing:.9px}.ticket-code b{font-size:21px;letter-spacing:1px}.ticket-actions{display:flex;align-items:center;gap:10px}.print-btn{border:1px solid var(--color-border-strong);background:#18181d;color:#fff;padding:9px 13px;border-radius:8px;cursor:pointer}.print-btn:hover{border-color:var(--color-brand-red);color:var(--color-brand-red)}
+    .status{padding:6px 11px;border-radius:999px;font-size:11px;font-weight:700}.status.paid{background:rgba(45,122,79,.2);color:#65d297}.status.pending{background:rgba(245,197,24,.15);color:#f5c518}.status.cancelled{background:rgba(255,255,255,.07);color:#888895}
+    .ticket-content{padding:22px}.movie-summary{display:grid;grid-template-columns:88px 1fr;gap:18px;padding-bottom:20px;border-bottom:1px solid var(--color-border)}.movie-summary img{width:88px;height:126px;object-fit:cover;border-radius:9px;background:#222}.movie-summary h2{margin:4px 0 14px;font-size:23px}.show-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.show-grid .value{font-size:14px;font-weight:600;margin-top:5px;line-height:1.4}.show-grid .wide{grid-column:span 2}
+    .quantity-line{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.count-chip{background:#18181d;border:1px solid var(--color-border);border-radius:8px;padding:8px 11px;font-size:12px}.count-chip b{color:var(--color-brand-red)}.section-title{font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:20px 0 10px}.detail-table{width:100%;border-collapse:collapse}.detail-table th{font-size:10px;color:var(--color-text-muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--color-border)}.detail-table td{padding:11px 10px;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);font-size:13px}.detail-table td:last-child,.detail-table th:last-child{text-align:right}.seat-code{color:#fff!important;font-weight:700}.seat-type{display:inline-block;padding:3px 7px;border-radius:5px;background:rgba(227,27,35,.13);color:#f05e64;font-size:10px}
+    .totals{margin:18px 0 0 auto;max-width:390px}.total-row{display:flex;justify-content:space-between;padding:6px 0;color:var(--color-text-secondary);font-size:13px}.total-row.discount span:last-child{color:#64c891}.total-row.final{border-top:1px dashed var(--color-border-strong);margin-top:8px;padding-top:13px;color:#fff;font-size:18px;font-weight:800}.total-row.final span:last-child{color:var(--color-brand-red)}.ticket-note{font-size:11px;color:var(--color-text-muted);padding-top:14px;border-top:1px solid var(--color-border);margin-top:18px}.empty-history{text-align:center;padding:70px;background:#111114;border-radius:14px;color:var(--color-text-secondary)}
+    @media(max-width:700px){.ticket-summary{align-items:flex-start}.summary-price b{font-size:16px}.summary-poster{display:none}.ticket-top{align-items:flex-start;flex-direction:column}.ticket-actions{width:100%;justify-content:space-between}.movie-summary{grid-template-columns:64px 1fr}.movie-summary img{width:64px;height:94px}.movie-summary h2{font-size:18px}.show-grid{grid-template-columns:1fr 1fr}.show-grid .wide{grid-column:span 2}.detail-table th:nth-child(2),.detail-table td:nth-child(2){display:none}}
+    @media print{body{background:#fff!important;color:#111!important}.navbar,.footer,.history-head,.ticket-summary,.print-btn,.ticket-modal:not(.print-modal){display:none!important}.ticket-modal.print-modal{display:block!important;position:static;padding:0;background:#fff}.history-main{padding:0;max-width:none}.e-ticket{display:block!important;max-height:none!important;border:1px solid #bbb;box-shadow:none;background:#fff;color:#111}.ticket-top,.ticket-content{background:#fff!important}.e-ticket *{color:#111!important}.label,.ticket-code small,.ticket-note,.detail-table td{color:#555!important}.status{border:1px solid #aaa}.movie-summary img{print-color-adjust:exact}.detail-table th,.detail-table td,.movie-summary,.ticket-top,.ticket-note,.total-row.final{border-color:#bbb!important}}
+  </style>
+</head><body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="history-main"><header class="history-head"><h1>Vé của tôi</h1><p>Toàn bộ thông tin vé, suất chiếu và dịch vụ đã mua tại CineMax.</p></header>
+  <div class="ticket-stack">
+    <div class="ticket-entry" th:each="b:${bookings}">
+      <button class="ticket-summary" type="button" th:with="first=${#lists.isEmpty(b.tickets)?null:b.tickets[0]}" th:onclick="openTicket([[${b.bookingCode}]])">
+        <div class="summary-main"><img class="summary-poster" th:if="${first!=null}" th:src="${first.showtime.movie.posterUrl}" alt="Poster"><div class="summary-info"><h3 th:text="${first!=null?first.showtime.movie.title:'Đơn đặt vé'}"></h3><p th:if="${first!=null}" th:text="${#temporals.format(first.showtime.startTime,'HH:mm dd/MM/yyyy')+' · '+first.showtime.room.cinema.name+' · '+first.showtime.room.name}"></p><p th:text="${b.bookingCode+' · '+#lists.size(b.tickets)+' vé'}"></p><span class="status" th:classappend="${b.status=='PAID'?'paid':b.status=='PENDING'?'pending':'cancelled'}" th:text="${b.status=='PAID'?'Đã thanh toán':b.status=='PENDING'?'Chờ thanh toán':'Đã hủy'}"></span></div></div>
+        <div class="summary-price"><b th:text="${#numbers.formatDecimal(b.finalAmount,0,'POINT',0,'COMMA')+' ₫'}"></b><small>Nhấn để xem chi tiết ›</small></div>
+      </button>
+      <div class="ticket-modal" th:id="'modal-'+${b.bookingCode}" onclick="closeTicket(event,this)">
+    <article class="e-ticket" th:id="'ticket-'+${b.bookingCode}" onclick="event.stopPropagation()">
+      <header class="ticket-top"><div class="ticket-code"><small>Mã đặt vé</small><b th:text="${b.bookingCode}">BK0001</b></div><div class="ticket-actions"><span class="status" th:classappend="${b.status=='PAID'?'paid':b.status=='PENDING'?'pending':'cancelled'}" th:text="${b.status=='PAID'?'Đã thanh toán':b.status=='PENDING'?'Chờ thanh toán':'Đã hủy'}"></span><button class="print-btn" type="button" th:onclick="printTicket([[${b.bookingCode}]])">↗ Xuất / In vé</button><button class="print-btn" type="button" onclick="closeActive()">✕</button></div></header>
+      <div class="ticket-content" th:with="first=${#lists.isEmpty(b.tickets)?null:b.tickets[0]}">
+        <section class="movie-summary" th:if="${first!=null}"><img th:src="${first.showtime.movie.posterUrl}" alt="Poster phim"><div><span class="label">Phim</span><h2 th:text="${first.showtime.movie.title}"></h2><div class="show-grid"><div><span class="label">Ngày chiếu</span><div class="value" th:text="${#temporals.format(first.showtime.startTime,'EEEE, dd/MM/yyyy')}"></div></div><div><span class="label">Giờ chiếu</span><div class="value" th:text="${#temporals.format(first.showtime.startTime,'HH:mm')+' - '+#temporals.format(first.showtime.endTime,'HH:mm')}"></div></div><div><span class="label">Phòng chiếu</span><div class="value" th:text="${first.showtime.room.name+' ('+first.showtime.room.roomType+')'}"></div></div><div class="wide"><span class="label">Rạp chiếu</span><div class="value" th:text="${first.showtime.room.cinema.name}"></div><small th:text="${first.showtime.room.cinema.address+', '+first.showtime.room.cinema.city.name}"></small></div><div><span class="label">Ngày đặt</span><div class="value" th:text="${#temporals.format(b.bookingDate,'dd/MM/yyyy HH:mm')}"></div></div></div></div></section>
+        <div class="quantity-line"><span class="count-chip"><b th:text="${#lists.size(b.tickets)}">0</b> vé xem phim</span><span class="count-chip" th:if="${!#lists.isEmpty(b.bookingCombos)}"><b th:text="${#aggregates.sum(b.bookingCombos.![quantity])}">0</b> phần combo</span><span class="count-chip" th:if="${#lists.isEmpty(b.bookingCombos)}">Không mua bắp nước</span></div>
+        <h3 class="section-title">Chi tiết ghế và giá vé</h3><table class="detail-table"><thead><tr><th>Ghế</th><th>Loại ghế</th><th>Phòng</th><th>Đơn giá</th></tr></thead><tbody><tr th:each="t:${b.tickets}"><td class="seat-code" th:text="${t.seat.seatCode}"></td><td><span class="seat-type" th:text="${t.seat.type=='STANDARD'?'Ghế thường':t.seat.type=='VIP'?'Ghế VIP':'Ghế đôi'}"></span></td><td th:text="${t.showtime.room.name}"></td><td th:text="${#numbers.formatDecimal(t.displayPrice,0,'POINT',0,'COMMA')+' ₫'}"></td></tr></tbody></table>
+        <div th:if="${!#lists.isEmpty(b.bookingCombos)}"><h3 class="section-title">Combo bắp nước</h3><table class="detail-table"><thead><tr><th>Combo</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody><tr th:each="bc:${b.bookingCombos}"><td class="seat-code"><span th:text="${bc.combo.name}"></span><small style="display:block;color:var(--color-text-muted)" th:text="${bc.combo.description}"></small></td><td th:text="'× '+${bc.quantity}"></td><td th:text="${#numbers.formatDecimal(bc.unitPrice,0,'POINT',0,'COMMA')+' ₫'}"></td><td th:text="${#numbers.formatDecimal(bc.totalPrice,0,'POINT',0,'COMMA')+' ₫'}"></td></tr></tbody></table></div>
+        <div class="totals"><div class="total-row"><span>Tiền vé (<b th:text="${#lists.size(b.tickets)}"></b> ghế)</span><span th:text="${#numbers.formatDecimal(ticketSubtotals.get(b.id),0,'POINT',0,'COMMA')+' ₫'}"></span></div><div class="total-row"><span>Tiền combo</span><span th:text="${#numbers.formatDecimal(comboSubtotals.get(b.id),0,'POINT',0,'COMMA')+' ₫'}"></span></div><div class="total-row"><span>Tổng tiền gốc</span><span th:text="${#numbers.formatDecimal(b.totalAmount,0,'POINT',0,'COMMA')+' ₫'}"></span></div><div class="total-row discount" th:if="${b.discountAmount!=null and b.discountAmount>0}"><span>Khuyến mãi<span th:if="${b.promotion!=null}" th:text="' — '+${b.promotion.name}"></span></span><span th:text="'-'+${#numbers.formatDecimal(b.discountAmount,0,'POINT',0,'COMMA')+' ₫'}"></span></div><div class="total-row final"><span>Đã thanh toán</span><span th:text="${#numbers.formatDecimal(b.finalAmount,0,'POINT',0,'COMMA')+' ₫'}"></span></div></div>
+        <div class="ticket-note">Vui lòng xuất trình mã đặt vé này cho nhân viên tại rạp. Vé chỉ có giá trị đúng rạp, phòng và suất chiếu được ghi phía trên.</div>
+      </div>
+    </article></div></div>
+    <div class="empty-history" th:if="${#lists.isEmpty(bookings)}"><h2>Bạn chưa có vé nào</h2><p>Chọn một bộ phim yêu thích và bắt đầu đặt vé nhé.</p><a class="btn btn-primary" th:href="@{/phim}">Xem phim đang chiếu</a></div>
+  </div>
+</main><div th:replace="~{fragments/footer :: footer}"></div>
+<script>function openTicket(code){document.getElementById('modal-'+code).classList.add('open');document.body.style.overflow='hidden'}function closeActive(){document.querySelectorAll('.ticket-modal.open').forEach(x=>x.classList.remove('open'));document.body.style.overflow=''}function closeTicket(event,modal){if(event.target===modal)closeActive()}function printTicket(code){const modal=document.getElementById('modal-'+code);modal.classList.add('print-modal');window.print();modal.classList.remove('print-modal')}document.addEventListener('keydown',e=>{if(e.key==='Escape')closeActive()})</script><script th:replace="~{fragments/header :: header-script}"></script>
+</body></html>
