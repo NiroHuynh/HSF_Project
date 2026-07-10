@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/customer")
@@ -27,6 +30,18 @@ public class HistoryController {
         // Truy vấn dữ liệu theo ID người dùng
         List<Booking> listBookings = bookingRepository.findByUserIdAndIsDeletedFalseOrderByBookingDateDesc(currentUser.getId());
         model.addAttribute("bookings", listBookings);
+        Map<Long, BigDecimal> ticketSubtotals = new LinkedHashMap<>();
+        Map<Long, BigDecimal> comboSubtotals = new LinkedHashMap<>();
+        for (Booking booking : listBookings) {
+            BigDecimal ticketTotal = booking.getTickets().stream()
+                    .map(ticket -> ticket.getDisplayPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal comboTotal = booking.getBookingCombos().stream()
+                    .map(line -> line.getTotalPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+            ticketSubtotals.put(booking.getId(), ticketTotal);
+            comboSubtotals.put(booking.getId(), comboTotal);
+        }
+        model.addAttribute("ticketSubtotals", ticketSubtotals);
+        model.addAttribute("comboSubtotals", comboSubtotals);
         model.addAttribute("activePage", "ve-cua-toi");
 
         // Trả về file HTML nằm trong thư mục: src/main/resources/templates/customer/history.html
