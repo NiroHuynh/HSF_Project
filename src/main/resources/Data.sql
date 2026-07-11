@@ -60,7 +60,9 @@ VALUES
      '123456', '2002-01-17', N'Nam', 'ACTIVE', 0),
 
     (3, N'Trâm',  N'Đỗ Bảo',       'tram.do@gmail.com',     '0978901234',
-     '123456', '1999-12-05', N'Nữ',  'ACTIVE', 0);
+     '123456', '1999-12-05', N'Nữ',  'ACTIVE', 0),
+    (2, N'Bình', N'Viết', 'binh@fpt.edu.vn', '0912345678',
+     '123456', '2004-01-01', N'Nam', 'ACTIVE', 0);
 GO
 
 /* ============================================================
@@ -515,24 +517,146 @@ GO
    ============================================================ */
 ;WITH screening_plan (start_dt, movie_title, room_type) AS (
     -- ===== 03/07/2026 (12h–22h) =====
-    SELECT CAST('2026-07-03 12:00:00' AS DATETIME2), N'Joker: Folie à Deux', '2D'   UNION ALL
-    SELECT CAST('2026-07-03 15:00:00' AS DATETIME2), N'Dune: Part Two',      '2D'   UNION ALL
-    SELECT CAST('2026-07-03 18:00:00' AS DATETIME2), N'Lằn Ranh Sinh Tử',    '2D'   UNION ALL
-    SELECT CAST('2026-07-03 21:00:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức',   '2D'   UNION ALL
-    SELECT CAST('2026-07-03 13:30:00' AS DATETIME2), N'Lằn Ranh Sinh Tử',    '3D'   UNION ALL
-    SELECT CAST('2026-07-03 19:30:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức',   '3D'   UNION ALL
-    SELECT CAST('2026-07-03 12:30:00' AS DATETIME2), N'Joker: Folie à Deux', 'IMAX' UNION ALL
-    SELECT CAST('2026-07-03 20:00:00' AS DATETIME2), N'Dune: Part Two',      'IMAX' UNION ALL
+    SELECT CAST('2026-07-03 12:00:00' AS DATETIME2), N'Joker: Folie à Deux', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-03 15:00:00' AS DATETIME2), N'Dune: Part Two', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-03 18:00:00' AS DATETIME2), N'Lằn Ranh Sinh Tử', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-03 21:00:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-03 13:30:00' AS DATETIME2), N'Lằn Ranh Sinh Tử', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-03 19:30:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-03 12:30:00' AS DATETIME2), N'Joker: Folie à Deux', 'IMAX'
+    UNION ALL
+    SELECT CAST('2026-07-03 20:00:00' AS DATETIME2), N'Dune: Part Two', 'IMAX'
+    UNION ALL
     -- ===== 04/07/2026 (cả ngày) =====
-    SELECT CAST('2026-07-04 09:00:00' AS DATETIME2), N'Đảo Bão',             '2D'   UNION ALL
-    SELECT CAST('2026-07-04 12:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng',  '2D'   UNION ALL
-    SELECT CAST('2026-07-04 15:00:00' AS DATETIME2), N'Biệt Đội Săn Bão',    '2D'   UNION ALL
-    SELECT CAST('2026-07-04 18:00:00' AS DATETIME2), N'Trò Chơi Sinh Tồn',   '2D'   UNION ALL
-    SELECT CAST('2026-07-04 10:30:00' AS DATETIME2), N'Biệt Đội Săn Bão',    '3D'   UNION ALL
-    SELECT CAST('2026-07-04 20:30:00' AS DATETIME2), N'Trò Chơi Sinh Tồn',   '3D'   UNION ALL
-    SELECT CAST('2026-07-04 10:00:00' AS DATETIME2), N'Đảo Bão',             'IMAX' UNION ALL
-    SELECT CAST('2026-07-04 21:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng',  'IMAX'
-)
+    SELECT CAST('2026-07-04 09:00:00' AS DATETIME2), N'Đảo Bão', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-04 12:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-04 15:00:00' AS DATETIME2), N'Biệt Đội Săn Bão', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-04 18:00:00' AS DATETIME2), N'Trò Chơi Sinh Tồn', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-04 10:30:00' AS DATETIME2), N'Biệt Đội Săn Bão', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-04 20:30:00' AS DATETIME2), N'Trò Chơi Sinh Tồn', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-04 10:00:00' AS DATETIME2), N'Đảo Bão', 'IMAX'
+    UNION ALL
+    SELECT CAST('2026-07-04 21:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', 'IMAX'
+    UNION ALL
+    -- ===== 09/07/2026 =====
+    SELECT CAST('2026-07-09 09:00:00' AS DATETIME2), N'Joker: Folie à Deux', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-09 12:00:00' AS DATETIME2), N'Dune: Part Two', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-09 15:00:00' AS DATETIME2), N'Lằn Ranh Sinh Tử', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-09 18:00:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-09 10:30:00' AS DATETIME2), N'Lằn Ranh Sinh Tử', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-09 20:30:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-09 10:00:00' AS DATETIME2), N'Joker: Folie à Deux', 'IMAX'
+    UNION ALL
+    SELECT CAST('2026-07-09 21:00:00' AS DATETIME2), N'Dune: Part Two', 'IMAX'
+    UNION ALL
+
+-- ===== 10/07/2026 =====
+    SELECT CAST('2026-07-10 09:00:00' AS DATETIME2), N'Đảo Bão', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-10 12:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-10 15:00:00' AS DATETIME2), N'Biệt Đội Săn Bão', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-10 18:00:00' AS DATETIME2), N'Trò Chơi Sinh Tồn', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-10 10:30:00' AS DATETIME2), N'Biệt Đội Săn Bão', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-10 20:30:00' AS DATETIME2), N'Trò Chơi Sinh Tồn', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-10 10:00:00' AS DATETIME2), N'Đảo Bão', 'IMAX'
+    UNION ALL
+    SELECT CAST('2026-07-10 21:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', 'IMAX'
+    UNION ALL
+
+-- ===== 11/07/2026 =====
+    SELECT CAST('2026-07-11 09:00:00' AS DATETIME2), N'Joker: Folie à Deux', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-11 12:00:00' AS DATETIME2), N'Dune: Part Two', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-11 15:00:00' AS DATETIME2), N'Đảo Bão', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-11 18:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-11 10:30:00' AS DATETIME2), N'Đảo Bão', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-11 20:30:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-11 10:00:00' AS DATETIME2), N'Joker: Folie à Deux', 'IMAX'
+    UNION ALL
+    SELECT CAST('2026-07-11 21:00:00' AS DATETIME2), N'Dune: Part Two', 'IMAX'
+    UNION ALL
+
+-- ===== 12/07/2026 =====
+    SELECT CAST('2026-07-12 09:00:00' AS DATETIME2), N'Biệt Đội Săn Bão', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-12 12:00:00' AS DATETIME2), N'Trò Chơi Sinh Tồn', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-12 15:00:00' AS DATETIME2), N'Lằn Ranh Sinh Tử', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-12 18:00:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-12 10:30:00' AS DATETIME2), N'Lằn Ranh Sinh Tử', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-12 20:30:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-12 10:00:00' AS DATETIME2), N'Biệt Đội Săn Bão', 'IMAX'
+    UNION ALL
+    SELECT CAST('2026-07-12 21:00:00' AS DATETIME2), N'Trò Chơi Sinh Tồn', 'IMAX'
+    UNION ALL
+
+-- ===== 13/07/2026 =====
+    SELECT CAST('2026-07-13 09:00:00' AS DATETIME2), N'Joker: Folie à Deux', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-13 12:00:00' AS DATETIME2), N'Dune: Part Two', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-13 15:00:00' AS DATETIME2), N'Biệt Đội Săn Bão', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-13 18:00:00' AS DATETIME2), N'Trò Chơi Sinh Tồn', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-13 10:30:00' AS DATETIME2), N'Biệt Đội Săn Bão', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-13 20:30:00' AS DATETIME2), N'Trò Chơi Sinh Tồn', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-13 10:00:00' AS DATETIME2), N'Joker: Folie à Deux', 'IMAX'
+    UNION ALL
+    SELECT CAST('2026-07-13 21:00:00' AS DATETIME2), N'Dune: Part Two', 'IMAX'
+    UNION ALL
+
+-- ===== 14/07/2026 =====
+    SELECT CAST('2026-07-14 09:00:00' AS DATETIME2), N'Đảo Bão', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-14 12:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-14 15:00:00' AS DATETIME2), N'Lằn Ranh Sinh Tử', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-14 18:00:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-14 10:30:00' AS DATETIME2), N'Lằn Ranh Sinh Tử', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-14 20:30:00' AS DATETIME2), N'Kẻ Đánh Cắp Ký Ức', '3D'
+    UNION ALL
+    SELECT CAST('2026-07-14 10:00:00' AS DATETIME2), N'Đảo Bão', 'IMAX'
+    UNION ALL
+    SELECT CAST('2026-07-14 21:00:00' AS DATETIME2), N'Cuộc Gọi Cuối Cùng', 'IMAX')
+
  INSERT INTO show_time (start_time, end_time, room_id, movie_id)
  SELECT p.start_dt,
         DATEADD(MINUTE, mv.duration_minutes, p.start_dt),
@@ -542,6 +666,25 @@ GO
           JOIN movie       mv ON mv.title     = p.movie_title
           JOIN cinema_room cr ON cr.room_type = p.room_type
  WHERE cr.total_seats = 88;
+GO
+
+;WITH screening_plan (start_dt, movie_title, room_type) AS (
+    -- Giả lập 2 suất chiếu test cho ngày 15/07/2026 trong kế hoạch của em
+    SELECT CAST('2026-07-15 12:00:00' AS DATETIME2), N'Joker: Folie à Deux', '2D'
+    UNION ALL
+    SELECT CAST('2026-07-15 15:00:00' AS DATETIME2), N'Dune: Part Two', '2D'
+)
+ INSERT INTO show_time (start_time, end_time, room_id, movie_id)
+ SELECT p.start_dt,
+        DATEADD(MINUTE, mv.duration_minutes, p.start_dt),
+        cr.id,
+        mv.id
+ FROM screening_plan p
+          JOIN movie mv       ON mv.title = p.movie_title
+          JOIN cinema_room cr ON cr.room_type = p.room_type
+          JOIN cinema c       ON cr.cinema_id = c.id --JOIN thêm bảng rạp/chi nhánh
+ WHERE cr.total_seats = 88
+   AND c.name LIKE N'%CGV Vincom Nguyễn Chí Thanh%'; --Đổi tên chi nhánh em muốn test ở đây!
 GO
 
 /* ============================================================

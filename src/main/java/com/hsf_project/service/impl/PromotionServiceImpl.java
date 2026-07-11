@@ -5,6 +5,7 @@ import com.hsf_project.repository.promotion.PromotionRepository;
 import com.hsf_project.service.PromotionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -50,7 +51,8 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
+    @Transactional
     public void markUsed(Long promotionId) {
-
+        promotionRepository.incrementUsedCount(promotionId);
     }
 }

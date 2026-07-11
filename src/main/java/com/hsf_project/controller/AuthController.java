@@ -24,7 +24,10 @@ public class AuthController {
 
     @GetMapping("/login")
     public String login(Model model, HttpSession session){
-        if (session.getAttribute("ttdn") != null) {
+        if (session.getAttribute("ttdn") instanceof User currentUser) {
+            if (currentUser.getRole() != null && "ADMIN".equalsIgnoreCase(currentUser.getRole().getRoleName())) {
+                return "redirect:/admin";
+            }
             return "redirect:/home";
         }
         User user = new User();
@@ -40,6 +43,11 @@ public class AuthController {
         User u = userService.loginByEmail(email, password);
         if(u != null) {
             session.setAttribute("ttdn", u);
+            // Tài khoản quản trị luôn đi thẳng vào khu vực admin sau khi đăng nhập.
+            if (u.getRole() != null && "ADMIN".equalsIgnoreCase(u.getRole().getRoleName())) {
+                session.removeAttribute("redirectAfterLogin");
+                return "redirect:/admin";
+            }
             String redirectUrl = (String) session.getAttribute("redirectAfterLogin");
             if (redirectUrl != null) {
                 session.removeAttribute("redirectAfterLogin");

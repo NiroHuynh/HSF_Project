@@ -204,12 +204,37 @@
      ============================================================ -->
 <main class="container booking-page-content">
 
-    <div class="page-title-accent mt-xl mb-xl">
-        <h1 class="headline-lg">Bắp Nước</h1>
+    <div class="alert alert-danger my-3"
+         style="background: var(--color-brand-red-light, rgba(227, 27, 35, 0.1));
+                border: 1px solid var(--color-brand-red, #e31b23);
+                padding: 0 var(--space-lg);
+                border-radius: var(--radius-md, 8px);
+                margin-top: var(--space-xl);
+                margin-bottom: var(--space-lg);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                height: 56px;">
+
+        <div style="display: flex; align-items: center; gap: 8px; height: 100%; line-height: 1;">
+            <span class="material-symbols-outlined"
+                  style="color: var(--color-brand-red); font-size: 24px; display: inline-flex; align-items: center;">
+                  alarm
+            </span>
+            <span style="color: var(--color-text-primary); font-weight: 500; font-size: 15px;">
+                Thời gian giữ ghế còn lại của bạn:
+            </span>
+        </div>
+
+        <div style="display: flex; align-items: center; height: 100%;">
+            <b id="timer-box"
+               style="font-size: 22px; font-weight: 800; color: var(--color-brand-red); letter-spacing: 0.05em; line-height: 1; display: inline-flex; align-items: center;">
+                15:00
+            </b>
+        </div>
     </div>
 
     <div class="combo-grid" id="comboGrid">
-
         <div class="combo-card"
              th:each="combo : ${combos}"
              th:attr="data-combo-id=${combo.id},
@@ -236,7 +261,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 </main>
 
@@ -245,10 +269,9 @@
      Demo: mỗi combo có 1 input ẩn combo_{id}; controller bước sau
      chỉ cần lọc các combo_{id} có giá trị > 0.
      ============================================================ -->
-<form id="comboForm" method="get" th:action="@{/booking/payment}">
-    <input type="hidden" name="showtimeId" th:value="${showtimeId}"/>
-    <input type="hidden" name="seatIds" th:value="${seatIds}"/>
-    <input type="hidden" name="seatTotal" th:value="${seatTotal}"/>
+<form id="comboForm" method="post" th:action="@{/booking/combo/save}">
+    <input type="hidden" name="bookingCode" th:value="${bookingCode}"/>
+
     <input type="hidden"
            th:each="combo : ${combos}"
            th:name="${'combo_' + combo.id}"
@@ -261,10 +284,9 @@
      Ghế đã chọn / Combo / Tổng thanh toán / Tiếp tục).
      ============================================================ -->
 <div class="booking-actionbar">
-
-    <a class="btn btn-outline" th:href="@{/booking/seats(showtimeId=${showtimeId})}">
+    <a class="btn btn-outline" th:href="@{/movies}">
         <span class="material-symbols-outlined">arrow_back</span>
-        Quay về
+        Hủy lượt đặt vé
     </a>
 
     <div class="booking-actionbar__summary">
@@ -274,10 +296,8 @@
                 <th:block th:each="seat, iterStat : ${selectedSeats}">
                     <span th:text="${seat}">A1</span><span th:unless="${iterStat.last}">, </span>
                 </th:block>
-                <span th:if="${selectedSeats.isEmpty()}" class="text-muted">Vui lòng chọn ghế...</span>
             </div>
         </div>
-
         <div class="detail-group">
             <div class="detail-label">COMBO</div>
             <div class="detail-value" id="comboSummary">
@@ -298,14 +318,28 @@
 </div>
 
 <script th:inline="javascript">
-    /*
-     * Logic demo phía client:
-     * - Tăng/giảm số lượng từng combo.
-     * - Tính lại "TỔNG THANH TOÁN" = tiền vé (seatTotal, mang từ bước chọn ghế)
-     *   + tổng tiền combo đã chọn, cập nhật realtime không cần gọi server.
-     * - Đồng bộ số lượng vào input ẩn tương ứng để submit qua query param.
-     */
-    const seatTotal = Number(/*[[${seatTotal}]]*/ 0);
+    //1. LOGIC ĐỒNG HỒ ĐẾM NGƯỢC LIÊN THÔNG
+    // SỬA THÀNH THẾ NÀY:
+    let timeLeft = /*[[${secondsLeft}]]*/ 300;
+    const timerBox = document.getElementById('timer-box');
+
+    const countdown = setInterval(function () {
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            // alert("Hết thời gian giữ ghế! Hệ thống sẽ hủy lượt đặt vé này.");
+            window.location.href = "/movies/error?error=timeout";
+            return;
+        }
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+        timerBox.innerHTML = minutes + ":" + seconds;
+        timeLeft--;
+    }, 1000);
+
+    //2. LOGIC TÍNH TIỀN REALTIME (Sửa biến lấy từ booking tổng tiền ghế gốc)
+    const seatTotal = Number(/*[[${totalAmount}]]*/ 0);
     const comboCards = document.querySelectorAll('.combo-card');
 
     function formatVnd(amount) {
@@ -339,12 +373,10 @@
 
     comboCards.forEach(card => {
         const qtyEl = card.querySelector('.qty-value');
-
         card.querySelector('.qty-btn--plus').addEventListener('click', () => {
             qtyEl.textContent = Number(qtyEl.textContent) + 1;
             recalc();
         });
-
         card.querySelector('.qty-btn--minus').addEventListener('click', () => {
             qtyEl.textContent = Math.max(0, Number(qtyEl.textContent) - 1);
             recalc();
@@ -354,9 +386,66 @@
     recalc();
 </script>
 
-<!-- FOOTER dùng chung toàn site -->
-<div th:replace="~{fragments/footer :: footer}"></div>
-<script th:replace="~{fragments/header :: header-script}"></script>
+<!--<script th:inline="javascript">-->
+<!--    /*-->
+<!--     * Logic demo phía client:-->
+<!--     * - Tăng/giảm số lượng từng combo.-->
+<!--     * - Tính lại "TỔNG THANH TOÁN" = tiền vé (seatTotal, mang từ bước chọn ghế)-->
+<!--     *   + tổng tiền combo đã chọn, cập nhật realtime không cần gọi server.-->
+<!--     * - Đồng bộ số lượng vào input ẩn tương ứng để submit qua query param.-->
+<!--     */-->
+<!--    const seatTotal = Number(/*[[${seatTotal}]]*/ 0);-->
+<!--    const comboCards = document.querySelectorAll('.combo-card');-->
+
+<!--    function formatVnd(amount) {-->
+<!--        return Math.round(amount).toLocaleString('vi-VN') + ' đ';-->
+<!--    }-->
+
+<!--    function recalc() {-->
+<!--        let comboTotal = 0;-->
+<!--        const chosenNames = [];-->
+
+<!--        comboCards.forEach(card => {-->
+<!--            const qty = Number(card.querySelector('.qty-value').textContent);-->
+<!--            const price = Number(card.dataset.comboPrice);-->
+<!--            const id = card.dataset.comboId;-->
+<!--            const name = card.dataset.comboName;-->
+
+<!--            document.getElementById('qty-input-' + id).value = qty;-->
+
+<!--            if (qty > 0) {-->
+<!--                comboTotal += qty * price;-->
+<!--                chosenNames.push(name + ' x' + qty);-->
+<!--            }-->
+<!--        });-->
+
+<!--        document.getElementById('comboSummary').innerHTML = chosenNames.length-->
+<!--            ? chosenNames.join(', ')-->
+<!--            : '<span class="text-muted">Vui lòng chọn combo...</span>';-->
+
+<!--        document.getElementById('grandTotal').textContent = formatVnd(seatTotal + comboTotal);-->
+<!--    }-->
+
+<!--    comboCards.forEach(card => {-->
+<!--        const qtyEl = card.querySelector('.qty-value');-->
+
+<!--        card.querySelector('.qty-btn&#45;&#45;plus').addEventListener('click', () => {-->
+<!--            qtyEl.textContent = Number(qtyEl.textContent) + 1;-->
+<!--            recalc();-->
+<!--        });-->
+
+<!--        card.querySelector('.qty-btn&#45;&#45;minus').addEventListener('click', () => {-->
+<!--            qtyEl.textContent = Math.max(0, Number(qtyEl.textContent) - 1);-->
+<!--            recalc();-->
+<!--        });-->
+<!--    });-->
+
+<!--    recalc();-->
+<!--</script>-->
+
+<!--&lt;!&ndash; FOOTER dùng chung toàn site &ndash;&gt;-->
+<!--<div th:replace="~{fragments/footer :: footer}"></div>-->
+<!--<script th:replace="~{fragments/header :: header-script}"></script>-->
 
 </body>
 </html>
