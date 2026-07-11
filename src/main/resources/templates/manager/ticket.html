@@ -140,10 +140,10 @@
     <div class="date-filter">
       <span class="date-filter__label">Khoảng thời gian</span>
       <div class="date-filter__quick-btns">
-        <button class="date-filter__quick-btn is-active" onclick="setRange('today',this)">Hôm nay</button>
+        <button class="date-filter__quick-btn " onclick="setRange('today',this)">Hôm nay</button>
         <button class="date-filter__quick-btn" onclick="setRange('month',this)">Tháng này</button>
         <button class="date-filter__quick-btn" onclick="setRange('quarter',this)">Quý này</button>
-        <button class="date-filter__quick-btn" onclick="setRange('year',this)">Năm nay</button>
+        <button class="date-filter__quick-btn is-active" onclick="setRange('year',this)">Năm nay</button>
       </div>
       <div class="date-filter__sep"></div>
       <div class="date-filter__inputs">
@@ -330,8 +330,8 @@
   }
 
   document.getElementById('totalCount').textContent = tickets.length;
-  const todayBtn = document.querySelector('.date-filter__quick-btn.is-active');
-  if (todayBtn) setRange('today', todayBtn);
+  const yearBtn = document.querySelector('.date-filter__quick-btn:last-child');
+  if (yearBtn) setRange('year', yearBtn);
 
   /*]]>*/
 </script>
