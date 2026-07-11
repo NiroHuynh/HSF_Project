@@ -714,26 +714,26 @@ VALUES
  (SELECT id FROM promotion WHERE code = 'SUMMER10'),
  'CMX20261020J01',
  420000, 42000, 381000,
- 'PAID', NULL),
+ 'CONFIRMED', NULL),
 
 -- 3. Khánh — Joker, Vincom NCT - IMAX 03/07 10:30, ghế A1+A2, Hotdog Combo
 ((SELECT user_id FROM users WHERE email = 'khanh.tran@gmail.com'),
  NULL, 'CMX20260520J03',
  254000, 0, 257000,
- 'PAID', NULL),
+ 'CONFIRMED', NULL),
 
 -- 4. Linh — Joker, Pandora - 2D, đã hủy (không có ghế/ticket), mã WELCOME50K
 ((SELECT user_id FROM users WHERE email = 'linh.pham@gmail.com'),
  (SELECT id FROM promotion WHERE code = 'WELCOME50K'),
  'CMX20261020M01',
  150000, 50000, 103000,
- 'CANCELLED', N'Khách hủy do đổi lịch'),
+ 'CANCELED', N'Khách hủy do đổi lịch'),
 
 -- 5. Phong — Lằn Ranh Sinh Tử, Gigamall - 2D 03/07 15:00, ghế A3+A4, Topokki Combo
 ((SELECT user_id FROM users WHERE email = 'phong.huynh@gmail.com'),
  NULL, 'CMX20261021L01',
  260000, 0, 263000,
- 'PAID', NULL),
+ 'CONFIRMED', NULL),
 
 -- 6. Mai — Dune, Liberty - IMAX 03/07 20:00, ghế D1+D2, Michael Combo
 ((SELECT user_id FROM users WHERE email = 'mai.nguyen@gmail.com'),

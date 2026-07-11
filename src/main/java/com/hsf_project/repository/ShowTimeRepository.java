@@ -12,17 +12,12 @@ import java.util.Optional;
 public interface ShowTimeRepository extends JpaRepository<ShowTime, Long> {
 
     @Query("SELECT st FROM ShowTime st " +
-            "JOIN FETCH st.room r " +
-            "JOIN FETCH r.cinema c " +
-            "JOIN FETCH st.movie m " +
+            "JOIN FETCH st.room r JOIN FETCH r.cinema c JOIN FETCH st.movie m " +
             "WHERE st.id = :id")
     Optional<ShowTime> findDetailById(Long id);
 
-    // Lọc theo ngày bằng khoảng [đầu ngày, đầu ngày hôm sau) thay vì FUNCTION('DATE', ...)
-    // vì hàm DATE() không tồn tại trên SQL Server.
     @Query("SELECT st FROM ShowTime st " +
-            "JOIN FETCH st.room r " +
-            "JOIN FETCH st.movie m " +
+            "JOIN FETCH st.room r JOIN FETCH st.movie m " +
             "WHERE r.cinema.id = :cinemaId " +
             "AND st.startTime >= :startOfDay AND st.startTime < :endOfDay " +
             "AND (st.isDeleted IS NULL OR st.isDeleted = false) " +
@@ -32,4 +27,35 @@ public interface ShowTimeRepository extends JpaRepository<ShowTime, Long> {
             @Param("cinemaId") Integer cinemaId,
             @Param("startOfDay") LocalDateTime startOfDay,
             @Param("endOfDay") LocalDateTime endOfDay);
+
+    @Query("SELECT COUNT(st) FROM ShowTime st " +
+            "WHERE st.room.cinema.id = :cinemaId " +
+            "AND (st.isDeleted IS NULL OR st.isDeleted = false) " +
+            "AND st.startTime BETWEEN :from AND :to")
+    Long countByCinemaAndDateRange(@Param("cinemaId") Integer cinemaId,
+                                   @Param("from") LocalDateTime from,
+                                   @Param("to") LocalDateTime to);
+
+    /** Dùng cho tạo mới — check trùng lịch trong cùng phòng */
+    @Query("SELECT COUNT(st) FROM ShowTime st " +
+            "WHERE st.room.id = :roomId " +
+            "AND (st.isDeleted IS NULL OR st.isDeleted = false) " +
+            "AND st.startTime < :endTime AND st.endTime > :startTime")
+    Long countConflictingShowtimes(@Param("roomId") Integer roomId,
+                                   @Param("startTime") LocalDateTime startTime,
+                                   @Param("endTime") LocalDateTime endTime);
+
+    /**
+     * Dùng cho chỉnh sửa — check trùng lịch nhưng loại trừ chính suất chiếu đang edit.
+     * Nếu không loại trừ, showtime sẽ tự conflict với chính nó.
+     */
+    @Query("SELECT COUNT(st) FROM ShowTime st " +
+            "WHERE st.room.id = :roomId " +
+            "AND st.id != :excludeId " +
+            "AND (st.isDeleted IS NULL OR st.isDeleted = false) " +
+            "AND st.startTime < :endTime AND st.endTime > :startTime")
+    Long countConflictingShowtimesExcluding(@Param("roomId") Integer roomId,
+                                            @Param("startTime") LocalDateTime startTime,
+                                            @Param("endTime") LocalDateTime endTime,
+                                            @Param("excludeId") Long excludeId);
 }
