@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tổng Khách Hàng - CineMax</title>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+
+  <style>
+    :root {
+      --color-brand-red:#E31B23;--color-brand-red-hover:#C41219;--color-brand-red-light:rgba(227,27,35,0.15);
+      --color-bg:#0A0A0C;--color-surface:#111114;--color-surface-raised:#18181D;
+      --color-text-primary:#FFFFFF;--color-text-secondary:#A0A0B0;--color-text-muted:#606070;
+      --color-border:rgba(255,255,255,0.08);--color-border-strong:rgba(255,255,255,0.16);
+      --radius-xs:4px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-pill:9999px;
+      --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;
+      --font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+      --text-headline-lg:clamp(24px,3.5vw,36px);
+      --text-body-md:16px;--text-body-sm:14px;--text-label:12px;
+      --lh-headline:1.15;--lh-body:1.6;
+      --transition-fast:150ms ease;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font-family);font-size:var(--text-body-md);line-height:var(--lh-body);background-color:var(--color-bg);color:var(--color-text-primary);-webkit-font-smoothing:antialiased;display:flex;min-height:100vh;}
+    button{cursor:pointer;border:none;background:none;font-family:inherit}
+    a{text-decoration:none;color:inherit}
+
+    /* Layout */
+    :root{ --sidebar-w:256px; }
+    .main-wrapper{flex:1;min-width:0;overflow-y:auto;}
+    .container{width:100%;max-width:1200px;margin:0 auto;padding:0 var(--space-md)}
+    .mgr-page{padding-block:var(--space-xl)}
+
+    /* PAGE HEADER */
+    .page-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap}
+    .page-title{font-size:var(--text-headline-lg);font-weight:700;line-height:var(--lh-headline);letter-spacing:-0.015em}
+    .page-subtitle{color:var(--color-text-secondary);font-size:var(--text-body-sm);margin-top:6px}
+
+    /* DATE FILTER */
+    .date-filter{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:14px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
+    .date-filter__label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);white-space:nowrap}
+    .date-filter__quick-btns{display:flex;background:var(--color-surface-raised);border-radius:var(--radius-sm);padding:3px;gap:2px}
+    .date-filter__quick-btn{padding:6px 14px;font-size:var(--text-label);font-weight:600;color:var(--color-text-muted);border-radius:6px;transition:all var(--transition-fast);white-space:nowrap}
+    .date-filter__quick-btn:hover{color:var(--color-text-secondary)}
+    .date-filter__quick-btn.is-active{background:var(--color-brand-red);color:#fff}
+    .date-filter__sep{width:1px;height:24px;background:var(--color-border);flex-shrink:0}
+    .date-filter__inputs{display:flex;align-items:center;gap:8px}
+    .date-filter__input{padding:7px 12px;background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:6px;color:var(--color-text-primary);font-size:var(--text-body-sm);font-family:var(--font-family);outline:none;width:145px;transition:border-color var(--transition-fast)}
+    .date-filter__input:focus{border-color:var(--color-brand-red)}
+    .date-filter__input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+    .date-filter__to{font-size:var(--text-body-sm);color:var(--color-text-muted)}
+
+    /* STAT CARDS */
+    .stat-grid{display:grid;grid-template-columns:1fr;gap:var(--space-md);margin-top:var(--space-lg)}
+    .stat-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg);display:flex;flex-direction:column;gap:var(--space-sm);transition:transform var(--transition-fast),border-color var(--transition-fast)}
+    .stat-card:hover{transform:translateY(-2px);border-color:var(--color-border-strong)}
+    .stat-card__icon{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center}
+    .stat-card__icon--red{background:var(--color-brand-red-light);color:var(--color-brand-red)}
+    .stat-card__icon .material-symbols-outlined{font-size:22px}
+    .stat-card__label{font-size:var(--text-label);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-text-muted)}
+    .stat-card__value{font-size:32px;font-weight:800;letter-spacing:-0.02em}
+
+    /* FILTER BAR */
+    .filter-bar{margin-top:var(--space-xl);display:flex;align-items:center;gap:var(--space-md);flex-wrap:wrap}
+    .search-bar{position:relative;flex:1;min-width:220px;max-width:440px}
+    .search-bar__icon{position:absolute;left:var(--space-md);top:50%;transform:translateY(-50%);color:var(--color-text-muted);pointer-events:none;font-size:20px}
+    .search-bar__input{width:100%;padding:11px var(--space-md) 11px 44px;background:var(--color-surface);border:1.5px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text-primary);font-size:var(--text-body-sm);font-family:var(--font-family);outline:none;transition:border-color var(--transition-fast),box-shadow var(--transition-fast)}
+    .search-bar__input::placeholder{color:var(--color-text-muted)}
+    .search-bar__input:focus{border-color:var(--color-brand-red);box-shadow:0 0 0 3px rgba(227,27,35,0.15)}
+    .filter-count{margin-left:auto;font-size:var(--text-body-sm);color:var(--color-text-muted);white-space:nowrap}
+    .filter-count strong{color:var(--color-text-primary);font-weight:700}
+
+    /* TABLE */
+    .table-wrap{margin-top:var(--space-lg);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden}
+    .cust-table{width:100%;border-collapse:collapse;font-size:var(--text-body-sm)}
+    .cust-table th{text-align:left;font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.04em;padding:14px 16px;border-bottom:1px solid var(--color-border);background:var(--color-surface-raised);white-space:nowrap}
+    .cust-table td{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--color-text-secondary);vertical-align:middle}
+    .cust-table tbody tr:hover{background:var(--color-surface-raised)}
+    .cust-table tbody tr:last-child td{border-bottom:none}
+    .spend{font-weight:700;color:var(--color-text-primary)}
+    .cust-name{color:var(--color-text-primary);font-weight:600;font-size:var(--text-body-sm)}
+    .cust-id{font-size:11px;color:var(--color-text-muted);margin-top:1px}
+
+    /* EMPTY STATE */
+    .empty-state{text-align:center;padding:64px var(--space-lg);color:var(--color-text-muted)}
+    .empty-state .material-symbols-outlined{font-size:48px;margin-bottom:var(--space-sm);display:block;opacity:0.35}
+    .empty-state p{font-size:var(--text-body-sm);margin-top:4px}
+
+    @media(max-width:768px){
+      .page-header-row{flex-direction:column}
+      .filter-count{margin-left:0;width:100%}
+      .cust-table th:nth-child(3),.cust-table td:nth-child(3),
+      .cust-table th:nth-child(4),.cust-table td:nth-child(4){display:none}
+    }
+
+    .mgr-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- Sidebar fragment -->
+<div class="mgr-layout">                        <!-- thêm div này -->
+  <div th:replace="~{fragments/managerSidebar :: sidebar}"></div>
+<div class="main-wrapper">
+  <main class="container mgr-page">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header-row">
+      <div>
+        <h1 class="page-title">Tổng khách hàng</h1>
+        <p class="page-subtitle">Danh sách khách hàng và thông tin liên quan của chi nhánh.</p>
+      </div>
+      <!-- DATE FILTER -->
+      <div class="date-filter">
+        <span class="date-filter__label">Khoảng thời gian</span>
+        <div class="date-filter__quick-btns">
+          <button class="date-filter__quick-btn" onclick="setRange('today',this)">Hôm nay</button>
+          <button class="date-filter__quick-btn" onclick="setRange('month',this)">Tháng này</button>
+          <button class="date-filter__quick-btn" onclick="setRange('quarter',this)">Quý này</button>
+          <button class="date-filter__quick-btn is-active" onclick="setRange('year',this)">Năm nay</button>
+        </div>
+        <div class="date-filter__sep"></div>
+        <div class="date-filter__inputs">
+          <input type="date" class="date-filter__input" id="dateFrom" onchange="onDateChange()"/>
+          <span class="date-filter__to">→</span>
+          <input type="date" class="date-filter__input" id="dateTo" onchange="onDateChange()"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--red">
+          <span class="material-symbols-outlined">group</span>
+        </div>
+        <div class="stat-card__label">Tổng khách hàng</div>
+        <div class="stat-card__value" id="cardTotal" th:text="${totalCount}">0</div>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="search-bar">
+        <span class="material-symbols-outlined search-bar__icon">search</span>
+        <input type="text" class="search-bar__input"
+               placeholder="Tìm tên, email, số điện thoại..."
+               id="searchInput" oninput="applyTableFilter()"/>
+      </div>
+      <span class="filter-count">
+      Hiển thị: <strong id="visibleCount">0</strong> / <strong id="totalCount" th:text="${totalCount}">0</strong> khách hàng
+    </span>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table class="cust-table">
+        <thead>
+        <tr>
+          <th>Khách hàng</th>
+          <th>Email</th>
+          <th>Số điện thoại</th>
+          <th>Ngày đăng ký</th>
+          <th style="text-align:center">Số vé đã đặt</th>
+          <th style="text-align:right">Tổng chi tiêu</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <span class="material-symbols-outlined">search_off</span>
+        <strong>Không tìm thấy khách hàng nào</strong>
+        <p>Thử thay đổi từ khoá hoặc khoảng thời gian</p>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /.main-wrapper -->
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+
+  // Dữ liệu từ server — Thymeleaf serialize List<CustomerRowDTO> thành JSON
+  const customers = /*[[${customers}]]*/ [];
+
+  // ── STATE ────────────────────────────────────────────────────────────────────
+  let byDate = [...customers];
+
+  // ── DATE FILTER ──────────────────────────────────────────────────────────────
+  function applyDateFilter() {
+    const from = document.getElementById('dateFrom').value;
+    const to   = document.getElementById('dateTo').value;
+
+    byDate = customers.filter(c => {
+      if (from && c.dateISO < from) return false;
+      if (to   && c.dateISO > to)   return false;
+      return true;
+    });
+
+    updateCards(byDate);
+    applyTableFilter();
+  }
+
+  function updateCards(data) {
+    document.getElementById('cardTotal').textContent  = data.length;
+    document.getElementById('totalCount').textContent = data.length;
+  }
+
+  // ── TABLE FILTER (search) ─────────────────────────────────────────────────────
+  function applyTableFilter() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = byDate.filter(c =>
+            !q ||
+            c.name.toLowerCase().includes(q)  ||
+            c.email.toLowerCase().includes(q) ||
+            (c.phone && c.phone.replace(/\s/g,'').includes(q.replace(/\s/g,'')))
+    );
+    renderTable(filtered);
+  }
+
+  // ── RENDER ────────────────────────────────────────────────────────────────────
+  function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
+    document.getElementById('visibleCount').textContent = data.length;
+
+    if (!data.length) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    tbody.innerHTML = data.map(c => `
+      <tr>
+        <td>
+          <div class="cust-name">${c.name}</div>
+          <div class="cust-id">${c.id}</div>
+        </td>
+        <td>${c.email}</td>
+        <td>${c.phone}</td>
+        <td style="white-space:nowrap">${c.date}</td>
+        <td style="text-align:center;font-weight:600;color:var(--color-text-primary)">${c.tickets}</td>
+        <td style="text-align:right"><span class="spend">${c.spend}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  // ── DATE RANGE BUTTONS ────────────────────────────────────────────────────────
+  function setRange(mode, btn) {
+    document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+    if (mode === 'today') {
+      const s = fmtISO(now);
+      document.getElementById('dateFrom').value = s;
+      document.getElementById('dateTo').value   = s;
+    } else if (mode === 'month') {
+      document.getElementById('dateFrom').value = fmtISO(new Date(y, m, 1));
+      document.getElementById('dateTo').value   = fmtISO(new Date(y, m + 1, 0));
+    } else if (mode === 'quarter') {
+      const qs = Math.floor(m / 3) * 3;
+      document.getElementById('dateFrom').value = fmtISO(new Date(y, qs, 1));
+      document.getElementById('dateTo').value   = fmtISO(new Date(y, qs + 3, 0));
+    } else {
+      document.getElementById('dateFrom').value = y + '-01-01';
+      document.getElementById('dateTo').value   = y + '-12-31';
+    }
+    applyDateFilter();
+  }
+
+  function onDateChange() {
+    document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
+    applyDateFilter();
+  }
+
+  function fmtISO(d) {
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────────
+  document.getElementById('totalCount').textContent = customers.length;
+  const yearBtn = document.querySelector('.date-filter__quick-btn:last-child');
+  if (yearBtn) setRange('year', yearBtn);
+
+  /*]]>*/
+</script>
+</div>
+</body>
+</html>

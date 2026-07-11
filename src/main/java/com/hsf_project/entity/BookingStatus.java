@@ -6,8 +6,8 @@ package com.hsf_project.entity;
  * Dùng thống nhất enum này, không hard-code chuỗi status.
  */
 public enum BookingStatus {
-
-    PENDING,
-    PAID,
-    CANCELED
+    PENDING,    // Chờ thanh toán
+    CONFIRMED,  // Đã thanh toán
+    CANCELED,   // Đã hủy
+    EXPORTED    // Hoàn thành / Đã xuất vé
 }
