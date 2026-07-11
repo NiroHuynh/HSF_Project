@@ -69,11 +69,24 @@ public class Booking {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+    @Column(name="expired_at")
+    private LocalDateTime expiredAt;
+
+    public LocalDateTime getExpiredAt() {
+        return expiredAt;
+    }
+
+    public void setExpiredAt(LocalDateTime expiredAt) {
+        this.expiredAt = expiredAt;
+    }
+
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Ticket> tickets = new ArrayList<>();
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BookingCombo> bookingCombos = new ArrayList<>();
+
+
 
     public Long getId() {
         return id;

@@ -6,10 +6,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,7 +33,6 @@ public class ManagerHomeController {
 
         model.addAttribute("activePage", "dashboard");
 
-        // Mặc định: năm hiện tại, mode = year
         int year = LocalDate.now().getYear();
         LocalDateTime from = LocalDateTime.of(year, 1,  1,  0,  0,  0);
         LocalDateTime to   = LocalDateTime.of(year, 12, 31, 23, 59, 59);
@@ -63,10 +59,6 @@ public class ManagerHomeController {
         return "manager/home";
     }
 
-    /**
-     * AJAX — cập nhật stats + biểu đồ khi đổi date range.
-     * mode: "today" | "month" | "quarter" | "year" | "custom"
-     */
     @GetMapping("/dashboard/stats")
     @ResponseBody
     public Map<String, Object> getStats(
@@ -98,5 +90,23 @@ public class ManagerHomeController {
         }
 
         return managerDashboardService.searchBooking(code, user.getCinema().getId());
+    }
+
+    /**
+     * POST /manager/dashboard/export?code=CMX...
+     * Đổi booking status CONFIRMED → EXPORTED
+     */
+    @PostMapping("/dashboard/export")
+    @ResponseBody
+    public Map<String, Object> exportBooking(
+            @RequestParam String code,
+            HttpSession session) {
+
+        User user = (User) session.getAttribute("ttdn");
+        if (user == null || user.getCinema() == null) {
+            return Map.of("success", false, "message", "Chưa đăng nhập.");
+        }
+
+        return managerDashboardService.exportBooking(code, user.getCinema().getId());
     }
 }
