@@ -146,7 +146,8 @@
 <body>
 <div class="mgr-layout">                        <!-- thêm div này -->
     <aside th:replace="~{fragments/managerSidebar :: sidebar}"></aside>
-<main class="container mgr-page">
+    <div class="mgr-main">
+    <main class="container mgr-page">
     <!-- PAGE HEADER + FILTER -->
     <div class="page-header-row">
         <div>
@@ -220,6 +221,7 @@
         </div>
     </div>
 </main>
+    </div>
 
 <!-- POPUP -->
 <div class="bill-modal" id="billModal" onclick="closeModal()">

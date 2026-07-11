@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
 
   <style>
     :root {
@@ -23,9 +24,13 @@
       --transition-fast:150ms ease;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:var(--font-family);font-size:var(--text-body-md);line-height:var(--lh-body);background-color:var(--color-bg);color:var(--color-text-primary);-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-family);font-size:var(--text-body-md);line-height:var(--lh-body);background-color:var(--color-bg);color:var(--color-text-primary);-webkit-font-smoothing:antialiased;display:flex;min-height:100vh;}
     button{cursor:pointer;border:none;background:none;font-family:inherit}
     a{text-decoration:none;color:inherit}
+
+    /* Layout */
+    :root{ --sidebar-w:256px; }
+    .main-wrapper{flex:1;min-width:0;overflow-y:auto;}
     .container{width:100%;max-width:1200px;margin:0 auto;padding:0 var(--space-md)}
     .mgr-page{padding-block:var(--space-xl)}
 
@@ -48,13 +53,12 @@
     .date-filter__input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
     .date-filter__to{font-size:var(--text-body-sm);color:var(--color-text-muted)}
 
+    /* STAT CARDS */
     .stat-grid{display:grid;grid-template-columns:1fr;gap:var(--space-md);margin-top:var(--space-lg)}
     .stat-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg);display:flex;flex-direction:column;gap:var(--space-sm);transition:transform var(--transition-fast),border-color var(--transition-fast)}
     .stat-card:hover{transform:translateY(-2px);border-color:var(--color-border-strong)}
     .stat-card__icon{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center}
     .stat-card__icon--red{background:var(--color-brand-red-light);color:var(--color-brand-red)}
-    .stat-card__icon--blue{background:rgba(109,185,240,0.15);color:#6DB9F0}
-    .stat-card__icon--green{background:rgba(45,183,115,0.15);color:#4AB773}
     .stat-card__icon .material-symbols-outlined{font-size:22px}
     .stat-card__label{font-size:var(--text-label);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-text-muted)}
     .stat-card__value{font-size:32px;font-weight:800;letter-spacing:-0.02em}
@@ -76,14 +80,11 @@
     .cust-table td{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--color-text-secondary);vertical-align:middle}
     .cust-table tbody tr:hover{background:var(--color-surface-raised)}
     .cust-table tbody tr:last-child td{border-bottom:none}
-
-    /* Spend */
     .spend{font-weight:700;color:var(--color-text-primary)}
-    /* Customer cell */
     .cust-name{color:var(--color-text-primary);font-weight:600;font-size:var(--text-body-sm)}
     .cust-id{font-size:11px;color:var(--color-text-muted);margin-top:1px}
 
-    /* Empty state */
+    /* EMPTY STATE */
     .empty-state{text-align:center;padding:64px var(--space-lg);color:var(--color-text-muted)}
     .empty-state .material-symbols-outlined{font-size:48px;margin-bottom:var(--space-sm);display:block;opacity:0.35}
     .empty-state p{font-size:var(--text-body-sm);margin-top:4px}
@@ -94,103 +95,105 @@
       .cust-table th:nth-child(3),.cust-table td:nth-child(3),
       .cust-table th:nth-child(4),.cust-table td:nth-child(4){display:none}
     }
+
+    .mgr-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
   </style>
 </head>
 <body>
 
-<main class="container mgr-page">
+<!-- Sidebar fragment -->
+<div class="mgr-layout">                        <!-- thêm div này -->
+  <div th:replace="~{fragments/managerSidebar :: sidebar}"></div>
+<div class="main-wrapper">
+  <main class="container mgr-page">
 
-  <!-- PAGE HEADER -->
-  <div class="page-header-row">
-    <div>
-      <h1 class="page-title">Tổng khách hàng</h1>
-      <p class="page-subtitle">
-        Danh sách khách hàng và thông tin liên quan của chi nhánh.
-      </p>
-    </div>
-    <!-- DATE FILTER -->
-    <div class="date-filter">
-      <span class="date-filter__label">Khoảng thời gian</span>
-      <div class="date-filter__quick-btns">
-        <button class="date-filter__quick-btn is-active" onclick="setRange('today',this)">Hôm nay</button>
-        <button class="date-filter__quick-btn" onclick="setRange('month',this)">Tháng này</button>
-        <button class="date-filter__quick-btn" onclick="setRange('quarter',this)">Quý này</button>
-        <button class="date-filter__quick-btn" onclick="setRange('year',this)">Năm nay</button>
+    <!-- PAGE HEADER -->
+    <div class="page-header-row">
+      <div>
+        <h1 class="page-title">Tổng khách hàng</h1>
+        <p class="page-subtitle">Danh sách khách hàng và thông tin liên quan của chi nhánh.</p>
       </div>
-      <div class="date-filter__sep"></div>
-      <div class="date-filter__inputs">
-        <input type="date" class="date-filter__input" id="dateFrom" value="2026-07-09" onchange="onDateChange()"/>
-        <span class="date-filter__to">→</span>
-        <input type="date" class="date-filter__input" id="dateTo" value="2026-07-09" onchange="onDateChange()"/>
+      <!-- DATE FILTER -->
+      <div class="date-filter">
+        <span class="date-filter__label">Khoảng thời gian</span>
+        <div class="date-filter__quick-btns">
+          <button class="date-filter__quick-btn is-active" onclick="setRange('today',this)">Hôm nay</button>
+          <button class="date-filter__quick-btn" onclick="setRange('month',this)">Tháng này</button>
+          <button class="date-filter__quick-btn" onclick="setRange('quarter',this)">Quý này</button>
+          <button class="date-filter__quick-btn" onclick="setRange('year',this)">Năm nay</button>
+        </div>
+        <div class="date-filter__sep"></div>
+        <div class="date-filter__inputs">
+          <input type="date" class="date-filter__input" id="dateFrom" onchange="onDateChange()"/>
+          <span class="date-filter__to">→</span>
+          <input type="date" class="date-filter__input" id="dateTo" onchange="onDateChange()"/>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- STAT CARDS -->
-  <div class="stat-grid">
-    <div class="stat-card">
-      <div class="stat-card__icon stat-card__icon--red">
-        <span class="material-symbols-outlined">group</span>
+    <!-- STAT CARDS -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--red">
+          <span class="material-symbols-outlined">group</span>
+        </div>
+        <div class="stat-card__label">Tổng khách hàng</div>
+        <div class="stat-card__value" id="cardTotal" th:text="${totalCount}">0</div>
       </div>
-      <div class="stat-card__label">Tổng khách hàng</div>
-      <div class="stat-card__value" id="cardTotal">—</div>
     </div>
-  </div>
 
-  <!-- FILTER BAR -->
-  <div class="filter-bar">
-    <div class="search-bar">
-      <span class="material-symbols-outlined search-bar__icon">search</span>
-      <input type="text" class="search-bar__input"
-             placeholder="Tìm tên, email, số điện thoại..."
-             id="searchInput" oninput="applyTableFilter()"/>
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="search-bar">
+        <span class="material-symbols-outlined search-bar__icon">search</span>
+        <input type="text" class="search-bar__input"
+               placeholder="Tìm tên, email, số điện thoại..."
+               id="searchInput" oninput="applyTableFilter()"/>
+      </div>
+      <span class="filter-count">
+      Hiển thị: <strong id="visibleCount">0</strong> / <strong id="totalCount" th:text="${totalCount}">0</strong> khách hàng
+    </span>
     </div>
-    <span class="filter-count">Hiển thị: <strong id="visibleCount">—</strong> / <strong id="totalCount">—</strong> khách hàng</span>
-  </div>
 
-  <!-- TABLE -->
-  <div class="table-wrap">
-    <table class="cust-table">
-      <thead>
-      <tr>
-        <th>Khách hàng</th>
-        <th>Email</th>
-        <th>Số điện thoại</th>
-        <th>Ngày đăng ký</th>
-        <th style="text-align:center">Số vé đã đặt</th>
-        <th style="text-align:right">Tổng chi tiêu</th>
-      </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <div class="empty-state" id="emptyState" style="display:none">
-      <span class="material-symbols-outlined">search_off</span>
-      <strong>Không tìm thấy khách hàng nào</strong>
-      <p>Thử thay đổi từ khoá hoặc khoảng thời gian</p>
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table class="cust-table">
+        <thead>
+        <tr>
+          <th>Khách hàng</th>
+          <th>Email</th>
+          <th>Số điện thoại</th>
+          <th>Ngày đăng ký</th>
+          <th style="text-align:center">Số vé đã đặt</th>
+          <th style="text-align:right">Tổng chi tiêu</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <span class="material-symbols-outlined">search_off</span>
+        <strong>Không tìm thấy khách hàng nào</strong>
+        <p>Thử thay đổi từ khoá hoặc khoảng thời gian</p>
+      </div>
     </div>
-  </div>
 
-</main>
+  </main>
+</div><!-- /.main-wrapper -->
 
-<script>
-  // ── MOCK DATA ────────────────────────────────────────────────────────────────
-  const customers = [
-    { id:'KH-001', name:'Nguyễn Văn An',   avatar:'NV', avClass:'av-red',    email:'an.nguyen@gmail.com',    phone:'0901 234 567', dateISO:'2026-07-09', date:'09/07/2026', tickets:5,  spend:'1,250,000 đ', isNew:true  },
-    { id:'KH-002', name:'Trần Thị Bảo',    avatar:'TB', avClass:'av-blue',   email:'bao.tran@gmail.com',     phone:'0912 345 678', dateISO:'2026-07-09', date:'09/07/2026', tickets:2,  spend:'390,000 đ',   isNew:true  },
-    { id:'KH-003', name:'Lê Minh Châu',    avatar:'LM', avClass:'av-green',  email:'chau.le@outlook.com',    phone:'0933 456 789', dateISO:'2026-07-08', date:'08/07/2026', tickets:8,  spend:'2,104,000 đ', isNew:false },
-    { id:'KH-004', name:'Phạm Thu Dung',   avatar:'PT', avClass:'av-gold',   email:'dung.pham@yahoo.com',    phone:'0944 567 890', dateISO:'2026-07-06', date:'06/07/2026', tickets:1,  spend:'401,000 đ',   isNew:false },
-    { id:'KH-005', name:'Hoàng Nam Em',    avatar:'HN', avClass:'av-purple', email:'em.hoang@gmail.com',     phone:'0955 678 901', dateISO:'2026-06-20', date:'20/06/2026', tickets:3,  spend:'670,000 đ',   isNew:false },
-    { id:'KH-006', name:'Vũ Thị Fang',     avatar:'VT', avClass:'av-red',    email:'fang.vu@gmail.com',      phone:'0966 789 012', dateISO:'2026-06-01', date:'01/06/2026', tickets:12, spend:'3,480,000 đ', isNew:false },
-    { id:'KH-007', name:'Đặng Quốc Gia',   avatar:'DQ', avClass:'av-blue',   email:'gia.dang@icloud.com',    phone:'0977 890 123', dateISO:'2026-04-15', date:'15/04/2026', tickets:6,  spend:'1,620,000 đ', isNew:false },
-    { id:'KH-008', name:'Ngô Lan Hương',   avatar:'NL', avClass:'av-green',  email:'huong.ngo@gmail.com',    phone:'0988 901 234', dateISO:'2026-04-02', date:'02/04/2026', tickets:0,  spend:'0 đ',         isNew:false },
-    { id:'KH-009', name:'Bùi Thanh Inh',   avatar:'BT', avClass:'av-gold',   email:'inh.bui@gmail.com',      phone:'0911 012 345', dateISO:'2026-02-14', date:'14/02/2026', tickets:4,  spend:'920,000 đ',   isNew:false },
-    { id:'KH-010', name:'Cao Mỹ Linh',     avatar:'CM', avClass:'av-purple', email:'linh.cao@outlook.com',   phone:'0922 123 456', dateISO:'2026-01-05', date:'05/01/2026', tickets:9,  spend:'2,340,000 đ', isNew:false },
-  ];
+<script th:inline="javascript">
+  /*<![CDATA[*/
+
+  // Dữ liệu từ server — Thymeleaf serialize List<CustomerRowDTO> thành JSON
+  const customers = /*[[${customers}]]*/ [];
 
   // ── STATE ────────────────────────────────────────────────────────────────────
   let byDate = [...customers];
 
-  // ── DATE FILTER → cập nhật cards + bảng ─────────────────────────────────────
+  // ── DATE FILTER ──────────────────────────────────────────────────────────────
   function applyDateFilter() {
     const from = document.getElementById('dateFrom').value;
     const to   = document.getElementById('dateTo').value;
@@ -210,22 +213,22 @@
     document.getElementById('totalCount').textContent = data.length;
   }
 
-  // ── TABLE FILTER (search) → chỉ render bảng ─────────────────────────────────
+  // ── TABLE FILTER (search) ─────────────────────────────────────────────────────
   function applyTableFilter() {
     const q = document.getElementById('searchInput').value.toLowerCase();
     const filtered = byDate.filter(c =>
             !q ||
             c.name.toLowerCase().includes(q)  ||
             c.email.toLowerCase().includes(q) ||
-            c.phone.replace(/\s/g,'').includes(q.replace(/\s/g,''))
+            (c.phone && c.phone.replace(/\s/g,'').includes(q.replace(/\s/g,'')))
     );
     renderTable(filtered);
   }
 
-  // ── RENDER ───────────────────────────────────────────────────────────────────
+  // ── RENDER ────────────────────────────────────────────────────────────────────
   function renderTable(data) {
-    const tbody    = document.getElementById('tableBody');
-    const empty    = document.getElementById('emptyState');
+    const tbody = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
     document.getElementById('visibleCount').textContent = data.length;
 
     if (!data.length) {
@@ -236,23 +239,21 @@
     empty.style.display = 'none';
 
     tbody.innerHTML = data.map(c => `
-        <tr>
-            <td>
-                <div class="cust-name">${c.name}</div>
-                <div class="cust-id">${c.id}</div>
-            </td>
-            <td>${c.email}</td>
-            <td>${c.phone}</td>
-            <td style="white-space:nowrap">${c.date}</td>
-            <td style="text-align:center;font-weight:600;color:var(--color-text-primary)">${c.tickets}</td>
-            <td style="text-align:right">
-                <span class="spend">${c.spend}</span>
-            </td>
-        </tr>
+      <tr>
+        <td>
+          <div class="cust-name">${c.name}</div>
+          <div class="cust-id">${c.id}</div>
+        </td>
+        <td>${c.email}</td>
+        <td>${c.phone}</td>
+        <td style="white-space:nowrap">${c.date}</td>
+        <td style="text-align:center;font-weight:600;color:var(--color-text-primary)">${c.tickets}</td>
+        <td style="text-align:right"><span class="spend">${c.spend}</span></td>
+      </tr>
     `).join('');
   }
 
-  // ── DATE RANGE BUTTONS ───────────────────────────────────────────────────────
+  // ── DATE RANGE BUTTONS ────────────────────────────────────────────────────────
   function setRange(mode, btn) {
     document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
     btn.classList.add('is-active');
@@ -281,11 +282,16 @@
   }
 
   function fmtISO(d) {
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
 
-  // ── INIT ─────────────────────────────────────────────────────────────────────
-  applyDateFilter();
+  // ── INIT ──────────────────────────────────────────────────────────────────────
+  document.getElementById('totalCount').textContent = customers.length;
+  const todayBtn = document.querySelector('.date-filter__quick-btn.is-active');
+  if (todayBtn) setRange('today', todayBtn);
+
+  /*]]>*/
 </script>
+</div>
 </body>
 </html>
