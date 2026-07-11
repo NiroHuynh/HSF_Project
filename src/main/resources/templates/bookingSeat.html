@@ -238,9 +238,9 @@
 </main>
 
 <!-- ============================================================
-     FORM ẨN — mang dữ liệu sang bước Combo qua query param.
+     FORM ẨN — mang dữ liệu sang bước Combo
      ============================================================ -->
-<form id="seatForm" method="get" th:action="@{/booking/combo}">
+<form id="seatForm" method="post" th:action="@{/booking/initiate}">
     <input type="hidden" name="showtimeId" th:value="${showtimeId}"/>
     <input type="hidden" name="seatIds" id="seatIdsInput" value=""/>
     <input type="hidden" name="seatTotal" id="seatTotalInput" value="0"/>
@@ -250,8 +250,6 @@
      ACTION BAR — sticky dưới cùng (dùng lại đúng pattern của trang Combo).
      ============================================================ -->
 <div class="booking-actionbar">
-
-    <!-- Chưa rõ route thật của trang bookingContext nên tạm dùng history.back() -->
     <button type="button" class="btn btn-outline" onclick="history.back()">
         <span class="material-symbols-outlined">arrow_back</span>
         Quay về

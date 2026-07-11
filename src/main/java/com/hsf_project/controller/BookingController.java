@@ -5,18 +5,20 @@ import com.hsf_project.engine.ShowDateEngine;
 import com.hsf_project.entity.Cinema;
 import com.hsf_project.entity.City;
 import com.hsf_project.entity.Movie;
+import com.hsf_project.entity.User;
+import com.hsf_project.service.BookingConfirmService;
 import com.hsf_project.service.CinemaService;
 import com.hsf_project.service.CityService;
 import com.hsf_project.service.MovieService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,9 @@ public class BookingController {
 
     @Autowired
     private CityService cityService;
+
+    @Autowired
+    private BookingConfirmService bookingConfirmService;
 
     @GetMapping("/movie/{id}")
     public String movieDetail(@PathVariable Integer id,
@@ -69,6 +74,39 @@ public class BookingController {
 
         // Đổi đúng theo đường dẫn template thật của bạn, ví dụ "booking/movie-detail"
         return "bookingContext";
+    }
+
+    @PostMapping("/initiate")
+    public String initiateBooking(
+            @RequestParam Long showtimeId,
+            @RequestParam String seatIds,
+            HttpSession session// Nhận chuỗi dạng "A1,A2" từ Form
+    ) {
+        User userSession = (User) session.getAttribute("ttdn");
+        if (userSession == null) {
+            // Nếu chưa đăng nhập (hết hạn session), đá về trang login
+            return "redirect:/login";
+        }
+        // 1. Chuyển chuỗi "A1,A2" thành List<String>
+        List<String> listSeats = Arrays.stream(seatIds.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+
+
+        // 2. Gọi hàm confirmBooking(Giai đoạn này chưa chọn combo, voucher nên truyền null/ZERO)
+        var result = bookingConfirmService.confirmBooking(
+                userSession.getId(),                  // 1. Long userId
+                showtimeId,              // 2. Long showtimeId
+                listSeats,               // 3. List<String> seatCodes
+                null,                    // 4. Map<Long, Integer> comboQuantities
+                null,                    // 5. Long paymentMethodId
+                null,                    // 6. Long promotionId
+                BigDecimal.ZERO          // 7. BigDecimal discountAmount
+        );
+
+        // 3. Điều hướng sang trang combo kèm theo mã bookingCode vừa sinh ra
+        return "redirect:/booking/combo?bookingCode=" + result.bookingCode();
     }
 
 
