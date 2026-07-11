@@ -13,24 +13,12 @@ import java.util.List;
 
 public interface MovieRepository extends JpaRepository<Movie, Integer> {
 
-    /**
-     * 1. Dành cho PHIM ĐANG CHIẾU:
-     * Lọc theo trạng thái NOW_SHOWING, chưa bị xóa (isDeleted = false hoặc null).
-     * Sắp xếp theo điểm Rating giảm dần (từ cao xuống thấp).
-     * Giới hạn lấy đúng 4 phần tử (Top 4).
-     */
     @Query(value = "SELECT TOP 4 * FROM movie m " +
             "WHERE m.status = :status " +
             "AND (m.is_deleted = 0 OR m.is_deleted IS NULL) " +
             "ORDER BY m.average_rating DESC", nativeQuery = true)
     List<Movie> findTopMoviesByRating(@Param("status") String status);
 
-    /**
-     * 2. Dành cho PHIM SẮP CHIẾU:
-     * Lọc theo trạng thái COMING_SOON, chưa bị xóa, ngày khởi chiếu lớn hơn hoặc bằng ngày hiện tại.
-     * Sắp xếp theo ngày khởi chiếu tăng dần (ngày gần hiện tại nhất lên đầu).
-     * Giới hạn lấy đúng 4 phần tử (Top 4).
-     */
     @Query(value = "SELECT TOP 4 * FROM movie m " +
             "WHERE m.status = :status " +
             "AND (m.is_deleted = 0 OR m.is_deleted IS NULL) " +
@@ -38,8 +26,7 @@ public interface MovieRepository extends JpaRepository<Movie, Integer> {
             "ORDER BY m.release_date ASC", nativeQuery = true)
     List<Movie> findUpcomingMoviesByReleaseDate(
             @Param("status") String status,
-            @Param("currentDate") LocalDate currentDate
-    );
+            @Param("currentDate") LocalDate currentDate);
 
     Page<Movie> findByStatusAndIsDeletedFalse(MovieStatus status, Pageable pageable);
 
@@ -51,4 +38,13 @@ public interface MovieRepository extends JpaRepository<Movie, Integer> {
 
     @Query("SELECT DISTINCT m FROM Movie m JOIN m.genres g WHERE g.id IN :genreIds AND m.status = :status AND (m.isDeleted IS NULL OR m.isDeleted = false) AND LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Movie> findByGenreIdsAndStatusAndTitleContaining(@Param("genreIds") List<Integer> genreIds, @Param("status") MovieStatus status, @Param("keyword") String keyword, Pageable pageable);
+
+    /**
+     * Lấy danh sách phim cho dropdown tạo suất chiếu.
+     * Chỉ lấy phim NOW_SHOWING và COMING_SOON, sắp xếp theo tên.
+     */
+    @Query("SELECT m FROM Movie m WHERE m.status IN :statuses " +
+            "AND (m.isDeleted IS NULL OR m.isDeleted = false) " +
+            "ORDER BY m.title ASC")
+    List<Movie> findByStatusInForDropdown(@Param("statuses") List<MovieStatus> statuses);
 }
