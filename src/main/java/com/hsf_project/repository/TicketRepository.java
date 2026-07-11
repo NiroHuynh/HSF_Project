@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket,Long> {
-    long countByTicketPriceRoomId(Integer roomId);
 
     @Query("""
         SELECT CASE
