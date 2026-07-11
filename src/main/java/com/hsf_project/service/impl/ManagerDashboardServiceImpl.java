@@ -44,57 +44,43 @@ public class ManagerDashboardServiceImpl implements ManagerDashboardService {
         nf.setMaximumFractionDigits(0);
         String revenueFormatted = nf.format(revenue != null ? revenue : BigDecimal.ZERO) + " đ";
 
-        // ── Dữ liệu biểu đồ theo mode ────────────────────────────────────────
         List<String> chartLabels;
         long[]       chartData;
 
         switch (mode) {
-
             case "today": {
-                // 1 cột duy nhất — ngày hôm nay
                 chartLabels = List.of(from.format(DateTimeFormatter.ofPattern("dd/MM")));
                 long todayRev = revenue != null ? revenue.longValue() : 0L;
                 chartData = new long[]{ todayRev };
                 break;
             }
-
             case "month": {
-                // 4 cột theo tuần trong tháng
                 chartLabels = List.of("Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4");
                 chartData   = new long[4];
                 List<Object[]> weekly = bookingRepository.getWeeklyRevenueByCinema(cinemaId, from, to);
                 for (Object[] row : weekly) {
-                    int week = ((Number) row[0]).intValue() - 1; // 0-indexed (0–3)
-                    if (week >= 0 && week < 4) {
-                        chartData[week] = ((Number) row[1]).longValue();
-                    }
+                    int week = ((Number) row[0]).intValue() - 1;
+                    if (week >= 0 && week < 4) chartData[week] = ((Number) row[1]).longValue();
                 }
                 break;
             }
-
             case "quarter": {
-                // 4 cột Q1-Q4, date range là cả năm
                 chartLabels = List.of("Q1", "Q2", "Q3", "Q4");
                 chartData   = new long[4];
                 List<Object[]> quarterData = bookingRepository.getQuarterlyRevenueByCinema(cinemaId, from, to);
                 for (Object[] row : quarterData) {
-                    int q = ((Number) row[0]).intValue() - 1; // 0-indexed (0-3)
-                    if (q >= 0 && q < 4) {
-                        chartData[q] = ((Number) row[1]).longValue();
-                    }
+                    int q = ((Number) row[0]).intValue() - 1;
+                    if (q >= 0 && q < 4) chartData[q] = ((Number) row[1]).longValue();
                 }
                 break;
             }
-
-            default: { // "year" hoặc custom date range → luôn hiện 12 tháng
+            default: {
                 chartLabels = MONTH_LABELS;
                 chartData   = new long[12];
                 List<Object[]> monthly = bookingRepository.getMonthlyRevenueByCinema(cinemaId, from, to);
                 for (Object[] row : monthly) {
-                    int month = ((Number) row[0]).intValue() - 1; // 0-indexed
-                    if (month >= 0 && month < 12) {
-                        chartData[month] = ((Number) row[1]).longValue();
-                    }
+                    int month = ((Number) row[0]).intValue() - 1;
+                    if (month >= 0 && month < 12) chartData[month] = ((Number) row[1]).longValue();
                 }
                 break;
             }
@@ -127,10 +113,8 @@ public class ManagerDashboardServiceImpl implements ManagerDashboardService {
         Booking b = opt.get();
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("found", true);
-
         result.put("bookingCode", b.getBookingCode());
         result.put("status",      b.getStatus());
-
         result.put("customerName",  b.getUser().getLastName() + " " + b.getUser().getFirstName());
         result.put("customerPhone", b.getUser().getPhoneNumber() != null ? b.getUser().getPhoneNumber() : "—");
 
@@ -184,5 +168,32 @@ public class ManagerDashboardServiceImpl implements ManagerDashboardService {
         result.put("finalAmount",    nf.format(b.getFinalAmount())    + " đ");
 
         return result;
+    }
+
+    // ── exportBooking ─────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public Map<String, Object> exportBooking(String bookingCode, Integer cinemaId) {
+        Optional<Booking> opt = bookingRepository
+                .findByCodeAndCinemaForSearch(bookingCode.trim(), cinemaId);
+
+        if (opt.isEmpty()) {
+            return Map.of("success", false, "message", "Không tìm thấy booking tại chi nhánh của bạn.");
+        }
+
+        Booking b = opt.get();
+
+        // Chỉ được xuất khi đã thanh toán
+        if ("EXPORTED".equals(b.getStatus())) {
+            return Map.of("success", false, "message", "Vé này đã được xuất trước đó.");
+        }
+        if (!"CONFIRMED".equals(b.getStatus())) {
+            return Map.of("success", false, "message", "Chỉ có thể xuất vé khi booking đã thanh toán (CONFIRMED).");
+        }
+
+        b.setStatus("EXPORTED");
+        bookingRepository.save(b);
+        return Map.of("success", true);
     }
 }

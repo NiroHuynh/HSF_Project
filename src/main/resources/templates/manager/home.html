@@ -419,7 +419,10 @@
     }
 
     // ── POPULATE MODAL ────────────────────────────────────────────────────────
+    let currentBookingCode = null; // lưu mã booking đang mở popup
+
     function populateModal(d) {
+        currentBookingCode = d.bookingCode; // lưu lại để dùng khi export
         document.getElementById('m-code').textContent     = '#' + d.bookingCode;
         document.getElementById('m-movie').textContent    = d.movieTitle   || '—';
         document.getElementById('m-room').textContent     = d.roomName     || '—';
@@ -483,12 +486,44 @@
     }
 
     function markExported() {
+        if (!currentBookingCode) return;
+
         const btn = document.getElementById('btnExport');
         btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">check_circle</span> Đã xuất';
-        const s = document.getElementById('m-status');
-        s.textContent = 'EXPORTED';
-        s.className   = 'chip-status-popup chip-exported';
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">hourglass_empty</span> Đang xử lý...';
+
+        fetch(`/manager/dashboard/export?code=${encodeURIComponent(currentBookingCode)}`, {
+            method: 'POST'
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Thành công — cập nhật UI
+                    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">check_circle</span> Đã xuất';
+                    const s = document.getElementById('m-status');
+                    s.textContent = 'EXPORTED';
+                    s.className   = 'chip-status-popup chip-exported';
+                } else {
+                    // Thất bại — hiện modal thông báo, bật lại nút
+                    showErrorModal(data.message || 'Không thể xuất vé.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">print</span> Xuất vé';
+                }
+            })
+            .catch(() => {
+                showErrorModal('Lỗi kết nối, vui lòng thử lại.');
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">print</span> Xuất vé';
+            });
+    }
+
+    function showErrorModal(message) {
+        document.getElementById('errorModalMsg').textContent = message;
+        document.getElementById('errorModal').style.display = 'flex';
+    }
+
+    function closeErrorModal() {
+        document.getElementById('errorModal').style.display = 'none';
     }
 
     // ── INIT: set date input về năm hiện tại (khớp với nút "Năm" đang active) ──
@@ -500,5 +535,26 @@
 
     /*]]>*/
 </script>
+
+<!-- Modal thông báo lỗi xuất vé -->
+<div id="errorModal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeErrorModal()">
+    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
+        <div style="background:#111114;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:28px;width:100%;max-width:380px;margin:16px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+                <div style="width:40px;height:40px;border-radius:8px;background:rgba(227,27,35,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <span class="material-symbols-outlined" style="color:#E31B23;font-size:20px">error</span>
+                </div>
+                <div style="font-weight:700;font-size:16px">Không thể xuất vé</div>
+            </div>
+            <p id="errorModalMsg" style="font-size:14px;color:#A0A0B0;margin-bottom:24px"></p>
+            <div style="display:flex;justify-content:flex-end">
+                <button onclick="closeErrorModal()"
+                        style="padding:9px 24px;border-radius:8px;border:none;background:#E31B23;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+                    Đã hiểu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

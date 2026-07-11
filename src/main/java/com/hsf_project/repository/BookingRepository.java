@@ -16,9 +16,13 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByUserIdAndIsDeletedFalseOrderByBookingDateDesc(Long userId);
+
     Optional<Booking> findByBookingCodeAndIsDeletedFalse(String bookingCode);
 
-    // ── manager/tickets ───────────────────────────────────────────────────────
+    List<Booking> findByStatusAndExpiredAtBeforeAndIsDeletedFalse(String pending, LocalDateTime now);
+
+    long countByUserIdAndIsDeletedFalseAndStatusAndNoteAndBookingDateAfter(Long userId, String status, String note, LocalDateTime bookingDate);
+// ── manager/tickets ───────────────────────────────────────────────────────
 
     @EntityGraph(attributePaths = {
             "user", "tickets", "tickets.seat",
@@ -33,14 +37,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "ORDER BY b.bookingDate DESC")
     List<Booking> findByCinemaIdAndIsDeletedFalse(@Param("cinemaId") Integer cinemaId);
 
-    // ── manager/dashboard — thống kê tổng ────────────────────────────────────
+// ── manager/dashboard — thống kê tổng ────────────────────────────────────
 
     @Query(value = "SELECT COALESCE(SUM(b.final_amount), 0) FROM booking b " +
             "JOIN ticket t ON t.booking_id = b.id " +
             "JOIN show_time st ON st.id = t.showtime_id " +
             "JOIN cinema_room r ON r.id = st.room_id " +
             "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
-            "AND b.status NOT IN ('PENDING', 'CANCLED') " +
+            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "AND b.booking_date BETWEEN :from AND :to", nativeQuery = true)
     BigDecimal getTotalRevenueByCinema(@Param("cinemaId") Integer cinemaId,
                                        @Param("from") LocalDateTime from,
@@ -71,7 +75,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN show_time st ON st.id = t.showtime_id " +
             "JOIN cinema_room r ON r.id = st.room_id " +
             "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
-            "AND b.status NOT IN ('PENDING', 'CANCLED') " +
+            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "AND b.booking_date BETWEEN :from AND :to " +
             "GROUP BY MONTH(b.booking_date) ORDER BY MONTH(b.booking_date)", nativeQuery = true)
     List<Object[]> getMonthlyRevenueByCinema(@Param("cinemaId") Integer cinemaId,
@@ -87,7 +91,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN show_time st ON st.id = t.showtime_id " +
             "JOIN cinema_room r ON r.id = st.room_id " +
             "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
-            "AND b.status NOT IN ('PENDING', 'CANCLED') " +
+            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "AND b.booking_date BETWEEN :from AND :to " +
             "GROUP BY CASE WHEN DAY(b.booking_date) <= 7 THEN 1 " +
             "              WHEN DAY(b.booking_date) <= 14 THEN 2 " +
@@ -106,7 +110,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN show_time st ON st.id = t.showtime_id " +
             "JOIN cinema_room r ON r.id = st.room_id " +
             "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
-            "AND b.status NOT IN ('PENDING', 'CANCLED') " +
+            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "AND b.booking_date BETWEEN :from AND :to " +
             "GROUP BY CASE WHEN MONTH(b.booking_date) BETWEEN 1 AND 3 THEN 1 " +
             "              WHEN MONTH(b.booking_date) BETWEEN 4 AND 6 THEN 2 " +
@@ -125,7 +129,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                    @Param("cinemaId") Integer cinemaId);
 
 
-    // ── manager/revenue — thống kê chi tiết vé + combo ───────────────────────
+// ── manager/revenue — thống kê chi tiết vé + combo ───────────────────────
 
     /** Đếm tổng số vé lẻ đã bán (không phải số booking) */
     @Query(value = "SELECT COUNT(DISTINCT t.id) FROM ticket t " +

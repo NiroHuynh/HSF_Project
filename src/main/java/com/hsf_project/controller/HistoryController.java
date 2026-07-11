@@ -23,13 +23,8 @@ public class HistoryController {
     public String viewBookingHistory(Model model, HttpSession session) {
         // AuthInterceptor đã chặn /customer/** khi chưa đăng nhập nên user luôn tồn tại.
         User currentUser = (User) session.getAttribute("ttdn");
-        Long currentUserId = currentUser.getId();
 
-        if (currentUser == null) {
-            return "redirect:/login"; // Hoặc trang nào Bình làm để login
-        }
-
-        // 2. Truy vấn dữ liệu theo ID người dùng
+        // Truy vấn dữ liệu theo ID người dùng
         List<Booking> listBookings = bookingRepository.findByUserIdAndIsDeletedFalseOrderByBookingDateDesc(currentUser.getId());
         model.addAttribute("bookings", listBookings);
         model.addAttribute("activePage", "ve-cua-toi");

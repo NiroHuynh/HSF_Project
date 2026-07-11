@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmailAndPasswordAndIsDeletedFalseAndStatus(String email, String password, String status);
 
     Optional<User> findByEmailAndIsDeletedFalse(String email);
+
+    //Lấy thời gian khóa mới nhất của User bằng ID
+    @Query("SELECT u.lockBookingUntil FROM User u WHERE u.id = :userId")
+    LocalDateTime getLockBookingUntilByUserId(@Param("userId") Long userId);
 
     /**
      * Lấy danh sách khách hàng đã đặt vé tại cinema, kèm thống kê.

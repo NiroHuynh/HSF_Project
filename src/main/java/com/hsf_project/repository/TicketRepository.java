@@ -12,19 +12,41 @@ import java.util.List;
 public interface TicketRepository extends JpaRepository<Ticket,Long> {
 
     @Query("""
-        SELECT CASE 
-            WHEN COUNT(t) > 0 THEN true 
-            ELSE false 
+        SELECT CASE
+            WHEN COUNT(t) > 0 THEN true
+            ELSE false
         END
         FROM Ticket t
         WHERE t.seat.id = :seatId
         AND t.showtime.id = :showtimeId
-        AND t.status <> 'CANCELLED'
         AND t.isDeleted = false
+        AND (t.booking.status = 'PAID' OR (t.booking.status = 'PENDING' AND t.booking.expiredAt > CURRENT_TIMESTAMP))
     """)
     boolean existsBookedSeat(
             @Param("seatId") Long seatId,
             @Param("showtimeId") Long showtimeId
+    );
+
+    /**
+     * Như existsBookedSeat nhưng bỏ qua vé của chính booking đang xét —
+     * dùng khi chốt kết quả VNPay để biết ghế đã bị booking KHÁC giữ hay chưa.
+     */
+    @Query("""
+        SELECT CASE
+            WHEN COUNT(t) > 0 THEN true
+            ELSE false
+        END
+        FROM Ticket t
+        WHERE t.seat.id = :seatId
+        AND t.showtime.id = :showtimeId
+        AND t.booking.id <> :excludeBookingId
+        AND t.isDeleted = false
+        AND (t.booking.status = 'PAID' OR (t.booking.status = 'PENDING' AND t.booking.expiredAt > CURRENT_TIMESTAMP))
+    """)
+    boolean existsBookedSeatForOtherBooking(
+            @Param("seatId") Long seatId,
+            @Param("showtimeId") Long showtimeId,
+            @Param("excludeBookingId") Long excludeBookingId
     );
     /**
      * Đếm số ghế đã đặt theo từng suất chiếu — batch query tránh N+1.
@@ -33,7 +55,7 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     @Query("SELECT t.showtime.id, COUNT(t) FROM Ticket t " +
             "JOIN t.booking b " +
             "WHERE t.showtime.id IN :showtimeIds " +
-            "AND b.isDeleted = false AND b.status != 'CANCLED' " +
+            "AND b.isDeleted = false AND b.status != 'CANCELED' " +
             "GROUP BY t.showtime.id")
     List<Object[]> countBookedByShowtimeIds(@Param("showtimeIds") List<Long> showtimeIds);
 
@@ -43,6 +65,6 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
      */
     @Query("SELECT COUNT(t) FROM Ticket t JOIN t.booking b " +
             "WHERE t.showtime.id = :showtimeId " +
-            "AND b.isDeleted = false AND b.status != 'CANCLED'")
+            "AND b.isDeleted = false AND b.status != 'CANCELED'")
     Long countActiveTicketsByShowtimeId(@Param("showtimeId") Long showtimeId);
 }
