@@ -19,6 +19,7 @@ DELETE FROM show_time;
 DELETE FROM ticket_price;
 DELETE FROM seat;
 DELETE FROM cinema_room;
+UPDATE users SET cinema_id = NULL;
 DELETE FROM cinema;
 DELETE FROM city;
 DELETE FROM promotion;
