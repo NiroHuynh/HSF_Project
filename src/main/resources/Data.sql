@@ -711,11 +711,10 @@ INSERT INTO cinema_room (name, room_type, total_seats, cinema_id, is_deleted) VA
           JOIN cinema_room cr ON cr.room_type = p.room_type
           JOIN cinema c       ON cr.cinema_id = c.id --JOIN thêm bảng rạp/chi nhánh
  WHERE cr.total_seats = 88
-   AND c.name LIKE N'%CGV Vincom Nguyễn Chí Thanh%'; --Đổi tên chi nhánh em muốn test ở đây!
-GO
+    AND c.name LIKE N'%CGV Vincom Nguyễn Chí Thanh%'; --Đổi tên chi nhánh em muốn test ở đây!
 
 /* ============================================================
-   17. BOOKING  (6 đơn demo — dựng lại trên phòng & suất mới 03/07)
+    17. BOOKING  (6 đơn demo — dựng lại trên phòng & suất mới 03/07)
    Phí dịch vụ 3.000đ:  final_amount = total_amount − discount_amount + 3000.
    Giá theo bảng mới, nên số tiền KHÁC ảnh mockup cũ (VD IMAX VIP = 155k).
    Phân tích CMX20260520D01 (trang Thanh toán):
