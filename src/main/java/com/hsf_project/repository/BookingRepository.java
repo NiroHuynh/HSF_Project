@@ -260,4 +260,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Object[]> getTopMoviesByCinema(@Param("cinemaId") Integer cinemaId,
                                         @Param("from") LocalDateTime from,
                                         @Param("to") LocalDateTime to);
+
+    List<Booking> findByBookingDateBetweenAndStatusAndIsDeletedFalse(
+            LocalDateTime from, LocalDateTime to, String status);
+
+    List<Booking> findByUserIdAndIsDeletedFalse(Long userId);
+
+    List<Booking> findByBookingDateBetweenAndIsDeletedFalse(LocalDateTime from, LocalDateTime to);
+
+    List<Booking> findByIsDeletedFalse();
 }
