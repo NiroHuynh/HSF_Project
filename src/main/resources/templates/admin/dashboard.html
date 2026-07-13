@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('Tổng quan')}"></head>
+<body class="admin-body">
+
+<div class="admin-layout">
+    <aside th:replace="~{admin/fragments :: sidebar('overview')}"></aside>
+
+    <main class="admin-content">
+        <h1 class="admin-page-title">Tổng quan</h1>
+        <p class="admin-page-sub">
+            Số liệu nhanh của <strong th:text="${periodLabel}">Tháng này</strong>.
+            Xem chi tiết tại <a th:href="@{/admin/revenue}" class="text-accent">Báo cáo Doanh thu</a>.
+        </p>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-label">Tổng doanh thu <span class="stat-icon"><i class="bi bi-cash-stack"></i></span></div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(stats.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                <div class="stat-note" th:text="${periodLabel}">Tháng này</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Đơn đặt vé <span class="stat-icon"><i class="bi bi-receipt"></i></span></div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(stats.bookings, 0, 'COMMA', 0, 'POINT')}">0</div>
+                <div class="stat-note">Booking đã thanh toán</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Vé đã bán <span class="stat-icon"><i class="bi bi-ticket-perforated"></i></span></div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(stats.ticketsSold, 0, 'COMMA', 0, 'POINT')}">0</div>
+                <div class="stat-note">Vé thuộc booking đã thanh toán</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Doanh thu bắp nước <span class="stat-icon"><i class="bi bi-cup-straw"></i></span></div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(stats.comboRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                <div class="stat-note">Combo đã bán kèm vé</div>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <h5>Lối tắt</h5>
+            <div class="d-flex gap-2 flex-wrap">
+                <a th:href="@{/admin/revenue}" class="btn btn-admin-primary">
+                    <i class="bi bi-bar-chart-line"></i> Báo cáo Doanh thu
+                </a>
+                <a th:href="@{/admin/vouchers}" class="btn btn-admin-ghost">
+                    <i class="bi bi-ticket-perforated"></i> Quản lý Voucher
+                </a>
+                <a th:href="@{/admin/vouchers/create}" class="btn btn-admin-ghost">
+                    <i class="bi bi-plus-lg"></i> Thêm Voucher mới
+                </a>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

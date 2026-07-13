@@ -590,6 +590,23 @@ input, textarea, select {
   );
 }
 
+/* Nút Đặt Vé phủ toàn card, chỉ hiện khi hover (đồng bộ với trang Phim) */
+.movie-card__book-btn {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.40);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  text-decoration: none;
+  z-index: 3;
+}
+.movie-card:hover .movie-card__book-btn {
+  opacity: 1;
+}
+
 /* Rating badge — top right */
 .movie-card__rating {
   position: absolute;
