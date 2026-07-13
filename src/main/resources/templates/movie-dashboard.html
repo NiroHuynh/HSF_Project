@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineMax Admin - Thống kê phim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;900&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+
+</head>
+<body>
+
+<div class="app-container">
+
+    <div th:replace="admin/fragments/admin-header :: admin-header(activePage='dashboard')"></div>
+
+    <div class="app-body">
+
+        <div th:replace="admin/fragments/admin-sidebar :: admin-sidebar(activePage='movies')"></div>
+
+        <main class="main-area">
+            <div class="page-content">
+
+                <header class="page-header">
+                    <div class="dashboard-header">
+                        <div class="breadcrumb">
+                            <span>Quản trị</span>
+                            <span class="breadcrumb-sep">></span>
+                            <span class="breadcrumb-item active">Thống kê phim</span>
+                        </div>
+                        <h1 class="dashboard-title">Thống kê Phim tại Chi nhánh</h1>
+                        <p class="dashboard-desc">Phân tích hiệu suất chiếu phim thời gian thực cho Chi nhánh Quận 1.</p>
+                    </div>
+
+                    <div class="date-filter">
+                        <div class="date-filter-group">
+                            <div class="date-field">
+                                <span class="date-label">Từ ngày</span>
+                                <div class="date-input-wrapper">
+                                    <input type="date" id="filterFrom" class="date-input">
+                                    <i class="fa-regular fa-calendar"></i>
+                                </div>
+                            </div>
+                            <div class="date-field">
+                                <span class="date-label">Đến ngày</span>
+                                <div class="date-input-wrapper">
+                                    <input type="date" id="filterTo" class="date-input">
+                                    <i class="fa-regular fa-calendar"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="filterBtn" class="btn btn-primary">Lọc</button>
+                        <a th:href="@{/admin/movies/add}" class="btn btn-primary" style="margin-left: 8px;"><i class="fa-solid fa-plus"></i> Thêm phim</a>
+                    </div>
+                </header>
+
+                <section class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng phim chiếu</span>
+                            <span class="stat-value red" id="totalMovies" th:text="${totalMovies != null ? totalMovies : 0}">10</span>
+                            <span class="stat-sub">Đang chiếu: <span id="nowShowingCount" th:text="${nowShowingCount}">0</span></span>
+                        </div>
+                        <div class="stat-icon-wrapper"><i class="fa-solid fa-clapperboard"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Doanh thu ngày</span>
+                            <span class="stat-value" id="dailyRevenue" th:text="${dailyRevenue != null ? #numbers.formatInteger(dailyRevenue, 3, 'POINT') + 'đ' : '0đ'}">45,200,000đ</span>
+                            <span class="stat-sub">Hôm nay</span>
+                        </div>
+                        <div class="stat-icon-wrapper"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-label">Đánh giá TB</span>
+                            <span class="stat-value" id="averageRating" th:text="${avgRating != null ? avgRating + '/5' : '0.0/5'}">4.8/5</span>
+                            <span class="stat-sub">Từ người dùng</span>
+                        </div>
+                        <div class="stat-icon-wrapper"><i class="fa-solid fa-star"></i></div>
+                    </div>
+                </section>
+
+                <section class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-group">
+                            <div class="chart-icon"><i class="fa-solid fa-chart-bar"></i></div>
+                            <div>
+                                <h3 class="chart-title">Phân tích Doanh thu Phim</h3>
+                                <p class="chart-subtitle">Biểu đồ xu hướng doanh thu phim theo thời gian</p>
+                            </div>
+                        </div>
+                        <div class="period-tabs">
+                            <button class="period-tab active" data-period="month">Thống kê</button>
+                            <button class="period-tab" data-period="quarter">Quý</button>
+                            <button class="period-tab" data-period="year">Năm</button>
+                        </div>
+                    </div>
+
+                    <div class="chart-canvas-wrapper">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </section>
+
+                <section class="search-filter-row">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="rankingSearch" class="search-input" placeholder="Tìm tên phim hoặc đạo diễn...">
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="select-wrapper">
+                            <span style="position: relative; left: 0; margin-right: 8px;">THỂ LOẠI:</span>
+                            <select id="genreFilter" class="filter-select">
+                                <option value="">Tất cả</option>
+                                <option th:each="g : ${genres}" th:value="${g.id}" th:text="${g.name}"></option>
+                            </select>
+                        </div>
+                        <div class="status-tabs">
+                            <button class="status-tab active">Tất cả</button>
+                            <button class="status-tab" data-status="NOW_SHOWING">Đang chiếu</button>
+                            <button class="status-tab" data-status="COMING_SOON">Sắp chiếu</button>
+                            <button class="status-tab" data-status="ENDED">Đã chiếu</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">Bảng xếp hạng doanh thu phim</h3>
+                        <p class="table-subtitle">Xếp hạng doanh thu phim theo bộ lọc</p>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th class="col-rank">Hạng</th>
+                                <th class="col-movie">Phim</th>
+                                <th class="col-revenue">Doanh thu</th>
+                                <th class="col-tickets">Vé đã bán</th>
+                                <th class="col-actions">Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody id="rankingBody">
+                            <tr th:each="movie, iterStat : ${movies}">
+                                <td>
+                                    <span class="rank-badge"
+                                          th:classappend="${iterStat.first} ? 'rank-highlight' : ''"
+                                          th:text="'#' + ${iterStat.count}">#1</span>
+                                </td>
+                                <td>
+                                    <div class="movie-cell">
+                                        <div class="movie-thumb" th:style="|background: url('${movie.image}') center/cover;|"></div>
+                                        <span class="movie-name" th:text="${movie.name}">Tên phim</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="revenue-value" th:text="${#numbers.formatInteger(movie.revenue, 3, 'POINT') + 'đ'}">0đ</span>
+                                </td>
+                                <td th:text="${movie.ticketsSold}">0</td>
+                                <td class="col-actions">
+                                    <button class="action-btn" th:onclick="'editMovie(' + ${movie.id} + ')'" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="action-btn" th:onclick="'deleteMovie(' + ${movie.id} + ')'" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(movies)}">
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary); opacity: 0.6; padding: 30px;">
+                                    Không có dữ liệu phim nào được tìm thấy.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const GENRES = /*[[${genres}]]*/ [];
+    function editMovie(id) {
+        window.location.href = '/admin/movies/' + id + '/edit';
+    }
+    function deleteMovie(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa phim này không?')) return;
+        fetch('/admin/movies/' + id, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(data => { if (data.code === 200) location.reload(); else alert('Xóa thất bại!'); })
+            .catch(() => alert('Có lỗi xảy ra!'));
+    }
+</script>
+<script th:src="@{/js/admin-dashboard.js}"></script>
+</body>
+</html>
