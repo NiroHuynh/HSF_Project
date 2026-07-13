@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket,Long> {
-    long countByTicketPriceRoomId(Integer roomId);
 
     @Query("""
         SELECT CASE
@@ -81,4 +82,23 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
             "AND t.showtime.room.cinema.id = :cinemaId")
     java.math.BigDecimal ticketRevenueByCinema(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to,
                                                @Param("cinemaId") Integer cinemaId);
+    /**
+     * Đếm số ghế đã đặt theo từng suất chiếu — batch query tránh N+1.
+     * Trả về Object[]: [0]=showtimeId, [1]=bookedCount
+     */
+    @Query("SELECT t.showtime.id, COUNT(t) FROM Ticket t " +
+            "JOIN t.booking b " +
+            "WHERE t.showtime.id IN :showtimeIds " +
+            "AND b.isDeleted = false AND b.status != 'CANCELED' " +
+            "GROUP BY t.showtime.id")
+    List<Object[]> countBookedByShowtimeIds(@Param("showtimeIds") List<Long> showtimeIds);
+
+    /**
+     * Đếm số vé còn hiệu lực của 1 suất chiếu — dùng để kiểm tra trước khi xóa.
+     * Nếu kết quả > 0 → không cho xóa vì đã có khách đặt.
+     */
+    @Query("SELECT COUNT(t) FROM Ticket t JOIN t.booking b " +
+            "WHERE t.showtime.id = :showtimeId " +
+            "AND b.isDeleted = false AND b.status != 'CANCELED'")
+    Long countActiveTicketsByShowtimeId(@Param("showtimeId") Long showtimeId);
 }

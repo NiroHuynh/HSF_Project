@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng Quan Chi Nhánh - CineMax</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+
+    <style>
+        :root {
+            --color-brand-red:#E31B23;--color-brand-red-hover:#C41219;--color-brand-red-light:rgba(227,27,35,0.15);
+            --color-bg:#0A0A0C;--color-surface:#111114;--color-surface-raised:#18181D;
+            --color-text-primary:#FFFFFF;--color-text-secondary:#A0A0B0;--color-text-muted:#606070;
+            --color-border:rgba(255,255,255,0.08);--color-border-strong:rgba(255,255,255,0.16);
+            --radius-xs:4px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-pill:9999px;
+            --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;
+            --font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+            --text-headline-lg:clamp(24px,3.5vw,36px);--text-headline-md:clamp(20px,2.5vw,28px);
+            --text-body-md:16px;--text-body-sm:14px;--text-label:12px;
+            --lh-headline:1.15;--lh-body:1.6;
+            --transition-fast:150ms ease;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-family);font-size:var(--text-body-md);line-height:var(--lh-body);background-color:var(--color-bg);color:var(--color-text-primary);-webkit-font-smoothing:antialiased}
+        button{cursor:pointer;border:none;background:none;font-family:inherit}
+
+        /* Layout */
+        .mgr-layout{display:flex;min-height:100vh;}
+        .mgr-layout > div:first-child{display:contents} /* unwrap fragment div */
+        .mgr-main{flex:1;min-width:0;overflow-x:hidden;}
+        .container{width:100%;max-width:1200px;margin:0 auto;padding:0 var(--space-md)}
+        .mgr-page{padding-block:var(--space-xl)}
+
+        /* PAGE HEADER */
+        .page-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap}
+        .headline-lg{font-size:var(--text-headline-lg);font-weight:700;line-height:var(--lh-headline);letter-spacing:-0.015em}
+        .mgr-greeting{color:var(--color-text-secondary);font-size:var(--text-body-sm);margin-top:6px}
+
+        /* DATE FILTER */
+        .date-filter{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:14px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
+        .date-filter__label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);white-space:nowrap}
+        .date-filter__quick-btns{display:flex;background:var(--color-surface-raised);border-radius:var(--radius-sm);padding:3px;gap:2px}
+        .date-filter__quick-btn{padding:6px 14px;font-size:var(--text-label);font-weight:600;color:var(--color-text-muted);border-radius:6px;transition:all var(--transition-fast);white-space:nowrap}
+        .date-filter__quick-btn:hover{color:var(--color-text-secondary)}
+        .date-filter__quick-btn.is-active{background:var(--color-brand-red);color:#fff}
+        .date-filter__sep{width:1px;height:24px;background:var(--color-border);flex-shrink:0}
+        .date-filter__inputs{display:flex;align-items:center;gap:8px}
+        .date-filter__input{padding:7px 12px;background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:6px;color:var(--color-text-primary);font-size:var(--text-body-sm);font-family:var(--font-family);outline:none;width:145px;transition:border-color var(--transition-fast)}
+        .date-filter__input:focus{border-color:var(--color-brand-red)}
+        .date-filter__input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+        .date-filter__to{font-size:var(--text-body-sm);color:var(--color-text-muted)}
+
+        /* STAT CARDS */
+        .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md);margin-top:var(--space-lg)}
+        @media(max-width:992px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:576px){.stat-grid{grid-template-columns:1fr}}
+        .stat-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg);display:flex;flex-direction:column;gap:var(--space-sm);transition:transform var(--transition-fast),border-color var(--transition-fast)}
+        .stat-card:hover{transform:translateY(-2px);border-color:var(--color-border-strong)}
+        .stat-card__icon{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center}
+        .stat-card__icon--red{background:var(--color-brand-red-light);color:var(--color-brand-red)}
+        .stat-card__icon--blue{background:rgba(30,95,173,0.15);color:#6DB9F0}
+        .stat-card__icon--green{background:rgba(45,122,79,0.15);color:#2D7A4F}
+        .stat-card__icon--gold{background:rgba(245,197,24,0.15);color:#F5C518}
+        .stat-card__icon .material-symbols-outlined{font-size:22px}
+        .stat-card__label{font-size:var(--text-label);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-text-muted)}
+        .stat-card__value{font-size:32px;font-weight:800;letter-spacing:-0.02em}
+
+        /* SEARCH */
+        .search-section{margin-top:var(--space-xl);display:flex;gap:var(--space-md);align-items:center}
+        .search-bar{position:relative;width:100%;max-width:480px}
+        .search-bar__icon{position:absolute;left:var(--space-md);top:50%;transform:translateY(-50%);color:var(--color-text-muted);pointer-events:none}
+        .search-bar__input{width:100%;padding:14px var(--space-md) 14px 44px;background:var(--color-surface);border:1.5px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text-primary);font-size:var(--text-body-md);font-family:var(--font-family);transition:border-color var(--transition-fast),box-shadow var(--transition-fast);outline:none}
+        .search-bar__input::placeholder{color:var(--color-text-muted)}
+        .search-bar__input:focus{border-color:var(--color-brand-red);box-shadow:0 0 0 3px rgba(227,27,35,0.15)}
+        .btn-search{padding:14px 28px;background:var(--color-brand-red);color:#fff;font-weight:600;font-size:var(--text-body-md);border-radius:var(--radius-md);transition:background var(--transition-fast);white-space:nowrap}
+        .btn-search:hover{background:var(--color-brand-red-hover)}
+        .search-error{margin-top:var(--space-sm);font-size:var(--text-body-sm);color:var(--color-brand-red);display:none}
+
+        /* CHART */
+        .chart-section{margin-top:var(--space-xl);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg)}
+        .chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);flex-wrap:wrap;gap:var(--space-md)}
+        .chart-header__title{font-size:var(--text-headline-md);font-weight:700}
+        .chart-header__subtitle{font-size:var(--text-body-sm);color:var(--color-text-muted);margin-top:2px}
+        .chart-canvas-wrapper{position:relative;width:100%;height:380px}
+
+        /* POPUP / MODAL */
+        .bill-modal{position:fixed;inset:0;z-index:9999;background-color:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 200ms ease;backdrop-filter:blur(5px)}
+        .bill-modal.is-active{opacity:1;pointer-events:auto}
+        .invoice-wrapper{width:100%;max-width:520px;background-color:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:0 20px 45px rgba(0,0,0,0.6);transform:scale(0.9);transition:transform 200ms ease;display:flex;flex-direction:column;max-height:calc(100vh - 48px);overflow:hidden}
+        .bill-modal.is-active .invoice-wrapper{transform:scale(1)}
+        .invoice-header{flex-shrink:0;padding:16px 20px;background:linear-gradient(135deg,rgba(227,27,35,0.1) 0%,transparent 100%);border-bottom:1px dashed var(--color-border-strong);position:relative}
+        .invoice-header::before,.invoice-header::after{content:'';position:absolute;bottom:-10px;width:18px;height:18px;background-color:rgba(0,0,0,0.85);border-radius:50%}
+        .invoice-header::before{left:-10px}.invoice-header::after{right:-10px}
+        .invoice-body{flex:1;min-height:0;padding:16px 20px;overflow-y:auto;-ms-overflow-style:none;scrollbar-width:none}
+        .invoice-body::-webkit-scrollbar{display:none}
+        .movie-info-row{display:flex;gap:14px;margin-bottom:14px}
+        .movie-info-row img{width:64px;height:92px;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0;background:var(--color-surface-raised)}
+        .movie-info-row h3{margin:0 0 4px;font-size:16px;font-weight:700}
+        .info-grid-bill{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--color-border)}
+        .bill-label{font-size:10px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.04em}
+        .bill-value{font-size:13px;font-weight:600;color:#fff;margin-top:3px}
+        .ticket-table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:13px}
+        .ticket-table th{text-align:left;font-size:10px;color:var(--color-text-muted);text-transform:uppercase;padding:6px;border-bottom:1px solid var(--color-border)}
+        .ticket-table td{padding:6px;color:var(--color-text-secondary);border-bottom:1px solid rgba(255,255,255,0.04)}
+        .ticket-table td:last-child{text-align:right;color:#fff;font-weight:600}
+        .ticket-table th:last-child{text-align:right}
+        .combo-section-title{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--color-text-muted);letter-spacing:0.04em;margin-bottom:6px}
+        .price-box{background:var(--color-surface-raised);padding:12px;border-radius:var(--radius-sm);margin-top:12px}
+        .price-row{display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px;color:var(--color-text-secondary)}
+        .price-row.total-final{font-size:16px;font-weight:800;color:var(--color-brand-red);margin-top:10px;padding-top:10px;border-top:1px dashed var(--color-border-strong);margin-bottom:0}
+        .btn-export{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--color-brand-red);color:#fff;font-weight:600;font-size:var(--text-body-sm);border-radius:var(--radius-sm);transition:background var(--transition-fast)}
+        .btn-export:hover{background:var(--color-brand-red-hover)}
+        .btn-export:disabled{background:var(--color-surface-raised);color:var(--color-text-muted);cursor:not-allowed}
+        .chip-status-popup{display:inline-block;padding:3px 10px;border-radius:var(--radius-pill);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
+        .chip-confirmed{background:rgba(227,27,35,0.15);color:var(--color-brand-red)}
+        .chip-exported{background:rgba(30,95,173,0.15);color:#6DB9F0}
+        .chip-cancled{background:rgba(255,255,255,0.05);color:var(--color-text-muted)}
+        .chip-pending{background:rgba(245,197,24,0.15);color:#F5C518}
+        .close-bill-btn{background:none;border:none;color:var(--color-text-muted);cursor:pointer}
+        .close-bill-btn:hover{color:#fff}
+
+        @media(max-width:768px){
+            .page-header-row{flex-direction:column}
+            .date-filter{width:100%}
+        }
+    </style>
+</head>
+<body>
+<div class="mgr-layout">
+    <div th:replace="~{fragments/managerSidebar :: sidebar}"></div>
+    <div class="mgr-main">
+        <main class="container mgr-page">
+
+            <!-- PAGE HEADER + DATE FILTER -->
+            <div class="page-header-row">
+                <div>
+                    <h1 class="headline-lg">Tổng quan chi nhánh</h1>
+                    <p class="mgr-greeting">Quản lý và theo dõi các hoạt động của chi nhánh từ bảng điều khiển này.</p>
+                </div>
+                <div class="date-filter">
+                    <span class="date-filter__label">Giai đoạn xem xét</span>
+                    <div class="date-filter__quick-btns">
+                        <button class="date-filter__quick-btn" onclick="setQuickRange('today',this)">Hôm nay</button>
+                        <button class="date-filter__quick-btn" onclick="setQuickRange('month',this)">Tháng</button>
+                        <button class="date-filter__quick-btn" onclick="setQuickRange('quarter',this)">Quý</button>
+                        <button class="date-filter__quick-btn is-active" onclick="setQuickRange('year',this)">Năm</button>
+                    </div>
+                    <div class="date-filter__sep"></div>
+                    <div class="date-filter__inputs">
+                        <input type="date" class="date-filter__input" id="dateFrom" onchange="onDateChange()"/>
+                        <span class="date-filter__to">đến</span>
+                        <input type="date" class="date-filter__input" id="dateTo" onchange="onDateChange()"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 STAT CARDS — giá trị ban đầu từ server -->
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--gold">
+                        <span class="material-symbols-outlined">payments</span>
+                    </div>
+                    <span class="stat-card__label">Doanh thu (VND)</span>
+                    <span class="stat-card__value" id="cardRevenue" th:text="${revenue}">0 đ</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--blue">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                    </div>
+                    <span class="stat-card__label">Suất chiếu</span>
+                    <span class="stat-card__value" id="cardShowtimes" th:text="${showtimes}">0</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--green">
+                        <span class="material-symbols-outlined">confirmation_number</span>
+                    </div>
+                    <span class="stat-card__label">Vé đã đặt</span>
+                    <span class="stat-card__value" id="cardTickets" th:text="${tickets}">0</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--red">
+                        <span class="material-symbols-outlined">group</span>
+                    </div>
+                    <span class="stat-card__label">Tổng khách hàng</span>
+                    <span class="stat-card__value" id="cardCustomers" th:text="${customers}">0</span>
+                </div>
+            </div>
+
+            <!-- SEARCH -->
+            <div class="search-section">
+                <div class="search-bar">
+                    <span class="material-symbols-outlined search-bar__icon">search</span>
+                    <input type="text" class="search-bar__input" id="searchInput"
+                           placeholder="Nhập mã đặt vé (VD: CMX20260520D01)"
+                           onkeydown="if(event.key==='Enter') searchBooking()"/>
+                </div>
+                <button class="btn-search" onclick="searchBooking()">Tra cứu</button>
+            </div>
+            <div class="search-error" id="searchError">Không tìm thấy booking với mã này tại chi nhánh của bạn.</div>
+
+            <!-- CHART -->
+            <div class="chart-section">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-header__title">Doanh thu theo tháng</div>
+                        <div class="chart-header__subtitle" id="chartSubtitle">Biểu đồ doanh thu theo tháng trong khoảng thời gian đã chọn</div>
+                    </div>
+                </div>
+                <div class="chart-canvas-wrapper">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div><!-- /.mgr-layout -->
+
+<!-- BILL POPUP MODAL -->
+<div class="bill-modal" id="billModal" onclick="if(event.target===this)closeModal()">
+    <div class="invoice-wrapper">
+        <div class="invoice-header">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+                <div>
+                    <div style="font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Hoá đơn thanh toán</div>
+                    <div style="font-size:20px;font-weight:800;letter-spacing:-0.01em" id="m-code">—</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px">
+                    <span class="chip-status-popup" id="m-status">—</span>
+                    <button class="close-bill-btn" onclick="closeModal()">
+                        <span class="material-symbols-outlined" style="font-size:22px">close</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="invoice-body">
+            <div class="movie-info-row">
+                <img id="m-poster" src="" alt="poster"/>
+                <div>
+                    <h3 id="m-movie">—</h3>
+                    <div style="font-size:13px;color:var(--color-text-muted);margin-top:2px" id="m-room">—</div>
+                </div>
+            </div>
+            <div class="info-grid-bill">
+                <div>
+                    <div class="bill-label">Suất chiếu</div>
+                    <div class="bill-value" id="m-time">—</div>
+                </div>
+                <div>
+                    <div class="bill-label">Ngày chiếu</div>
+                    <div class="bill-value" id="m-date">—</div>
+                </div>
+                <div>
+                    <div class="bill-label">Khách hàng</div>
+                    <div class="bill-value" id="m-customer">—</div>
+                </div>
+                <div>
+                    <div class="bill-label">Số điện thoại</div>
+                    <div class="bill-value" id="m-phone">—</div>
+                </div>
+            </div>
+
+            <!-- Ghế -->
+            <div class="combo-section-title" style="margin-bottom:6px">Ghế</div>
+            <table class="ticket-table">
+                <thead><tr><th>Mã ghế</th><th>Loại</th><th>Trạng thái</th></tr></thead>
+                <tbody id="m-seats"></tbody>
+            </table>
+
+            <!-- Combo -->
+            <div class="combo-section-title" id="m-combo-title" style="margin-top:12px;margin-bottom:6px;display:none">Bắp nước / Combo</div>
+            <table class="ticket-table" id="m-combo-table" style="display:none">
+                <thead><tr><th>Tên combo</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+                <tbody id="m-combos"></tbody>
+            </table>
+
+            <!-- Khuyến mãi -->
+            <div id="m-promo-wrap" style="margin-top:10px;margin-bottom:8px;display:none">
+                <span style="font-size:13px;color:#2D7A4F;font-weight:600">
+                    <span class="material-symbols-outlined" style="font-size:15px;vertical-align:-3px">local_activity</span>
+                    <span id="m-promo-text">—</span>
+                </span>
+            </div>
+
+            <!-- Giá tiền -->
+            <div class="price-box">
+                <div class="price-row"><span>Tổng tiền vé</span><span id="m-total">—</span></div>
+                <div class="price-row"><span>Giảm giá</span><span id="m-discount" style="color:#2D7A4F">—</span></div>
+                <div class="price-row total-final"><span>TỔNG THANH TOÁN</span><span id="m-final">—</span></div>
+            </div>
+        </div>
+        <div style="padding:12px 20px;border-top:1px solid var(--color-border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0">
+            <button class="btn-export" id="btnExport" onclick="markExported()">
+                <span class="material-symbols-outlined" style="font-size:18px">print</span>
+                Xuất vé
+            </button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+
+    // ── DỮ LIỆU BAN ĐẦU TỪ SERVER ─────────────────────────────────────────────
+    const initChartLabels = /*[[${chartLabels}]]*/ [];
+    const initChartData   = /*[[${chartData}]]*/   [];
+
+    // ── CHART ──────────────────────────────────────────────────────────────────
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: initChartLabels,
+            datasets: [{
+                label: 'Doanh thu thực tế',
+                data: initChartData,
+                backgroundColor: 'rgba(227,27,35,0.7)',
+                hoverBackgroundColor: '#E31B23',
+                borderRadius: 6, borderSkipped: false, barPercentage: 0.55
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 400, easing: 'easeOutQuart' },
+            plugins: {
+                legend: { position:'bottom', labels:{ color:'#A0A0B0', usePointStyle:true, pointStyle:'circle', padding:20 } },
+                tooltip: { backgroundColor:'#18181D', titleColor:'#fff', bodyColor:'#A0A0B0',
+                    borderColor:'rgba(255,255,255,0.08)', borderWidth:1, padding:12,
+                    callbacks:{ label: c => c.parsed.y.toLocaleString('vi-VN') + ' đ' }
+                }
+            },
+            scales: {
+                x: { ticks:{ color:'#606070' }, grid:{ display:false } },
+                y: { ticks:{ color:'#606070', callback: v => v>=1000000 ? (v/1000000)+'M' : v>=1000 ? (v/1000)+'K' : v },
+                    grid:{ color:'rgba(255,255,255,0.04)' }, border:{ display:false } }
+            }
+        }
+    });
+
+    // ── DATE FILTER ────────────────────────────────────────────────────────────
+    // Lưu mode hiện tại để truyền lên server → server biết group chart thế nào
+    let currentMode = 'year';
+
+    function setQuickRange(mode, btn) {
+        currentMode = mode; // cập nhật mode trước khi fetch
+        document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+        if (mode === 'today') {
+            const s = fmtISO(now);
+            document.getElementById('dateFrom').value = s;
+            document.getElementById('dateTo').value   = s;
+        } else if (mode === 'month') {
+            document.getElementById('dateFrom').value = fmtISO(new Date(y,m,1));
+            document.getElementById('dateTo').value   = fmtISO(new Date(y,m+1,0));
+        } else if (mode === 'quarter') {
+            document.getElementById('dateFrom').value = y + '-01-01';
+            document.getElementById('dateTo').value   = y + '-12-31';
+        } else { // year
+            document.getElementById('dateFrom').value = y+'-01-01';
+            document.getElementById('dateTo').value   = y+'-12-31';
+        }
+        fetchStats();
+    }
+
+    function onDateChange() {
+        // Người dùng tự chỉnh date → bỏ active button, dùng year grouping (12 tháng)
+        currentMode = 'year';
+        document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
+        fetchStats();
+    }
+
+    function fmtISO(d) {
+        return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    }
+
+    // ── AJAX: lấy stats từ server khi đổi date range ──────────────────────────
+    function fetchStats() {
+        const from = document.getElementById('dateFrom').value;
+        const to   = document.getElementById('dateTo').value;
+        if (!from || !to) return;
+
+        // Truyền mode để server biết group biểu đồ theo tuần/tháng/quý
+        fetch(`/manager/dashboard/stats?from=${from}&to=${to}&mode=${currentMode}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) return;
+                document.getElementById('cardRevenue').textContent   = data.revenue;
+                document.getElementById('cardShowtimes').textContent = data.showtimes;
+                document.getElementById('cardTickets').textContent   = data.tickets;
+                document.getElementById('cardCustomers').textContent = data.customers;
+                revenueChart.data.labels           = data.chartLabels;
+                revenueChart.data.datasets[0].data = data.chartData;
+                revenueChart.update();
+            })
+            .catch(console.error);
+    }
+
+    // ── SEARCH BOOKING ─────────────────────────────────────────────────────────
+    function searchBooking() {
+        const code = document.getElementById('searchInput').value.trim();
+        if (!code) return;
+
+        document.getElementById('searchError').style.display = 'none';
+
+        fetch(`/manager/dashboard/search?code=${encodeURIComponent(code)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.found) {
+                    document.getElementById('searchError').style.display = 'block';
+                    return;
+                }
+                populateModal(data);
+                document.getElementById('billModal').classList.add('is-active');
+            })
+            .catch(console.error);
+    }
+
+    // ── POPULATE MODAL ────────────────────────────────────────────────────────
+    let currentBookingCode = null; // lưu mã booking đang mở popup
+
+    function populateModal(d) {
+        currentBookingCode = d.bookingCode; // lưu lại để dùng khi export
+        document.getElementById('m-code').textContent     = '#' + d.bookingCode;
+        document.getElementById('m-movie').textContent    = d.movieTitle   || '—';
+        document.getElementById('m-room').textContent     = d.roomName     || '—';
+        document.getElementById('m-time').textContent     = d.showTime     || '—';
+        document.getElementById('m-date').textContent     = d.showDate     || '—';
+        document.getElementById('m-customer').textContent = d.customerName || '—';
+        document.getElementById('m-phone').textContent    = d.customerPhone|| '—';
+        document.getElementById('m-total').textContent    = d.totalAmount  || '—';
+        document.getElementById('m-discount').textContent = '- ' + (d.discountAmount || '0 đ');
+        document.getElementById('m-final').textContent    = d.finalAmount  || '—';
+
+        // Poster
+        const poster = document.getElementById('m-poster');
+        poster.src = d.moviePoster || '';
+
+        // Status chip
+        const statusEl = document.getElementById('m-status');
+        statusEl.textContent = d.status || '—';
+        statusEl.className   = 'chip-status-popup chip-' + (d.status || '').toLowerCase();
+
+        // Ghế
+        const seatsBody = document.getElementById('m-seats');
+        seatsBody.innerHTML = (d.tickets || []).map(t => `
+            <tr>
+                <td style="color:#fff;font-weight:600">${t.seatCode}</td>
+                <td>${t.seatType}</td>
+                <td><span class="chip-status-popup chip-${(t.status||'').toLowerCase()}">${t.status||'—'}</span></td>
+            </tr>
+        `).join('');
+
+        // Combo
+        const combos = d.combos || [];
+        document.getElementById('m-combo-title').style.display = combos.length ? '' : 'none';
+        document.getElementById('m-combo-table').style.display = combos.length ? '' : 'none';
+        document.getElementById('m-combos').innerHTML = combos.map(c => `
+            <tr>
+                <td style="color:#fff">${c.name}</td>
+                <td>${c.quantity}</td>
+                <td>${c.unitPrice}</td>
+                <td>${c.totalPrice}</td>
+            </tr>
+        `).join('');
+
+        // Promo
+        const promoWrap = document.getElementById('m-promo-wrap');
+        if (d.promoCode) {
+            promoWrap.style.display = '';
+            document.getElementById('m-promo-text').textContent = d.promoCode + ' — ' + d.promoName;
+        } else {
+            promoWrap.style.display = 'none';
+        }
+
+        // Reset nút xuất vé
+        const btn = document.getElementById('btnExport');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">print</span> Xuất vé';
+    }
+
+    function closeModal() {
+        document.getElementById('billModal').classList.remove('is-active');
+    }
+
+    function markExported() {
+        if (!currentBookingCode) return;
+
+        const btn = document.getElementById('btnExport');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">hourglass_empty</span> Đang xử lý...';
+
+        fetch(`/manager/dashboard/export?code=${encodeURIComponent(currentBookingCode)}`, {
+            method: 'POST'
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Thành công — cập nhật UI
+                    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">check_circle</span> Đã xuất';
+                    const s = document.getElementById('m-status');
+                    s.textContent = 'EXPORTED';
+                    s.className   = 'chip-status-popup chip-exported';
+                } else {
+                    // Thất bại — hiện modal thông báo, bật lại nút
+                    showErrorModal(data.message || 'Không thể xuất vé.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">print</span> Xuất vé';
+                }
+            })
+            .catch(() => {
+                showErrorModal('Lỗi kết nối, vui lòng thử lại.');
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">print</span> Xuất vé';
+            });
+    }
+
+    function showErrorModal(message) {
+        document.getElementById('errorModalMsg').textContent = message;
+        document.getElementById('errorModal').style.display = 'flex';
+    }
+
+    function closeErrorModal() {
+        document.getElementById('errorModal').style.display = 'none';
+    }
+
+    // ── INIT: set date input về năm hiện tại (khớp với nút "Năm" đang active) ──
+    (function() {
+        const y = new Date().getFullYear();
+        document.getElementById('dateFrom').value = y + '-01-01';
+        document.getElementById('dateTo').value   = y + '-12-31';
+    })();
+
+    /*]]>*/
+</script>
+
+<!-- Modal thông báo lỗi xuất vé -->
+<div id="errorModal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeErrorModal()">
+    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
+        <div style="background:#111114;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:28px;width:100%;max-width:380px;margin:16px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+                <div style="width:40px;height:40px;border-radius:8px;background:rgba(227,27,35,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <span class="material-symbols-outlined" style="color:#E31B23;font-size:20px">error</span>
+                </div>
+                <div style="font-weight:700;font-size:16px">Không thể xuất vé</div>
+            </div>
+            <p id="errorModalMsg" style="font-size:14px;color:#A0A0B0;margin-bottom:24px"></p>
+            <div style="display:flex;justify-content:flex-end">
+                <button onclick="closeErrorModal()"
+                        style="padding:9px 24px;border-radius:8px;border:none;background:#E31B23;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+                    Đã hiểu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
