@@ -37,7 +37,7 @@ public class BookingConfirmController {
             HttpSession session,
             HttpServletRequest request) {
 
-        // AuthInterceptor đã chặn /booking/** khi chưa đăng nhập nên user luôn tồn tại.
+        // AuthFilter đã chặn /booking/** khi chưa đăng nhập nên user luôn tồn tại.
         User currentUser = (User) session.getAttribute("ttdn");
 
         ConfirmResult result = bookingConfirmService.preparePayment(

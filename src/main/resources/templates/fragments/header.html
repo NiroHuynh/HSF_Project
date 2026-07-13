@@ -58,6 +58,8 @@
         </div>
         <div class="user-dropdown" id="userDropdown" style="display:none; position:absolute; top:100%; right:0; background:#fff; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.15); min-width:160px; z-index:1000; margin-top:6px; overflow:hidden;">
           <a th:if="${session.ttdn.role != null and #strings.equalsIgnoreCase(session.ttdn.role.roleName, 'ADMIN')}" th:href="@{/admin}" style="display:block; padding:12px 20px; color:#315be8; text-decoration:none; font-size:14px; font-weight:600;">Trang quản trị</a>
+          <a th:if="${session.ttdn.role != null and #strings.equalsIgnoreCase(session.ttdn.role.roleName, 'MANAGER')}" th:href="@{/manager}" style="display:block; padding:12px 20px; color:#315be8; text-decoration:none; font-size:14px; font-weight:600;">Trang quản lý</a>
+          <a th:href="@{/change-password}" style="display:block; padding:12px 20px; color:#333; text-decoration:none; font-size:14px; font-weight:500;">Đổi mật khẩu</a>
           <a th:href="@{/logout}" style="display:block; padding:12px 20px; color:#e74c3c; text-decoration:none; font-size:14px; font-weight:500; transition: background .2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
             Đăng xuất
           </a>
