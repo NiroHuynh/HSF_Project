@@ -1,114 +1,64 @@
 package com.hsf_project.controller.admin;
 
-import com.hsf_project.dto.dashboard.CinemaRevenueDto;
-import com.hsf_project.dto.dashboard.DashboardStats;
-import com.hsf_project.dto.dashboard.MonthlyRevenueDto;
+import com.hsf_project.dto.common.ApiResponse;
+import com.hsf_project.dto.dashboard.response.MovieRevenueRankingResponse;
+import com.hsf_project.dto.dashboard.response.MovieStatsResponse;
+import com.hsf_project.dto.dashboard.response.RevenueTrendResponse;
 import com.hsf_project.service.DashboardService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
 import java.util.List;
 
-/** Khu quản trị: trang tổng quan + báo cáo doanh thu (chỉ ADMIN — AuthFilter chặn /admin/**). */
-@Controller
-@RequestMapping("/admin")
+@RestController
+@RequestMapping("/admin/dashboard/movie")
+@RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AdminDashboardController {
 
-    @Autowired
-    private DashboardService dashboardService;
+    DashboardService dashboardService;
 
-    /** Tổng quan: số liệu nhanh của tháng hiện tại. */
     @GetMapping
-    public String overview(Model model) {
-        YearMonth thisMonth = YearMonth.now();
-        LocalDateTime from = thisMonth.atDay(1).atStartOfDay();
-        LocalDateTime to = from.plusMonths(1);
-
-        model.addAttribute("stats", dashboardService.getStats(from, to));
-        model.addAttribute("periodLabel", "Tháng " + thisMonth.getMonthValue() + "/" + thisMonth.getYear());
-        model.addAttribute("activePage", "overview");
-        return "admin/dashboard";
+    public ApiResponse<MovieStatsResponse> getMovieStats() {
+        return ApiResponse.success(dashboardService.getMovieStats());
     }
 
-    /**
-     * Báo cáo doanh thu với 3 chế độ lọc:
-     *   mode=day   + date=yyyy-MM-dd   -> doanh thu 1 ngày
-     *   mode=month + month=yyyy-MM     -> doanh thu 1 tháng
-     *   mode=year  + year=yyyy         -> doanh thu 1 năm (mặc định: năm hiện tại)
-     */
-    @GetMapping("/revenue")
-    public String revenue(@RequestParam(name = "mode", defaultValue = "year") String mode,
-                          @RequestParam(name = "date", required = false) String date,
-                          @RequestParam(name = "month", required = false) String month,
-                          @RequestParam(name = "year", required = false) Integer year,
-                          Model model) {
-        LocalDateTime from;
-        LocalDateTime to;
-        String periodLabel;
-        int chartYear;
-
-        switch (mode) {
-            case "day" -> {
-                LocalDate day = parseDate(date);
-                from = day.atStartOfDay();
-                to = from.plusDays(1);
-                periodLabel = "Ngày " + day.getDayOfMonth() + "/" + day.getMonthValue() + "/" + day.getYear();
-                chartYear = day.getYear();
-                model.addAttribute("date", day.toString());
-            }
-            case "month" -> {
-                YearMonth ym = parseMonth(month);
-                from = ym.atDay(1).atStartOfDay();
-                to = from.plusMonths(1);
-                periodLabel = "Tháng " + ym.getMonthValue() + "/" + ym.getYear();
-                chartYear = ym.getYear();
-                model.addAttribute("month", ym.toString());
-            }
-            default -> {
-                mode = "year";
-                int y = (year != null) ? year : LocalDate.now().getYear();
-                from = LocalDate.of(y, 1, 1).atStartOfDay();
-                to = from.plusYears(1);
-                periodLabel = "Năm " + y;
-                chartYear = y;
-                model.addAttribute("year", y);
-            }
+    @GetMapping("/trend")
+    public ApiResponse<List<RevenueTrendResponse>> getRevenueTrend(
+            @RequestParam(defaultValue = "month") String period,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        if (from == null) from = LocalDate.now().minusMonths(11).withDayOfMonth(1);
+        if (to == null) to = LocalDate.now();
+        if (from.isAfter(to)) {
+            LocalDate tmp = from;
+            from = to;
+            to = tmp;
         }
-
-        DashboardStats stats = dashboardService.getStats(from, to);
-        List<MonthlyRevenueDto> monthly = dashboardService.getMonthlyRevenue(chartYear, null);
-        List<CinemaRevenueDto> cinemaRevenues = dashboardService.getRevenueByCinema(from, to);
-
-        model.addAttribute("stats", stats);
-        model.addAttribute("monthlyData", monthly.stream().map(MonthlyRevenueDto::revenue).toList());
-        model.addAttribute("chartYear", chartYear);
-        model.addAttribute("cinemaRevenues", cinemaRevenues);
-        model.addAttribute("mode", mode);
-        model.addAttribute("periodLabel", periodLabel);
-        model.addAttribute("activePage", "revenue");
-        return "admin/revenue";
+        return ApiResponse.success(dashboardService.getRevenueTrend(period, from, to));
     }
 
-    private LocalDate parseDate(String raw) {
-        try {
-            return LocalDate.parse(raw);
-        } catch (Exception e) {
-            return LocalDate.now();
+    @GetMapping("/ranking")
+    public ApiResponse<List<MovieRevenueRankingResponse>> getMovieRevenueRanking(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String search) {
+        if (from == null) from = LocalDate.now().minusMonths(1);
+        if (to == null) to = LocalDate.now();
+        if (from.isAfter(to)) {
+            LocalDate tmp = from;
+            from = to;
+            to = tmp;
         }
-    }
-
-    private YearMonth parseMonth(String raw) {
-        try {
-            return YearMonth.parse(raw);
-        } catch (Exception e) {
-            return YearMonth.now();
-        }
+        return ApiResponse.success(dashboardService.getMovieRevenueRanking(from, to, status, genre, search));
     }
 }
