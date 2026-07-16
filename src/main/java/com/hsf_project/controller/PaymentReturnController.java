@@ -75,7 +75,8 @@ public class PaymentReturnController {
         }
 
         model.addAttribute("booking", booking);
-        model.addAttribute("success", BookingStatus.PAID.name().equals(booking.getStatus()));
+        model.addAttribute("success", BookingStatus.CONFIRMED.name().equals(booking.getStatus())
+                || BookingStatus.EXPORTED.name().equals(booking.getStatus()));
         if (!booking.getTickets().isEmpty()) {
             model.addAttribute("showtime", booking.getTickets().get(0).getShowtime());
         }
