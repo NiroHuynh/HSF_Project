@@ -8,4 +8,5 @@ public interface CinemaRoomRepository extends JpaRepository<CinemaRoom, Integer>
     List<CinemaRoom> findByIsDeletedFalseOrderByCinemaNameAscNameAsc();
     List<CinemaRoom> findByRoomTypeAndIsDeletedFalse(String roomType);
     long countByCinemaIdAndIsDeletedFalse(Integer cinemaId);
+    List<CinemaRoom> findByCinemaIdAndIsDeletedFalseOrderByNameAsc(Integer cinemaId);
 }

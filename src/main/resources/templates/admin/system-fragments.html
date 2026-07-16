@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><body>
+<aside class="admin-sidebar" th:fragment="sidebar(active)">
+  <a class="admin-brand" th:href="@{/admin}"><span>CM</span><div>CineMax<small>Quản trị hệ thống</small></div></a>
+  <nav>
+    <p>TỔNG QUAN</p>
+    <a th:href="@{/admin/dashboard/cinema}" th:classappend="${active=='dashboard-cinema'}?'active'"><b>▦</b> Dashboard rạp</a>
+    <a th:href="@{/admin/dashboard/combo}" th:classappend="${active=='dashboard-combo'}?'active'"><b>◫</b> Dashboard combo</a>
+    <p>QUẢN LÝ</p>
+    <a th:href="@{/admin/locations}" th:classappend="${active=='locations'}?'active'"><b>⌖</b> Địa điểm & phòng</a>
+    <a th:href="@{/admin/ticket-prices}" th:classappend="${active=='prices'}?'active'"><b>₫</b> Giá vé</a>
+    <a th:href="@{/admin/combos}" th:classappend="${active=='combos'}?'active'"><b>☕</b> Combo</a>
+  </nav>
+  <div class="admin-user"><div class="avatar" th:text="${#strings.substring(session.ttdn.fullName,0,1)}">A</div><div><strong th:text="${session.ttdn.fullName}">Admin</strong><small>Administrator</small></div><a th:href="@{/logout}" title="Đăng xuất">↪</a></div>
+</aside>
+<header class="mobile-head" th:fragment="mobile"><button onclick="document.body.classList.toggle('menu-open')">☰</button><b>CineMax Admin</b></header>
+<div th:fragment="flash"><div class="toast success" th:if="${success}" th:text="${success}"></div><div class="toast error" th:if="${error}" th:text="${error}"></div></div>
+</body></html>

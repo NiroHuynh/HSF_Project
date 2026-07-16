@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket,Long> {
+    long countByTicketPriceRoomId(Integer roomId);
 
     @Query("""
         SELECT CASE
@@ -53,14 +54,14 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
 
     /** Số vé đã bán (booking PAID) trong [from, to). */
     @Query("SELECT COUNT(t) FROM Ticket t JOIN t.booking b " +
-            "WHERE b.status = 'PAID' AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
             "AND (t.isDeleted IS NULL OR t.isDeleted = false) " +
             "AND b.bookingDate >= :from AND b.bookingDate < :to")
     long countPaidTickets(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to);
 
     /** Doanh thu tiền vé (chưa trừ giảm giá) trong [from, to). */
     @Query("SELECT COALESCE(SUM(t.ticketPrice.price), 0) FROM Ticket t JOIN t.booking b " +
-            "WHERE b.status = 'PAID' AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
             "AND (t.isDeleted IS NULL OR t.isDeleted = false) " +
             "AND b.bookingDate >= :from AND b.bookingDate < :to")
     java.math.BigDecimal ticketRevenue(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to);
@@ -68,7 +69,7 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     /* ---------- Bản giới hạn theo rạp (trang Manager) ---------- */
 
     @Query("SELECT COUNT(t) FROM Ticket t JOIN t.booking b " +
-            "WHERE b.status = 'PAID' AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
             "AND (t.isDeleted IS NULL OR t.isDeleted = false) " +
             "AND b.bookingDate >= :from AND b.bookingDate < :to " +
             "AND t.showtime.room.cinema.id = :cinemaId")
@@ -76,7 +77,7 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
                                   @Param("cinemaId") Integer cinemaId);
 
     @Query("SELECT COALESCE(SUM(t.ticketPrice.price), 0) FROM Ticket t JOIN t.booking b " +
-            "WHERE b.status = 'PAID' AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
             "AND (t.isDeleted IS NULL OR t.isDeleted = false) " +
             "AND b.bookingDate >= :from AND b.bookingDate < :to " +
             "AND t.showtime.room.cinema.id = :cinemaId")
