@@ -24,7 +24,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countByUserIdAndIsDeletedFalseAndStatusAndNoteAndBookingDateAfter(Long userId, String status, String note, LocalDateTime bookingDate);
 // ── manager/tickets ───────────────────────────────────────────────────────
 
-    @Query("SELECT b FROM Booking b WHERE b.status = 'PAID' AND (b.isDeleted IS NULL OR b.isDeleted = false) AND b.bookingDate >= :from AND b.bookingDate < :to")
+    @Query("SELECT b FROM Booking b WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) AND b.bookingDate >= :from AND b.bookingDate < :to")
     List<Booking> findPaidInRange(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     /* ================== Aggregate cho dashboard doanh thu ================== */

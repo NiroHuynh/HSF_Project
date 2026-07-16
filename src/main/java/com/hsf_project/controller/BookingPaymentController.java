@@ -129,7 +129,7 @@ public class BookingPaymentController {
         if (bookingOpt.isPresent()) {
             Booking booking = bookingOpt.get();
 
-            // 2. Chuyển trạng thái đơn hàng thành CANCELLED
+            // 2. Chuyển trạng thái đơn hàng thành CANCELED
             booking.setStatus(BookingStatus.CANCELED.name());
             booking.setUpdatedAt(LocalDateTime.now());
 
