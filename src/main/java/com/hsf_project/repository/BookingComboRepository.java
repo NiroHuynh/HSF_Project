@@ -15,14 +15,14 @@ public interface BookingComboRepository extends JpaRepository<BookingCombo, Long
 
     /** Doanh thu bắp nước (combo) của các booking đã thanh toán trong [from, to). */
     @Query("SELECT COALESCE(SUM(bc.totalPrice), 0) FROM BookingCombo bc JOIN bc.booking b " +
-            "WHERE b.status = 'PAID' AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
             "AND b.bookingDate >= :from AND b.bookingDate < :to")
     java.math.BigDecimal comboRevenue(@Param("from") java.time.LocalDateTime from,
                                       @Param("to") java.time.LocalDateTime to);
 
     /** Doanh thu bắp nước giới hạn theo rạp (trang Manager). */
     @Query("SELECT COALESCE(SUM(bc.totalPrice), 0) FROM BookingCombo bc JOIN bc.booking b " +
-            "WHERE b.status = 'PAID' AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
             "AND b.bookingDate >= :from AND b.bookingDate < :to " +
             "AND EXISTS (SELECT 1 FROM Ticket t WHERE t.booking = b AND t.showtime.room.cinema.id = :cinemaId)")
     java.math.BigDecimal comboRevenueByCinema(@Param("from") java.time.LocalDateTime from,
