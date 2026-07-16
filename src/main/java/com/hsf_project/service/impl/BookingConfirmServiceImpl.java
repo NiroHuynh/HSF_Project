@@ -105,7 +105,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
 //        booking.setTotalAmount(totalAmount);
 //        booking.setDiscountAmount(discountAmount);
 //        booking.setFinalAmount(finalAmount);
-//        // PENDING chờ kết quả VNPay; finalizeBooking sẽ chuyển sang PAID/CANCELLED
+//        // PENDING chờ kết quả VNPay; finalizeBooking sẽ chuyển sang CONFIRMED/CANCELED
 //        booking.setStatus("PENDING");
 //        booking.setCreatedAt(now);
 //        booking.setUpdatedAt(now);
@@ -290,7 +290,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         payment.setPaymentTime(now);
 
         if (success) {
-            booking.setStatus("PAID");
+            booking.setStatus(BookingStatus.CONFIRMED.name());
             for (Ticket ticket : booking.getTickets()) {
                 ticket.setStatus("PAID");
                 ticket.setPaidAt(now);
@@ -300,9 +300,10 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
                 promotionService.markUsed(booking.getPromotion().getId());
             }
         } else {
-            booking.setStatus("CANCELLED");
+            booking.setStatus(BookingStatus.CANCELED.name());
             // Ràng buộc CK_ticket_status trong DB chỉ cho PAID/PENDING nên không set
-            // ticket = CANCELLED được; soft-delete để giải phóng ghế
+            // Không đổi ticket sang CANCELED vì constraint ticket chỉ nhận PAID/PENDING;
+            // soft-delete ticket để giải phóng ghế.
             // (existsBookedSeat lọc isDeleted = false).
             for (Ticket ticket : booking.getTickets()) {
                 ticket.setIsDeleted(true);

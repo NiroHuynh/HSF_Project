@@ -49,7 +49,7 @@ public class Booking {
     private BigDecimal finalAmount;
 
     @Size(max = 20)
-    @ColumnDefault("'PAID'")
+    @ColumnDefault("'CONFIRMED'")
     @Column(name = "status", length = 20)
     private String status;
 
