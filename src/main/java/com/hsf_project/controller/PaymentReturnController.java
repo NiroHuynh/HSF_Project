@@ -31,7 +31,7 @@ public class PaymentReturnController {
 
     /**
      * VNPay redirect trình duyệt về đây sau khi user thanh toán/hủy.
-     * KHÔNG nằm sau AuthInterceptor: phải xử lý được cả khi session hết hạn
+     * KHÔNG nằm sau AuthFilter: phải xử lý được cả khi session hết hạn
      * trong lúc user ở trang VNPay (bookingCode nằm trong vnp_TxnRef).
      */
     @GetMapping("/payment/vnpay-return")
@@ -52,7 +52,7 @@ public class PaymentReturnController {
     }
 
     /**
-     * Trang kết quả đặt vé (nằm sau AuthInterceptor vì thuộc /booking/**).
+     * Trang kết quả đặt vé (nằm sau AuthFilter vì thuộc /booking/**).
      * Chỉ cho xem booking của chính user đang đăng nhập.
      */
     @GetMapping("/booking/result")

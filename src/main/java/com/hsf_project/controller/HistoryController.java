@@ -30,7 +30,7 @@ public class HistoryController {
 
     @GetMapping("/history")
     public String viewBookingHistory(Model model, HttpSession session) {
-        // AuthInterceptor đã chặn /customer/** khi chưa đăng nhập nên user luôn tồn tại.
+        // AuthFilter đã chặn /customer/** khi chưa đăng nhập nên user luôn tồn tại.
         User currentUser = (User) session.getAttribute("ttdn");
 
         // Truy vấn dữ liệu theo ID người dùng

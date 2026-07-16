@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"></head>
+<body>
+
+<div th:fragment="sidebar">
+
+    <style>
+        .sidebar{
+            width:256px;
+            height:100vh;
+            background:#111114;
+            border-right:1px solid rgba(255,255,255,0.08);
+            display:flex;
+            flex-direction:column;
+            flex-shrink:0;
+            position:sticky;
+            top:0;
+            overflow:hidden;
+            font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+        }
+        .sidebar__brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
+        .sidebar__brand-name{font-size:20px;font-weight:800;color:#E31B23;letter-spacing:-0.02em;line-height:1.2}
+        .sidebar__branch{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;color:#606070;font-weight:500}
+        .sidebar__branch .material-symbols-outlined{font-size:14px}
+        .sidebar__branch span:last-child{color:#A0A0B0;font-weight:600}
+        .sidebar__nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+        .sidebar__nav::-webkit-scrollbar{width:0}
+        .sidebar__divider{height:1px;background:rgba(255,255,255,0.08);margin:4px 12px}
+        .sidebar .nav-link{
+            display:flex;align-items:center;gap:10px;
+            padding:10px 12px;border-radius:8px;
+            color:#A0A0B0;font-size:14px;font-weight:500;
+            transition:all 150ms ease;
+            text-decoration:none !important;
+        }
+        .sidebar .nav-link .material-symbols-outlined{font-size:20px;flex-shrink:0}
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link:focus,
+        .sidebar .nav-link:active,
+        .sidebar .nav-link:visited{
+            background:#18181D;color:#FFFFFF;
+            text-decoration:none !important;
+        }
+        .sidebar .nav-link.is-active{background:#E31B23;color:#fff;font-weight:600}
+        .sidebar .nav-link.is-active:hover{background:#C41219;text-decoration:none !important}
+        .sidebar__footer{
+            margin-top:auto;padding:12px;
+            border-top:1px solid rgba(255,255,255,0.08);
+            display:flex;flex-direction:column;gap:4px;flex-shrink:0;
+        }
+        .sidebar__user{
+            display:flex;align-items:center;gap:10px;
+            padding:10px 12px;border-radius:8px;
+            text-decoration:none !important;transition:background 150ms ease;
+        }
+        .sidebar__user:hover,
+        .sidebar__user:focus,
+        .sidebar__user:visited{background:#18181D;text-decoration:none !important}
+        .sidebar__avatar{
+            width:36px;height:36px;border-radius:50%;
+            background:#18181D;border:1px solid rgba(255,255,255,0.08);
+            display:flex;align-items:center;justify-content:center;flex-shrink:0;
+        }
+        .sidebar__avatar .material-symbols-outlined{font-size:20px;color:#606070}
+        .sidebar__user-info{flex:1;min-width:0}
+        .sidebar__user-name{font-size:13px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .sidebar__user-email{font-size:11px;color:#606070;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+        .sidebar__logout{
+            display:flex;align-items:center;gap:10px;
+            padding:9px 12px;border-radius:8px;
+            background:none;border:none;color:#606070;
+            font-size:13px;font-weight:500;font-family:'Inter',sans-serif;
+            cursor:pointer;width:100%;transition:all 150ms ease;
+            text-decoration:none !important;
+        }
+        .sidebar__logout:hover,
+        .sidebar__logout:focus{background:rgba(227,27,35,0.1);color:#E31B23;text-decoration:none !important}
+        .sidebar__logout .material-symbols-outlined{font-size:18px}
+    </style>
+
+    <aside class="sidebar">
+
+        <!-- BRAND + CHI NHÁNH -->
+        <div class="sidebar__brand">
+            <div class="sidebar__brand-name">CineMax Admin</div>
+            <div class="sidebar__branch">
+                <span class="material-symbols-outlined">location_on</span>
+                <span th:text="${managerCinemaName}">CGV Pandora City</span>
+            </div>
+        </div>
+
+        <!-- NAV LINKS -->
+        <nav class="sidebar__nav">
+            <a th:href="@{/manager/dashboard}" class="nav-link"
+               th:classappend="${activePage == 'dashboard'} ? ' is-active'">
+                <span class="material-symbols-outlined">dashboard</span>
+                Tổng quan
+            </a>
+            <a th:href="@{/manager/revenue}" class="nav-link"
+               th:classappend="${activePage == 'revenue'} ? ' is-active'">
+                <span class="material-symbols-outlined">bar_chart</span>
+                Doanh thu
+            </a>
+            <div class="sidebar__divider"></div>
+            <a th:href="@{/manager/showtimes}" class="nav-link"
+               th:classappend="${activePage == 'showtimes'} ? ' is-active'">
+                <span class="material-symbols-outlined">schedule</span>
+                Suất Chiếu
+            </a>
+            <a th:href="@{/manager/tickets}" class="nav-link"
+               th:classappend="${activePage == 'tickets'} ? ' is-active'">
+                <span class="material-symbols-outlined">confirmation_number</span>
+                Vé
+            </a>
+            <a th:href="@{/manager/customers}" class="nav-link"
+               th:classappend="${activePage == 'customers'} ? ' is-active'">
+                <span class="material-symbols-outlined">group</span>
+                Khách Hàng
+            </a>
+        </nav>
+
+        <!-- FOOTER: USER + LOGOUT -->
+        <div class="sidebar__footer">
+            <a th:href="@{/manager/profile}" class="sidebar__user">
+                <div class="sidebar__avatar">
+                    <span class="material-symbols-outlined">person</span>
+                </div>
+                <div class="sidebar__user-info">
+                    <div class="sidebar__user-name"  th:text="${managerName}">Nguyễn Thành</div>
+                    <div class="sidebar__user-email" th:text="${managerEmail}">thanh@cinemax.vn</div>
+                </div>
+                <span class="material-symbols-outlined" style="font-size:16px;color:#606070">chevron_right</span>
+            </a>
+            <a th:href="@{/logout}" class="sidebar__logout">
+                <span class="material-symbols-outlined">logout</span>
+                Đăng xuất
+            </a>
+        </div>
+
+    </aside>
+
+</div>
+
+</body>
+</html>
