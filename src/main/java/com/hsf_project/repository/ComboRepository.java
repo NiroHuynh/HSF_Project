@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ComboRepository extends JpaRepository<Combo, Long> {
     List<Combo> findByStatusAndIsDeletedFalseOrderByIdAsc(String status);
+    List<Combo> findByIsDeletedFalseOrderByIdDesc();
 }
