@@ -1,18 +1,14 @@
 package com.hsf_project.service.impl;
 
-import com.hsf_project.dto.admin.PromotionForm;
 import com.hsf_project.entity.Promotion;
 import com.hsf_project.repository.promotion.PromotionRepository;
 import com.hsf_project.service.PromotionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class PromotionServiceImpl implements PromotionService {
@@ -58,69 +54,5 @@ public class PromotionServiceImpl implements PromotionService {
     @Transactional
     public void markUsed(Long promotionId) {
         promotionRepository.incrementUsedCount(promotionId);
-    }
-
-    /* ================= CRUD cho khu admin ================= */
-
-    @Override
-    public Page<Promotion> searchAdmin(String keyword, int page, int size) {
-        String kw = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
-        return promotionRepository.searchAdmin(kw, PageRequest.of(page, size));
-    }
-
-    @Override
-    public Optional<Promotion> getById(Long id) {
-        return promotionRepository.findById(id)
-                .filter(p -> p.getIsDeleted() == null || !p.getIsDeleted());
-    }
-
-    @Override
-    @Transactional
-    public Promotion create(PromotionForm form) {
-        Promotion promo = new Promotion();
-        applyForm(promo, form);
-        promo.setUsedCount(0);
-        promo.setIsDeleted(false);
-        return promotionRepository.save(promo);
-    }
-
-    @Override
-    @Transactional
-    public Promotion update(Long id, PromotionForm form) {
-        Promotion promo = getById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy voucher #" + id));
-        applyForm(promo, form);
-        return promotionRepository.save(promo);
-    }
-
-    @Override
-    @Transactional
-    public void softDelete(Long id) {
-        getById(id).ifPresent(promo -> {
-            promo.setIsDeleted(true);
-            promotionRepository.save(promo);
-        });
-    }
-
-    @Override
-    @Transactional
-    public void toggleStatus(Long id) {
-        getById(id).ifPresent(promo -> {
-            promo.setStatus("ACTIVE".equals(promo.getStatus()) ? "INACTIVE" : "ACTIVE");
-            promotionRepository.save(promo);
-        });
-    }
-
-    private void applyForm(Promotion promo, PromotionForm form) {
-        promo.setCode(form.getCode().trim().toUpperCase());
-        promo.setName(form.getName().trim());
-        promo.setDescription(form.getDescription() == null || form.getDescription().isBlank()
-                ? null : form.getDescription().trim());
-        promo.setDiscountType(form.getDiscountType());
-        promo.setDiscountValue(form.getDiscountValue());
-        promo.setStartDate(form.getStartDate());
-        promo.setEndDate(form.getEndDate());
-        promo.setUsageLimit(form.getUsageLimit());
-        promo.setStatus(form.getStatus());
     }
 }
