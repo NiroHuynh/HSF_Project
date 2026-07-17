@@ -1,4 +1,4 @@
-package com.hsf_project.entity;
+package com.hsf_project.entity.enums;
 
 public enum AgeRating {
     P,

@@ -1,7 +1,7 @@
-package com.hsf_project.repository.movie;
+package com.hsf_project.repository;
 
 import com.hsf_project.entity.Movie;
-import com.hsf_project.entity.MovieStatus;
+import com.hsf_project.entity.enums.MovieStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

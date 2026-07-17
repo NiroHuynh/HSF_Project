@@ -1,7 +1,7 @@
 package com.hsf_project.controller;
 
 import com.hsf_project.entity.Promotion;
-import com.hsf_project.repository.promotion.PromotionRepository;
+import com.hsf_project.repository.PromotionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

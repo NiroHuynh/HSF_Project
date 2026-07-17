@@ -1,12 +1,11 @@
 package com.hsf_project.controller;
 
 import com.hsf_project.entity.*;
+import com.hsf_project.entity.enums.BookingStatus;
 import com.hsf_project.repository.BookingRepository;
 import com.hsf_project.repository.TicketRepository;
-import com.hsf_project.service.ComboService;
 import com.hsf_project.service.PaymentMethodService;
 import com.hsf_project.service.PromotionService;
-import com.hsf_project.service.ShowTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -71,21 +70,28 @@ public class BookingPaymentController {
         Long defaultPaymentMethodId = paymentMethods.isEmpty() ? null : paymentMethods.get(0).getId();
 
         // 7. Đẩy toàn bộ dữ liệu sạch từ DB ra Model cho giao diện
-        model.addAttribute("bookingCode", bookingCode);
-        model.addAttribute("secondsLeft", secondsLeft); //Số giây còn lại cho đồng hồ đếm ngược
-        model.addAttribute("selectedSeats", selectedSeats);
-        model.addAttribute("selectedCombos", selectedCombos);
+        model.addAttribute("bookingCode",            bookingCode);
+        model.addAttribute("secondsLeft",            secondsLeft);
+        model.addAttribute("selectedSeats",          selectedSeats);
+        model.addAttribute("selectedCombos",         selectedCombos);
 
         // Tiền nong lấy trực tiếp từ DB chốt ở Backend, cực kỳ an toàn
-        model.addAttribute("totalAmount", booking.getTotalAmount());     // Tổng tiền trước giảm giá
-        model.addAttribute("discountAmount", booking.getDiscountAmount()); // Tiền được giảm ban đầu (0)
-        model.addAttribute("finalAmount", booking.getFinalAmount());       // Số tiền cuối cùng phải trả
+        model.addAttribute("totalAmount",            booking.getTotalAmount());      // Tổng tiền trước giảm giá
+        model.addAttribute("discountAmount",         booking.getDiscountAmount());   // Tiền được giảm (0 nếu chưa áp mã)
+        model.addAttribute("finalAmount",            booking.getFinalAmount());       // Số tiền cuối cùng phải trả
 
-        model.addAttribute("showtimeInfo", loadShowtimeInfo(showtime));
-        model.addAttribute("paymentMethods", paymentMethods);
+        model.addAttribute("paymentMethods",         paymentMethods);
         model.addAttribute("defaultPaymentMethodId", defaultPaymentMethodId);
 
-        return "bookingPayment"; // Trả về template bookingPayment.html của em
+        // 8. Tách riêng từng attribute thông tin phim/rạp/suất chiếu cho Thymeleaf render đúng tên biến
+        model.addAttribute("movieTitle",    showtime.getMovie().getTitle());
+        model.addAttribute("moviePosterUrl", showtime.getMovie().getPosterUrl());
+        model.addAttribute("showTimeDate",  showtime.getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        model.addAttribute("showTimeTime",  showtime.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+        model.addAttribute("roomName",      showtime.getRoom().getName());
+        model.addAttribute("cinemaName",    showtime.getRoom().getCinema().getName());
+
+        return "bookingPayment";
     }
 
     /**
@@ -129,7 +135,7 @@ public class BookingPaymentController {
         if (bookingOpt.isPresent()) {
             Booking booking = bookingOpt.get();
 
-            // 2. Chuyển trạng thái đơn hàng thành CANCELED
+            // 2. Chuyển trạng thái đơn hàng thành CANCELLED
             booking.setStatus(BookingStatus.CANCELED.name());
             booking.setUpdatedAt(LocalDateTime.now());
 

@@ -14,8 +14,5 @@ public class WebConfig implements WebMvcConfigurer {
         // (bookingCode nằm trong vnp_TxnRef nên không cần session).
         registry.addInterceptor(new AuthInterceptor())
                 .addPathPatterns("/booking/**", "/customer/**");
-
-        registry.addInterceptor(new AdminInterceptor())
-                .addPathPatterns("/admin/**");
     }
 }
