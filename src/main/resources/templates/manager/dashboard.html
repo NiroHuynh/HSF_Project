@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('Quản lý chi nhánh')}"></head>
+<body class="admin-body">
+
+<div class="admin-layout">
+    <!-- Sidebar riêng cho Manager: chỉ có dashboard chi nhánh -->
+    <aside class="admin-sidebar">
+        <div class="admin-logo"><span class="brand">CineMax</span> Manager</div>
+        <div class="admin-logo-sub">Quản lý chi nhánh</div>
+
+        <a th:href="@{/manager}" class="admin-nav-link active">
+            <i class="bi bi-bar-chart-line"></i> Doanh thu chi nhánh
+        </a>
+
+        <div class="admin-nav-sep">
+            <a th:href="@{/home}" class="admin-nav-link">
+                <i class="bi bi-house"></i> Về trang chủ
+            </a>
+            <a th:href="@{/change-password}" class="admin-nav-link">
+                <i class="bi bi-key"></i> Đổi mật khẩu
+            </a>
+            <a th:href="@{/logout}" class="admin-nav-link">
+                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+            </a>
+        </div>
+    </aside>
+
+    <main class="admin-content">
+
+        <!-- Manager chưa được gán chi nhánh -->
+        <div th:if="${noCinema}" class="admin-panel text-center py-5">
+            <i class="bi bi-building-slash" style="font-size: 48px; color: var(--color-text-muted);"></i>
+            <h4 class="mt-3">Tài khoản chưa được gán chi nhánh</h4>
+            <p class="text-secondary">Vui lòng liên hệ Admin để được phân công quản lý một rạp.</p>
+        </div>
+
+        <div th:unless="${noCinema}">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
+                <div>
+                    <h1 class="admin-page-title" th:text="'Chi nhánh: ' + ${cinemaName}">Chi nhánh</h1>
+                    <p class="admin-page-sub">
+                        Doanh thu <strong th:text="${periodLabel}">Tháng này</strong>
+                        (chỉ tính booking đã thanh toán).
+                    </p>
+                </div>
+
+                <!-- Bộ lọc ngày / tháng / năm -->
+                <form class="admin-form d-flex gap-2 align-items-end flex-wrap" method="get" th:action="@{/manager}">
+                    <div>
+                        <label class="form-label" for="mode">Xem theo</label>
+                        <select id="mode" name="mode" class="form-select" onchange="onModeChange(this.value)">
+                            <option value="day"   th:selected="${mode == 'day'}">Ngày</option>
+                            <option value="month" th:selected="${mode == 'month'}">Tháng</option>
+                            <option value="year"  th:selected="${mode == 'year'}">Năm</option>
+                        </select>
+                    </div>
+                    <div id="pickDay" style="display:none;">
+                        <label class="form-label" for="date">Chọn ngày</label>
+                        <input type="date" id="date" name="date" class="form-control" th:value="${date}">
+                    </div>
+                    <div id="pickMonth" style="display:none;">
+                        <label class="form-label" for="monthInput">Chọn tháng</label>
+                        <input type="month" id="monthInput" name="month" class="form-control" th:value="${month}">
+                    </div>
+                    <div id="pickYear" style="display:none;">
+                        <label class="form-label" for="yearInput">Chọn năm</label>
+                        <input type="number" id="yearInput" name="year" class="form-control" style="width:110px;"
+                               min="2020" max="2100" th:value="${year}">
+                    </div>
+                    <button type="submit" class="btn btn-admin-primary"><i class="bi bi-funnel"></i> Xem</button>
+                </form>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Tổng doanh thu <span class="stat-icon"><i class="bi bi-cash-stack"></i></span></div>
+                    <div class="stat-value" th:text="${#numbers.formatDecimal(stats.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                    <div class="stat-note">Thực thu sau giảm giá</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Vé đã bán <span class="stat-icon"><i class="bi bi-ticket-perforated"></i></span></div>
+                    <div class="stat-value" th:text="${#numbers.formatDecimal(stats.ticketsSold, 0, 'COMMA', 0, 'POINT')}">0</div>
+                    <div class="stat-note" th:text="${#numbers.formatDecimal(stats.bookings, 0, 'COMMA', 0, 'POINT')} + ' đơn đặt vé'">0 đơn</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Doanh thu vé <span class="stat-icon"><i class="bi bi-film"></i></span></div>
+                    <div class="stat-value" th:text="${#numbers.formatDecimal(stats.ticketRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                    <div class="stat-note">Trước giảm giá</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Doanh thu bắp nước <span class="stat-icon"><i class="bi bi-cup-straw"></i></span></div>
+                    <div class="stat-value" th:text="${#numbers.formatDecimal(stats.comboRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                    <div class="stat-note">Combo bán kèm vé</div>
+                </div>
+            </div>
+
+            <div class="admin-panel">
+                <h5>Biến động doanh thu theo tháng — <span th:text="'năm ' + ${chartYear}">năm 2026</span></h5>
+                <div style="height: 320px;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script th:inline="javascript" th:unless="${noCinema}">
+    /*<![CDATA[*/
+    const monthlyRevenue = /*[[${monthlyData}]]*/ [];
+    /*]]>*/
+
+    const vnd = new Intl.NumberFormat('vi-VN');
+    const fmt = v => vnd.format(v) + ' đ';
+
+    new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],
+            datasets: [{
+                data: monthlyRevenue,
+                backgroundColor: '#E31B23',
+                borderRadius: 4,
+                maxBarThickness: 28
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => 'Doanh thu: ' + fmt(ctx.parsed.y) } }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#A0A0B0' } },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.06)' },
+                    ticks: {
+                        color: '#A0A0B0',
+                        callback: v => v >= 1e9 ? (v / 1e9) + ' tỷ'
+                                     : v >= 1e6 ? (v / 1e6) + ' tr'
+                                     : vnd.format(v)
+                    }
+                }
+            }
+        }
+    });
+
+    function onModeChange(mode) {
+        document.getElementById('pickDay').style.display   = mode === 'day'   ? '' : 'none';
+        document.getElementById('pickMonth').style.display = mode === 'month' ? '' : 'none';
+        document.getElementById('pickYear').style.display  = mode === 'year'  ? '' : 'none';
+    }
+    onModeChange(document.getElementById('mode').value);
+</script>
+
+</body>
+</html>
