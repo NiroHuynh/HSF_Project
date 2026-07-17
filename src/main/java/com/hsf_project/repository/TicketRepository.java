@@ -50,6 +50,39 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
             @Param("excludeBookingId") Long excludeBookingId
     );
 
+    /* ================== Aggregate cho dashboard doanh thu ================== */
+
+    /** Số vé đã bán (booking PAID) trong [from, to). */
+    @Query("SELECT COUNT(t) FROM Ticket t JOIN t.booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND (t.isDeleted IS NULL OR t.isDeleted = false) " +
+            "AND b.bookingDate >= :from AND b.bookingDate < :to")
+    long countPaidTickets(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to);
+
+    /** Doanh thu tiền vé (chưa trừ giảm giá) trong [from, to). */
+    @Query("SELECT COALESCE(SUM(t.ticketPrice.price), 0) FROM Ticket t JOIN t.booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND (t.isDeleted IS NULL OR t.isDeleted = false) " +
+            "AND b.bookingDate >= :from AND b.bookingDate < :to")
+    java.math.BigDecimal ticketRevenue(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to);
+
+    /* ---------- Bản giới hạn theo rạp (trang Manager) ---------- */
+
+    @Query("SELECT COUNT(t) FROM Ticket t JOIN t.booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND (t.isDeleted IS NULL OR t.isDeleted = false) " +
+            "AND b.bookingDate >= :from AND b.bookingDate < :to " +
+            "AND t.showtime.room.cinema.id = :cinemaId")
+    long countPaidTicketsByCinema(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to,
+                                  @Param("cinemaId") Integer cinemaId);
+
+    @Query("SELECT COALESCE(SUM(t.ticketPrice.price), 0) FROM Ticket t JOIN t.booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND (t.isDeleted IS NULL OR t.isDeleted = false) " +
+            "AND b.bookingDate >= :from AND b.bookingDate < :to " +
+            "AND t.showtime.room.cinema.id = :cinemaId")
+    java.math.BigDecimal ticketRevenueByCinema(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to,
+                                               @Param("cinemaId") Integer cinemaId);
     /**
      * Đếm số ghế đã đặt theo từng suất chiếu — batch query tránh N+1.
      * Trả về Object[]: [0]=showtimeId, [1]=bookedCount
