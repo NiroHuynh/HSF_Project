@@ -43,20 +43,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "GROUP BY u " +
             "ORDER BY u.createdAt DESC")
     List<Object[]> findCustomersWithStatsByCinema(@Param("cinemaId") Integer cinemaId);
-
-    Optional<User> findByEmail(String email);
-
-    List<User> findByIsDeletedFalseOrIsDeletedNull();
-
-    List<User> findByCreatedAtBetweenAndIsDeletedFalse(LocalDateTime from, LocalDateTime to);
-
-    long countByIsDeletedFalseOrIsDeletedNull();
-
-    Optional<User> findByIdAndIsDeletedFalse(Long id);
-
-    List<User> findByRole_IdInAndIsDeletedFalse(List<Integer> roleIds);
-
-    long countByRole_IdInAndIsDeletedFalse(List<Integer> roleIds);
-
-    long countByRole_IdInAndStatusAndIsDeletedFalse(List<Integer> roleIds, String status);
 }
