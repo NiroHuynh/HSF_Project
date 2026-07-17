@@ -2,11 +2,11 @@ package com.hsf_project.service.impl;
 
 import com.hsf_project.dto.MovieHomeDTO;
 import com.hsf_project.entity.Movie;
-import com.hsf_project.entity.MovieStatus;
+import com.hsf_project.entity.enums.MovieStatus;
 import com.hsf_project.exception.AppException;
 import com.hsf_project.exception.ErrorCode;
 import com.hsf_project.mapper.MovieMapper;
-import com.hsf_project.repository.movie.MovieRepository;
+import com.hsf_project.repository.MovieRepository;
 import com.hsf_project.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

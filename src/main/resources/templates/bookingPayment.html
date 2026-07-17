@@ -119,6 +119,13 @@
             object-fit: cover;
         }
 
+        /* Chi tiết phim trong tóm tắt đơn hàng */
+        .order-summary__movie-title{font-size:15px;font-weight:700;color:var(--color-text-primary);line-height:1.3;margin-bottom:6px}
+        .order-summary__movie-meta{font-size:12px;color:var(--color-text-muted);line-height:1.8}
+        .order-summary__cinema-name{font-size:12px;font-weight:700;color:var(--color-brand-red);margin-top:4px;text-transform:uppercase;letter-spacing:0.03em}
+        .order-summary__seats{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+        .order-summary__seat-chip{padding:2px 8px;background:var(--color-surface-raised);border-radius:4px;font-size:11px;font-weight:600;color:var(--color-text-secondary)}
+
         .price-row {
             display: flex;
             align-items: center;
@@ -126,6 +133,59 @@
             margin-bottom: var(--space-sm);
         }
         .price-row--total { margin-top: var(--space-sm); margin-bottom: 0; }
+
+        /* Khoảng cách giữa thông tin phim và phần giá */
+        .order-summary__price-section {
+            margin-top: var(--space-lg);
+        }
+
+        /* Modal hủy giao dịch */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.is-open {
+            display: flex;
+        }
+        .modal-box {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+        .modal-box__icon {
+            font-size: 48px;
+            color: var(--color-brand-red);
+            margin-bottom: var(--space-md);
+        }
+        .modal-box__title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-sm);
+        }
+        .modal-box__desc {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-xl);
+            line-height: 1.6;
+        }
+        .modal-box__actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+        .modal-box__actions .btn {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -237,44 +297,63 @@
         <!-- ===================== CỘT PHẢI ===================== -->
 
 
-
-
-
-
-
-
-
-
-
         <div class="checkout-card">
             <h2 class="checkout-card__title mb-md">Tóm tắt đơn hàng</h2>
 
-            <hr class="divider mt-lg mb-lg">
-
-            <div class="price-row">
-                <span class="text-secondary body-sm">Tạm tính (Tiền ghế + Combo)</span>
-                <span th:text="${#numbers.formatInteger(totalAmount, 0, 'POINT')} + ' đ'">0 đ</span>
-            </div>
-
-            <div class="price-row" th:each="combo : ${selectedCombos}">
-                <span class="text-secondary body-sm" th:text="'Combo: ' + ${combo.name()} + ' x' + ${combo.quantity()}">Combo</span>
-                <span th:text="${#numbers.formatInteger(combo.lineTotal(), 0, 'POINT')} + ' đ'">0 đ</span>
-            </div>
-
-            <div class="price-row">
-                <span class="text-secondary body-sm">Khuyến mãi</span>
-                <span class="text-accent" id="discountDisplay" th:text="'- ' + ${#numbers.formatInteger(discountAmount, 0, 'POINT')} + ' đ'">- 0 đ</span>
-            </div>
-
-            <hr class="divider mt-lg mb-md">
-
-            <div class="price-row price-row--total">
-                <div>
-                    <div class="label-md">Tổng cộng số tiền cần trả</div>
-                    <div class="label-sm text-muted">(Đã bao gồm VAT)</div>
+            <!-- Chi tiết phim -->
+            <div class="order-summary__movie">
+                <div class="order-summary__poster">
+                    <img th:if="${moviePosterUrl}" th:src="${moviePosterUrl}" alt="Poster"/>
+                    <span th:unless="${moviePosterUrl}" class="material-symbols-outlined">movie</span>
                 </div>
-                <span class="text-accent" id="grandTotalDisplay" style="font-size:20px; font-weight:800;"
-                      th:text="${#numbers.formatInteger(finalAmount, 0, 'POINT')} + ' đ'">0 đ</span>
+                <div style="flex:1;min-width:0">
+                    <div class="order-summary__movie-title" th:text="${movieTitle}">Tên phim</div>
+                    <div class="order-summary__movie-meta">
+                        <div th:text="${showTimeDate} + ' ' + ${showTimeTime} + ' · ' + ${roomName}">
+                            20/05/2026 19:30 · Screen 04
+                        </div>
+                        <div>
+                            Ghế:
+                            <span th:each="seat, iter : ${selectedSeats}"
+                                  th:text="${seat} + (${iter.last} ? '' : ', ')">A1</span>
+                        </div>
+                    </div>
+                    <div class="order-summary__cinema-name" th:text="${cinemaName}">CineMax</div>
+                </div>
+            </div>
+
+            <!-- Phần giá — có padding trên để tách biệt khỏi thông tin phim -->
+            <div class="order-summary__price-section">
+
+                <hr class="divider mb-md">
+
+                <div class="price-row" style="margin-top: var(--space-md);">
+                    <span class="text-secondary body-sm">Tạm tính</span>
+                    <span th:text="${#numbers.formatInteger(totalAmount, 0, 'POINT')} + 'đ'">0đ</span>
+                </div>
+
+                <div class="price-row" th:each="combo : ${selectedCombos}">
+                    <span class="text-secondary body-sm" th:text="'Combo: ' + ${combo.name()} + ' x' + ${combo.quantity()}">Combo</span>
+                    <span th:text="${#numbers.formatInteger(combo.lineTotal(), 0, 'POINT')} + 'đ'">0đ</span>
+                </div>
+
+                <div class="price-row">
+                    <span class="text-secondary body-sm">Khuyến mãi</span>
+                    <span class="text-accent" id="discountDisplay"
+                          th:text="'- ' + ${#numbers.formatInteger(discountAmount, 0, 'POINT')} + 'đ'">- 0đ</span>
+                </div>
+
+                <hr style="border:none;border-top:1px dashed var(--color-border-strong);margin:var(--space-md) 0">
+
+                <div class="price-row price-row--total">
+                    <div>
+                        <div class="label-md">Tổng cộng</div>
+                        <div class="label-sm text-muted">(Đã bao gồm VAT)</div>
+                    </div>
+                    <span class="text-accent" id="grandTotalDisplay"
+                          style="font-size:22px;font-weight:800;"
+                          th:text="${#numbers.formatInteger(finalAmount, 0, 'POINT')} + 'đ'">0đ</span>
+                </div>
             </div>
 
             <button type="submit" form="paymentForm" class="btn btn-primary btn-lg w-full mt-lg">
@@ -282,14 +361,10 @@
                 <span class="material-symbols-outlined">arrow_forward</span>
             </button>
 
-            <form th:action="@{/booking/cancel}" method="post" style="width: 100%;">
-                <input type="hidden" name="bookingCode" th:value="${bookingCode}"/>
-
-                <button type="submit" class="btn btn-outline w-full mt-sm"
-                        onclick="return confirm('Bạn có chắc chắn muốn hủy giao dịch đặt vé này không?')">
-                    Hủy giao dịch
-                </button>
-            </form>
+            <!-- Nút hủy giao dịch — mở Modal thay vì dùng confirm() mặc định của trình duyệt -->
+            <button type="button" class="btn btn-outline w-full mt-sm" id="openCancelModalBtn">
+                Hủy giao dịch
+            </button>
         </div>
     </div>
 </main>
@@ -381,19 +456,49 @@
     recalcTotal();
 </script>
 
+<!-- ============================================================
+     MODAL XÁC NHẬN HỦY GIAO DỊCH
+     Thay thế confirm() mặc định của trình duyệt, giao diện đồng bộ
+     với design system của dự án.
+     ============================================================ -->
+<div class="modal-overlay" id="cancelModal">
+    <div class="modal-box">
+        <div class="modal-box__icon">
+            <span class="material-symbols-outlined">warning</span>
+        </div>
+        <div class="modal-box__title">Hủy giao dịch?</div>
+        <div class="modal-box__desc">
+            Bạn có chắc chắn muốn hủy giao dịch đặt vé này không?<br>
+            Các ghế đang giữ sẽ được giải phóng và không thể hoàn tác.
+        </div>
+        <div class="modal-box__actions">
+            <button type="button" class="btn btn-outline" id="closeCancelModalBtn">Quay lại</button>
+            <form th:action="@{/booking/cancel}" method="post" style="flex:1;">
+                <input type="hidden" name="bookingCode" th:value="${bookingCode}"/>
+                <button type="submit" class="btn btn-primary w-full">Xác nhận hủy</button>
+            </form>
+        </div>
+    </div>
+</div>
 
+<!-- JS modal đặt SAU HTML modal để getElementById tìm được phần tử -->
+<script>
+    //3. MODAL XÁC NHẬN HỦY GIAO DỊCH
+    const cancelModal    = document.getElementById('cancelModal');
+    const openCancelBtn  = document.getElementById('openCancelModalBtn');
+    const closeCancelBtn = document.getElementById('closeCancelModalBtn');
 
+    // Mở modal khi bấm nút "Hủy giao dịch"
+    openCancelBtn.addEventListener('click', () => cancelModal.classList.add('is-open'));
 
+    // Đóng modal khi bấm nút "Quay lại"
+    closeCancelBtn.addEventListener('click', () => cancelModal.classList.remove('is-open'));
 
-
-
-
-
-
-
-
-
-<!-- FOOTER dùng chung toàn site -->
+    // Bấm vào vùng tối bên ngoài modal cũng đóng được
+    cancelModal.addEventListener('click', (e) => {
+        if (e.target === cancelModal) cancelModal.classList.remove('is-open');
+    });
+</script>
 <div th:replace="~{fragments/footer :: footer}"></div>
 <script th:replace="~{fragments/header :: header-script}"></script>
 

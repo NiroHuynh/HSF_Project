@@ -1,5 +1,7 @@
 package com.hsf_project.entity;
 
+import com.hsf_project.entity.enums.AgeRating;
+import com.hsf_project.entity.enums.MovieStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

@@ -1,4 +1,4 @@
-package com.hsf_project.repository.promotion;
+package com.hsf_project.repository;
 
 import com.hsf_project.entity.Promotion;
 import org.springframework.data.jpa.repository.JpaRepository;

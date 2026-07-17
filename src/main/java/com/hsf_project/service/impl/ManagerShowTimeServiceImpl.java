@@ -2,10 +2,11 @@ package com.hsf_project.service.impl;
 
 import com.hsf_project.dto.response.ShowTimeRowDTO;
 import com.hsf_project.entity.*;
+import com.hsf_project.entity.enums.MovieStatus;
 import com.hsf_project.repository.CinemaRoomRepository;
 import com.hsf_project.repository.ShowTimeRepository;
 import com.hsf_project.repository.TicketRepository;
-import com.hsf_project.repository.movie.MovieRepository;
+import com.hsf_project.repository.MovieRepository;
 import com.hsf_project.service.ManagerShowTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
