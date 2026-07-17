@@ -11,11 +11,6 @@ import java.util.Optional;
 
 public interface ShowTimeRepository extends JpaRepository<ShowTime, Long> {
 
-    List<ShowTime> findByMovieIdAndIsDeletedFalse(Integer movieId);
-
-    @Query("SELECT DISTINCT b.user.id FROM Booking b JOIN b.tickets t WHERE t.showtime.movie.id = :movieId AND b.isDeleted = false AND t.isDeleted = false")
-    List<Long> findDistinctUserIdsByMovieId(@Param("movieId") Integer movieId);
-
     @Query("SELECT st FROM ShowTime st " +
             "JOIN FETCH st.room r JOIN FETCH r.cinema c JOIN FETCH st.movie m " +
             "WHERE st.id = :id")
