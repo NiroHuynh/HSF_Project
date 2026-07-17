@@ -26,5 +26,4 @@ public interface SeatRepository
     );
 
     Optional<Seat> findByRoomIdAndSeatCodeAndIsDeletedFalse(Integer roomId, String seatCode);
-    List<Seat> findByRoomIdAndIsDeletedFalseOrderByRowLabelAscSeatNumberAsc(Integer roomId);
 }

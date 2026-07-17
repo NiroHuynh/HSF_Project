@@ -2,7 +2,7 @@ package com.hsf_project.service;
 
 import com.hsf_project.dto.MovieHomeDTO;
 import com.hsf_project.entity.Movie;
-import com.hsf_project.entity.MovieStatus;
+import com.hsf_project.entity.enums.MovieStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

@@ -20,7 +20,7 @@ GO
 -- role_id: 1 = ADMIN | 2 = STAFF | 3 = CUSTOMER
 INSERT INTO role (role_name, is_deleted) VALUES
                                              (N'ADMIN',    0),   -- role_id = 1
-                                             (N'STAFF',    0),   -- role_id = 2
+                                             (N'MANAGER',    0),   -- role_id = 2
                                              (N'CUSTOMER', 0);   -- role_id = 3
 GO
 
