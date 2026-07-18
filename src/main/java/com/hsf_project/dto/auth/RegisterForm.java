@@ -8,12 +8,14 @@ import jakarta.validation.constraints.Size;
 /** Form đăng ký tài khoản mới (mặc định role CUSTOMER). */
 public class RegisterForm {
 
+    // max 50 để khớp cột users.first_name/last_name (VARCHAR 50);
+    // để 100 thì Hibernate ném ConstraintViolationException lúc persist -> lỗi 500.
     @NotBlank(message = "Vui lòng nhập tên")
-    @Size(max = 100, message = "Tên tối đa 100 ký tự")
+    @Size(max = 50, message = "Tên tối đa 50 ký tự")
     private String firstName;
 
     @NotBlank(message = "Vui lòng nhập họ")
-    @Size(max = 100, message = "Họ tối đa 100 ký tự")
+    @Size(max = 50, message = "Họ tối đa 50 ký tự")
     private String lastName;
 
     @NotBlank(message = "Vui lòng nhập email")
