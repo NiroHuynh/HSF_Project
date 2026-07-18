@@ -16,6 +16,8 @@ public interface AdminAccountMapper {
     @Mapping(target = "fullName", expression = "java(user.getFullName())")
     @Mapping(target = "role", source = "user.role.roleName")
     @Mapping(target = "createdDate", expression = "java(formatDate(user.getCreatedAt()))")
+    @Mapping(target = "cinemaId", source = "user.cinema.id")
+    @Mapping(target = "cinemaName", source = "user.cinema.name")
     AdminAccountResponse toResponse(User user);
 
     List<AdminAccountResponse> toResponseList(List<User> users);

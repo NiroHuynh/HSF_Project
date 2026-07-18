@@ -2,6 +2,7 @@ package com.hsf_project.controller.admin;
 
 import com.hsf_project.dto.admin.response.AdminAccountResponse;
 import com.hsf_project.dto.common.ApiResponse;
+import com.hsf_project.repository.CinemaRepository;
 import com.hsf_project.service.admin.AdminAccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.Map;
 public class AdminAccountController {
 
     AdminAccountService adminAccountService;
+    CinemaRepository cinemaRepository;
 
     @GetMapping
     public String pageAccounts(
@@ -34,6 +36,8 @@ public class AdminAccountController {
         model.addAttribute("lockedCount", adminAccountService.getLockedCount());
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedRole", role);
+        model.addAttribute("cinemas", cinemaRepository.findByIsDeletedFalseOrderByNameAsc());
+        model.addAttribute("active", "accounts");
 
         return "adminManagement";
     }
@@ -62,7 +66,9 @@ public class AdminAccountController {
         String roleId = body.get("roleId");
         String phoneNumber = body.get("phoneNumber");
 
-        adminAccountService.createAccount(email, password, firstName, lastName, roleId, phoneNumber);
+        String cinemaId = body.get("cinemaId");
+
+        adminAccountService.createAccount(email, password, firstName, lastName, roleId, phoneNumber, cinemaId);
         return ApiResponse.success(null);
     }
 
@@ -81,7 +87,8 @@ public class AdminAccountController {
                 body.get("firstName"),
                 body.get("lastName"),
                 body.get("phoneNumber"),
-                body.get("roleId")
+                body.get("roleId"),
+                body.get("cinemaId")
         );
         return ApiResponse.success(null);
     }

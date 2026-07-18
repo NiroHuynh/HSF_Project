@@ -17,9 +17,9 @@ public interface AdminAccountService {
 
     void deleteAccount(Long id);
 
-    void createAccount(String email, String password, String firstName, String lastName, String roleId, String phoneNumber);
+    void createAccount(String email, String password, String firstName, String lastName, String roleId, String phoneNumber, String cinemaId);
 
     AdminAccountResponse getAccountById(Long id);
 
-    void updateAccount(Long id, String email, String firstName, String lastName, String phoneNumber, String roleId);
+    void updateAccount(Long id, String email, String firstName, String lastName, String phoneNumber, String roleId, String cinemaId);
 }

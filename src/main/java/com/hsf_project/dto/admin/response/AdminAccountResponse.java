@@ -19,4 +19,7 @@ public class AdminAccountResponse {
     String role;
     String createdDate;
     String status;
+    /** Rạp manager phụ trách — null với tài khoản ADMIN. */
+    Integer cinemaId;
+    String cinemaName;
 }
