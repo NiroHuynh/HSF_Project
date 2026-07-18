@@ -11,4 +11,5 @@ import java.util.List;
 public interface TicketPriceRepository extends JpaRepository<TicketPrice, Long> {
     Optional<TicketPrice> findByRoomIdAndSeatTypeAndIsDeletedFalse(Integer roomId, String seatType);
     List<TicketPrice> findByRoomRoomTypeAndSeatTypeAndIsDeletedFalse(String roomType, String seatType);
+    List<TicketPrice> findByRoomIdAndIsDeletedFalse(Integer roomId);
 }

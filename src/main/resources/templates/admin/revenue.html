@@ -3,10 +3,10 @@
 <head th:replace="~{admin/fragments :: head('Báo cáo Doanh thu')}"></head>
 <body class="admin-body">
 
-<div class="admin-layout">
-    <aside th:replace="~{admin/fragments :: sidebar('revenue')}"></aside>
+<aside th:replace="~{admin/fragments :: sidebar('revenue')}"></aside>
+<header th:replace="~{admin/fragments :: mobile}"></header>
 
-    <main class="admin-content">
+<main class="admin-content">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
             <div>
                 <h1 class="admin-page-title">Báo cáo Doanh thu</h1>
@@ -128,8 +128,7 @@
                 </table>
             </div>
         </div>
-    </main>
-</div>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script th:inline="javascript">

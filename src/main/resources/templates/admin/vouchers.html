@@ -3,10 +3,10 @@
 <head th:replace="~{admin/fragments :: head('Quản lý Voucher')}"></head>
 <body class="admin-body">
 
-<div class="admin-layout">
-    <aside th:replace="~{admin/fragments :: sidebar('vouchers')}"></aside>
+<aside th:replace="~{admin/fragments :: sidebar('vouchers')}"></aside>
+<header th:replace="~{admin/fragments :: mobile}"></header>
 
-    <main class="admin-content">
+<main class="admin-content">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
             <div>
                 <h1 class="admin-page-title">Quản lý Voucher</h1>
@@ -77,7 +77,10 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form th:action="@{/admin/vouchers/{id}/toggle-status(id=${v.id})}" method="post"
-                                  style="display:inline;">
+                                  style="display:inline;"
+                                  th:attr="data-confirm-title=${v.status == 'ACTIVE'} ? 'Khoá voucher' : 'Kích hoạt voucher',
+                                           data-confirm='Voucher &quot;'+${v.code}+'&quot; sẽ '+(${v.status == 'ACTIVE'} ? 'ngừng áp dụng cho các đơn mới.' : 'được áp dụng trở lại.'),
+                                           data-confirm-ok=${v.status == 'ACTIVE'} ? 'Khoá' : 'Kích hoạt'">
                                 <button type="submit" class="btn btn-sm btn-admin-ghost"
                                         th:title="${v.status == 'ACTIVE'} ? 'Khoá' : 'Kích hoạt'">
                                     <i class="bi" th:classappend="${v.status == 'ACTIVE'} ? 'bi-lock' : 'bi-unlock'"></i>
@@ -85,7 +88,9 @@
                             </form>
                             <form th:action="@{/admin/vouchers/{id}/delete(id=${v.id})}" method="post"
                                   style="display:inline;"
-                                  onsubmit="return confirm('Xoá voucher này? Voucher sẽ không còn áp dụng được.');">
+                                  data-confirm-title="Xoá voucher"
+                                  th:attr="data-confirm='Voucher &quot;'+${v.code}+'&quot; sẽ không còn áp dụng được. Bạn có chắc chắn?'"
+                                  data-confirm-ok="Xoá voucher">
                                 <button type="submit" class="btn btn-sm btn-admin-ghost text-danger" title="Xoá">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -112,8 +117,10 @@
                 </ul>
             </nav>
         </div>
-    </main>
-</div>
+
+    <div th:replace="~{admin/fragments :: confirmModal}"></div>
+    <script th:src="@{/js/admin.js}"></script>
+</main>
 
 </body>
 </html>
