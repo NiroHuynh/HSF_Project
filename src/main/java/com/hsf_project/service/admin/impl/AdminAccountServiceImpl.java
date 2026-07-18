@@ -1,9 +1,11 @@
 package com.hsf_project.service.admin.impl;
 
 import com.hsf_project.dto.admin.response.AdminAccountResponse;
+import com.hsf_project.entity.Cinema;
 import com.hsf_project.entity.Role;
 import com.hsf_project.entity.User;
 import com.hsf_project.mapper.AdminAccountMapper;
+import com.hsf_project.repository.CinemaRepository;
 import com.hsf_project.repository.auth.RoleRepository;
 import com.hsf_project.repository.auth.UserRepository;
 import com.hsf_project.service.admin.AdminAccountService;
@@ -22,9 +24,11 @@ public class AdminAccountServiceImpl implements AdminAccountService {
 
     UserRepository userRepository;
     RoleRepository roleRepository;
+    CinemaRepository cinemaRepository;
     AdminAccountMapper adminAccountMapper;
 
     private static final List<Integer> ADMIN_ROLE_IDS = List.of(1, 2);
+    private static final int MANAGER_ROLE_ID = 2;
 
     @Override
     public List<AdminAccountResponse> getAccounts(String keyword, String roleFilter) {
@@ -81,12 +85,13 @@ public class AdminAccountServiceImpl implements AdminAccountService {
     @Override
     @Transactional
     public void createAccount(String email, String password, String firstName, String lastName,
-                              String roleId, String phoneNumber) {
+                              String roleId, String phoneNumber, String cinemaId) {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email đã tồn tại trong hệ thống");
         }
 
-        Role role = roleRepository.getReferenceById(Integer.parseInt(roleId));
+        int roleIdValue = Integer.parseInt(roleId);
+        Role role = roleRepository.getReferenceById(roleIdValue);
 
         User user = new User();
         user.setEmail(email);
@@ -94,11 +99,27 @@ public class AdminAccountServiceImpl implements AdminAccountService {
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setRole(role);
+        user.setCinema(resolveCinema(roleIdValue, cinemaId));
         user.setPhoneNumber(phoneNumber);
         user.setStatus("ACTIVE");
         user.setIsDeleted(false);
 
         userRepository.save(user);
+    }
+
+    /**
+     * Manager bắt buộc phải gắn với một rạp — mọi trang /manager đều lọc dữ liệu theo
+     * user.getCinema(), nên manager không có rạp sẽ không dùng được chức năng nào.
+     * Admin thì ngược lại, luôn để null.
+     */
+    private Cinema resolveCinema(int roleIdValue, String cinemaId) {
+        if (roleIdValue != MANAGER_ROLE_ID) return null;
+        if (cinemaId == null || cinemaId.isBlank()) {
+            throw new RuntimeException("Vui lòng chọn rạp phụ trách cho tài khoản Manager");
+        }
+        return cinemaRepository.findById(Integer.parseInt(cinemaId))
+                .filter(c -> !Boolean.TRUE.equals(c.getIsDeleted()))
+                .orElseThrow(() -> new RuntimeException("Rạp được chọn không tồn tại"));
     }
 
     @Override
@@ -111,7 +132,7 @@ public class AdminAccountServiceImpl implements AdminAccountService {
     @Override
     @Transactional
     public void updateAccount(Long id, String email, String firstName, String lastName,
-                              String phoneNumber, String roleId) {
+                              String phoneNumber, String roleId, String cinemaId) {
         User user = userRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
@@ -127,7 +148,10 @@ public class AdminAccountServiceImpl implements AdminAccountService {
         if (lastName != null && !lastName.isBlank()) user.setLastName(lastName);
         if (phoneNumber != null) user.setPhoneNumber(phoneNumber);
         if (roleId != null && !roleId.isBlank()) {
-            user.setRole(roleRepository.getReferenceById(Integer.parseInt(roleId)));
+            int roleIdValue = Integer.parseInt(roleId);
+            user.setRole(roleRepository.getReferenceById(roleIdValue));
+            // Đổi role thì rạp phụ trách phải theo: Manager gán rạp mới, Admin gỡ rạp cũ.
+            user.setCinema(resolveCinema(roleIdValue, cinemaId));
         }
     }
 }
