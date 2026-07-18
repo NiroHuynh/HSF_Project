@@ -13,6 +13,7 @@ import java.util.List;
 public interface CinemaRepository extends JpaRepository<Cinema, Integer> {
     List<Cinema> findByIsDeletedFalseOrderByNameAsc();
     long countByCityIdAndIsDeletedFalse(Integer cityId);
+    List<Cinema> findByCityIdAndIsDeletedFalse(Integer cityId);
 
     @Query("""
                 SELECT new com.hsf_project.dto.response.CinemaScheduleDTO(

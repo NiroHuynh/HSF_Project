@@ -3,10 +3,10 @@
 <head th:replace="~{admin/fragments :: head('Tổng quan')}"></head>
 <body class="admin-body">
 
-<div class="admin-layout">
-    <aside th:replace="~{admin/fragments :: sidebar('overview')}"></aside>
+<aside th:replace="~{admin/fragments :: sidebar('overview')}"></aside>
+<header th:replace="~{admin/fragments :: mobile}"></header>
 
-    <main class="admin-content">
+<main class="admin-content">
         <h1 class="admin-page-title">Tổng quan</h1>
         <p class="admin-page-sub">
             Số liệu nhanh của <strong th:text="${periodLabel}">Tháng này</strong>.
@@ -50,8 +50,7 @@
                 </a>
             </div>
         </div>
-    </main>
-</div>
+</main>
 
 </body>
 </html>

@@ -3,10 +3,10 @@
 <head th:replace="~{admin/fragments :: head(${formTitle})}"></head>
 <body class="admin-body">
 
-<div class="admin-layout">
-    <aside th:replace="~{admin/fragments :: sidebar('vouchers')}"></aside>
+<aside th:replace="~{admin/fragments :: sidebar('vouchers')}"></aside>
+<header th:replace="~{admin/fragments :: mobile}"></header>
 
-    <main class="admin-content">
+<main class="admin-content">
         <h1 class="admin-page-title" th:text="${formTitle}">Thêm Voucher mới</h1>
         <p class="admin-page-sub">
             <a th:href="@{/admin/vouchers}" class="text-secondary">
@@ -88,8 +88,7 @@
                 </div>
             </form>
         </div>
-    </main>
-</div>
+</main>
 
 </body>
 </html>
