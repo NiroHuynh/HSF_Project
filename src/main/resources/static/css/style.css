@@ -1538,3 +1538,23 @@ body{
   justify-content:space-between;
   margin-top:20px;
 }
+/* ============================================================
+   VALIDATION - thông báo lỗi do form-validate.js sinh ra.
+   Dùng chung cho form đăng ký (customer) và các modal khu admin.
+   ============================================================ */
+.field-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #e5484d;
+}
+
+.is-invalid {
+  border-color: #e5484d !important;
+}
+
+.is-invalid:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(229, 72, 77, .18);
+}
