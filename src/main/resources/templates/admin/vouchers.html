@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Quản lý voucher - CineMax</title>
+    <link rel="stylesheet" th:href="@{/css/admin-system.css}">
+</head>
+<body>
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+<main class="admin-main">
+    <div class="toast success" th:if="${success}" th:text="${success}"></div>
+    <div class="toast error" th:if="${error}" th:text="${error}"></div>
+    <header class="page-head"><div><p>QUẢN LÝ KHUYẾN MÃI</p><h1>Voucher</h1>
+        <span>Tạo và kiểm soát chương trình ưu đãi.</span></div>
+        <button class="primary" type="button" onclick="document.getElementById('voucherModal').classList.add('open')">+ Thêm voucher</button>
+    </header>
+    <div>
+        <section class="card table-wrap">
+            <table>
+                <thead><tr><th>MÃ</th><th>ƯU ĐÃI</th><th>THỜI HẠN</th><th>SỬ DỤNG</th><th>TRẠNG THÁI</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="item : ${vouchers}">
+                    <td><strong th:text="${item.code}">CODE</strong><small class="block" th:text="${item.name}">Tên</small></td>
+                    <td class="price" th:text="${item.discountValue + (item.discountType == 'PERCENT' ? '%' : ' đ')}">10%</td>
+                    <td><small class="block" th:text="${#temporals.format(item.startDate,'dd/MM/yyyy')}"></small>
+                        <small class="block" th:text="${'→ ' + #temporals.format(item.endDate,'dd/MM/yyyy')}"></small></td>
+                    <td th:text="${(item.usedCount ?: 0) + ' / ' + (item.usageLimit ?: '∞')}">0/100</td>
+                    <td><span th:class="${item.status == 'ACTIVE' ? 'status on' : 'status off'}" th:text="${item.status}">ACTIVE</span></td>
+                    <td><div class="actions">
+                        <a class="icon-action" th:href="@{/admin/vouchers(edit=${item.id})}">✎</a>
+                        <form th:action="@{/admin/vouchers/{id}/delete(id=${item.id})}" method="post"
+                              onsubmit="return confirm('Ẩn voucher này?')"><button class="danger">×</button></form>
+                    </div></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(vouchers)}"><td class="empty" colspan="6">Chưa có voucher.</td></tr>
+                </tbody>
+            </table>
+        </section>
+        <div class="modal" id="voucherModal" th:classappend="${voucher.id != null} ? ' open'">
+        <section class="modal-box editor-card form-modal-wide">
+            <button type="button" class="close" onclick="this.closest('.modal').classList.remove('open')">×</button>
+            <div class="section-head"><div><h2 th:text="${voucher.id == null ? 'Thêm voucher' : 'Cập nhật voucher'}">Voucher</h2>
+                <span>Thiết lập điều kiện sử dụng</span></div></div>
+            <form th:action="@{/admin/vouchers/save}" th:object="${voucher}" method="post">
+                <input type="hidden" th:field="*{id}">
+                <div class="grid2">
+                    <label>Mã voucher *<input th:field="*{code}" required maxlength="50"></label>
+                    <label>Trạng thái *<select th:field="*{status}" required><option value="ACTIVE">ACTIVE</option><option value="INACTIVE">INACTIVE</option></select></label>
+                </div>
+                <label>Tên chương trình *<input th:field="*{name}" required maxlength="100"></label>
+                <div class="grid2">
+                    <label>Loại giảm *<select th:field="*{discountType}" required><option value="PERCENT">Phần trăm (%)</option><option value="FIXED">Số tiền (đ)</option></select></label>
+                    <label>Giá trị *<input type="number" step="0.01" min="0" th:field="*{discountValue}" required></label>
+                    <label>Bắt đầu *<input type="datetime-local" th:field="*{startDate}" required></label>
+                    <label>Kết thúc *<input type="datetime-local" th:field="*{endDate}" required></label>
+                    <label>Giới hạn sử dụng<input type="number" min="1" th:field="*{usageLimit}"></label>
+                    <label>Đã sử dụng<input type="number" min="0" th:field="*{usedCount}"></label>
+                </div>
+                <label>Mô tả<textarea th:field="*{description}" rows="4" maxlength="255"></textarea></label>
+                <div class="modal-actions"><a th:if="${voucher.id != null}" th:href="@{/admin/vouchers}">Hủy</a>
+                    <button class="primary" type="submit">Lưu voucher</button></div>
+            </form>
+        </section></div>
+    </div>
+    <script>document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));</script>
+</main>
+</body>
+</html>

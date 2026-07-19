@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Dashboard quản trị - CineMax</title>
+    <link rel="stylesheet" th:href="@{/css/admin-system.css}">
+</head>
+<body>
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+<main class="admin-main">
+    <header class="page-head">
+        <div><p>QUẢN TRỊ HỆ THỐNG</p><h1>Dashboard tổng quan</h1>
+            <span>Theo dõi người dùng, nhân viên và nội dung trên CineMax.</span></div>
+    </header>
+    <section class="metrics">
+        <article><span>TỔNG TÀI KHOẢN</span><b th:text="${totalUsers}">0</b><small>Tất cả tài khoản đang hoạt động</small></article>
+        <article><span>NGƯỜI DÙNG</span><b class="green" th:text="${customers}">0</b><small>Tài khoản khách hàng</small></article>
+        <article><span>NHÂN VIÊN</span><b class="orange" th:text="${staff}">0</b><small>Tài khoản manager</small></article>
+        <article><span>PHIM</span><b th:text="${movies}">0</b><small>Phim chưa bị xóa</small></article>
+    </section>
+    <section class="dashboard-grid">
+        <div class="card chart-card">
+            <div class="section-head"><div><h2>Cấu trúc người dùng</h2><span>Phân bổ tài khoản trong hệ thống</span></div></div>
+            <div class="overview-bars">
+                <div><label>Khách hàng <b th:text="${customers}">0</b></label><i><span th:style="'width:' + ${totalUsers > 0 ? customers * 100 / totalUsers : 0} + '%'"></span></i></div>
+                <div><label>Nhân viên <b th:text="${staff}">0</b></label><i><span class="staff" th:style="'width:' + ${totalUsers > 0 ? staff * 100 / totalUsers : 0} + '%'"></span></i></div>
+            </div>
+        </div>
+        <div class="card ranking">
+            <div class="section-head"><div><h2>Quản lý nhanh</h2><span>Truy cập chức năng chính</span></div></div>
+            <a class="quick-card" th:href="@{/admin/movies}"><i>▶</i><div><b>Quản lý phim</b><span th:text="${movies + ' phim'}">0 phim</span></div><strong>→</strong></a>
+            <a class="quick-card" th:href="@{/admin/vouchers}"><i>◇</i><div><b>Quản lý voucher</b><span th:text="${vouchers + ' voucher'}">0 voucher</span></div><strong>→</strong></a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -14,4 +14,6 @@ public interface CinemaRoomRepository extends JpaRepository<CinemaRoom, Integer>
      * Chỉ lấy phòng chưa bị xóa, sắp xếp theo tên.
      */
     List<CinemaRoom> findByCinemaIdAndIsDeletedFalseOrderByNameAsc(Integer cinemaId);
+    List<CinemaRoom> findByIsDeletedFalseOrderByCinemaNameAscNameAsc();
+    List<CinemaRoom> findByRoomTypeAndIsDeletedFalse(String roomType);
 }

@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -25,6 +28,12 @@ public class GlobalExceptionHandler {
         model.addAttribute("errorCode", 400);
         model.addAttribute("errorMessage", ex.getMessage());
         return "error";
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public void handleMissingStaticResource() {
+        // Tài nguyên tĩnh không tồn tại là 404 bình thường, không phải lỗi hệ thống.
     }
 
     @ExceptionHandler(Exception.class)
