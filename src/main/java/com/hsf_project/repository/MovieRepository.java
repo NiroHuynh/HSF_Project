@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface MovieRepository extends JpaRepository<Movie, Integer> {
+    List<Movie> findByIsDeletedFalseOrderByIdDesc();
 
     @Query(value = "SELECT TOP 4 * FROM movie m " +
             "WHERE m.status = :status " +
