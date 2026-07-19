@@ -83,7 +83,27 @@ public class AdminController {
     @PostMapping("/ticket-prices") public String savePrices(@RequestParam Map<String,String> values,RedirectAttributes ra){for(String rt:ROOM_TYPES)for(String st:SEAT_TYPES){String key=rt+"_"+st;BigDecimal amount;try{amount=new BigDecimal(values.get(key));}catch(Exception e){return err(ra,"Giá "+rt+" / "+st+" không hợp lệ","/admin/ticket-prices");}if(amount.signum()<=0)return err(ra,"Giá vé phải lớn hơn 0","/admin/ticket-prices");for(CinemaRoom room:rooms.findByRoomTypeAndIsDeletedFalse(rt)){TicketPrice p=prices.findByRoomIdAndSeatTypeAndIsDeletedFalse(room.getId(),st).orElseGet(()->{TicketPrice n=new TicketPrice();n.setRoom(room);n.setSeatType(st);n.setDeleted(false);return n;});p.setPrice(amount);prices.save(p);}}return ok(ra,"Đã cập nhật đồng bộ 9 mức giá cho tất cả phòng","/admin/ticket-prices");}
 
     @GetMapping("/combos") public String combos(Model m){m.addAttribute("combos",combos.findByIsDeletedFalseOrderByIdDesc());m.addAttribute("active","combos");return "admin/combos";}
-    @PostMapping("/combos/save") public String saveCombo(@RequestParam(required=false) Long id,@RequestParam String name,@RequestParam(required=false) String description,@RequestParam BigDecimal price,@RequestParam Integer quantity,@RequestParam String status,RedirectAttributes ra){if(name.isBlank()||price.signum()<=0||quantity<0||!List.of("ACTIVE","INACTIVE").contains(status))return err(ra,"Thông tin combo không hợp lệ","/admin/combos");Combo x=id==null?new Combo():combos.findById(id).orElseThrow();x.setName(name.trim());x.setDescription(description==null?"":description.trim());x.setPrice(price);x.setQuantity(quantity);x.setStatus(status);x.setIsDeleted(false);combos.save(x);return ok(ra,"Đã lưu combo","/admin/combos");}
+    /** combo.price là DECIMAL(10,2) nên giá phải nhỏ hơn 100 triệu, nếu không Hibernate ném lỗi lúc INSERT. */
+    private static final BigDecimal MAX_COMBO_PRICE=new BigDecimal("99999999");
+    private static final int MAX_COMBO_QUANTITY=1_000_000;
+
+    /**
+     * Nhận price/quantity dưới dạng String rồi tự parse: khai báo thẳng BigDecimal/Integer
+     * thì một con số vượt ngưỡng kiểu (hoặc chữ) làm Spring ném MethodArgumentTypeMismatchException
+     * trước khi vào thân hàm, người dùng nhận trang 500 thay vì thông báo nhập sai.
+     */
+    @PostMapping("/combos/save") public String saveCombo(@RequestParam(required=false) Long id,@RequestParam String name,@RequestParam(required=false) String description,@RequestParam String price,@RequestParam String quantity,@RequestParam String status,RedirectAttributes ra){
+        if(name.isBlank()||name.trim().length()>100)return err(ra,"Tên combo bắt buộc và tối đa 100 ký tự","/admin/combos");
+        if(description!=null&&description.trim().length()>255)return err(ra,"Mô tả combo tối đa 255 ký tự","/admin/combos");
+        if(!List.of("ACTIVE","INACTIVE").contains(status))return err(ra,"Trạng thái combo không hợp lệ","/admin/combos");
+        BigDecimal priceValue;int quantityValue;
+        try{priceValue=new BigDecimal(price.trim()).setScale(2,RoundingMode.HALF_UP);}catch(NumberFormatException|ArithmeticException e){return err(ra,"Giá bán phải là một số hợp lệ","/admin/combos");}
+        try{quantityValue=Integer.parseInt(quantity.trim());}catch(NumberFormatException e){return err(ra,"Số lượng tồn phải là số nguyên trong khoảng 0 - "+MAX_COMBO_QUANTITY,"/admin/combos");}
+        if(priceValue.signum()<=0)return err(ra,"Giá bán phải lớn hơn 0","/admin/combos");
+        if(priceValue.compareTo(MAX_COMBO_PRICE)>0)return err(ra,"Giá bán tối đa là 99.999.999 ₫","/admin/combos");
+        if(quantityValue<0)return err(ra,"Số lượng tồn không được âm","/admin/combos");
+        if(quantityValue>MAX_COMBO_QUANTITY)return err(ra,"Số lượng tồn tối đa là "+MAX_COMBO_QUANTITY,"/admin/combos");
+        Combo x=id==null?new Combo():combos.findById(id).orElseThrow();x.setName(name.trim());x.setDescription(description==null?"":description.trim());x.setPrice(priceValue);x.setQuantity(quantityValue);x.setStatus(status);x.setIsDeleted(false);combos.save(x);return ok(ra,"Đã lưu combo","/admin/combos");}
     @PostMapping("/combos/{id}/delete") public String delCombo(@PathVariable Long id,RedirectAttributes ra){Combo x=combos.findById(id).orElseThrow();x.setIsDeleted(true);x.setStatus("INACTIVE");combos.save(x);return ok(ra,"Đã xóa combo","/admin/combos");}
 
     @GetMapping("/dashboard/{type}") public String dashboard(@PathVariable String type,@RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) LocalDate from,@RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) LocalDate to,Model m){if(!List.of("cinema","combo").contains(type))type="cinema";LocalDate end=to==null?LocalDate.now():to,start=from==null?end.minusDays(29):from;if(start.isAfter(end)){LocalDate q=start;start=end;end=q;}buildDashboard(type,bookings.findPaidInRange(start.atStartOfDay(),end.plusDays(1).atStartOfDay()),start,end,m);m.addAttribute("from",start);m.addAttribute("to",end);m.addAttribute("type",type);m.addAttribute("active","dashboard-"+type);return "admin/cinema-combo-dashboard";}

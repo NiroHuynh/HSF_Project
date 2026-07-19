@@ -13,6 +13,9 @@ public interface UserService {
      */
     User register(RegisterForm form);
 
+    /** Số điện thoại đã thuộc về một tài khoản chưa bị xóa hay chưa. */
+    boolean isPhoneTaken(String phoneNumber);
+
     /**
      * Đổi mật khẩu: kiểm tra mật khẩu cũ trước khi cập nhật.
      * @return user sau khi đổi, hoặc null nếu mật khẩu cũ sai / user không tồn tại.

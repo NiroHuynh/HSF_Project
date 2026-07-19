@@ -55,7 +55,7 @@ function accountRules(form, withPassword) {
         lastName: [required('Vui lòng nhập họ'), personName(), maxLength(50, 'Họ tối đa 50 ký tự')],
         firstName: [required('Vui lòng nhập tên'), personName(), maxLength(50, 'Tên tối đa 50 ký tự')],
         email: [required('Vui lòng nhập email'), email(), maxLength(150, 'Email tối đa 150 ký tự')],
-        phoneNumber: [phone()],
+        phoneNumber: [required('Vui lòng nhập số điện thoại'), phone()],
         cinemaId: [cinemaRequiredForManager(form)]
     };
     if (withPassword) {
@@ -109,9 +109,9 @@ function editAccount(accountId) {
             const form = document.getElementById('editAccountForm');
             form.dataset.accountId = acc.id;
             form.email.value = acc.email;
-            form.firstName.value = acc.fullName.split(' ').slice(1).join(' ');
-            form.lastName.value = acc.fullName.split(' ')[0];
-            form.phoneNumber.value = '';
+            form.firstName.value = acc.firstName || '';
+            form.lastName.value = acc.lastName || '';
+            form.phoneNumber.value = acc.phoneNumber || '';
             form.roleId.value = acc.role === 'ADMIN' ? '1' : '2';
             form.cinemaId.value = acc.cinemaId != null ? acc.cinemaId : '';
             toggleCinemaField('edit');

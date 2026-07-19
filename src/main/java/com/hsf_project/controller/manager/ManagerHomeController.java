@@ -19,6 +19,22 @@ public class ManagerHomeController {
     @Autowired
     private ManagerDashboardService managerDashboardService;
 
+    /**
+     * Header ("Trang quản lý") và sidebar trỏ về /manager và /manager/profile, nhưng trước
+     * đây không controller nào map hai path này nên manager bấm vào là dính 404: đăng nhập
+     * lần đầu thì AuthController đẩy thẳng tới /manager/dashboard nên vẫn vào được, còn rời
+     * khu quản lý rồi quay lại bằng link trên header thì luôn thất bại.
+     */
+    @GetMapping
+    public String managerRoot() {
+        return "redirect:/manager/dashboard";
+    }
+
+    @GetMapping("/profile")
+    public String profile() {
+        return "redirect:/change-password";
+    }
+
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
         User user = (User) session.getAttribute("ttdn");

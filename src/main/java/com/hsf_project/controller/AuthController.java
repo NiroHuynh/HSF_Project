@@ -105,6 +105,11 @@ public class AuthController {
                 && form.getPassword() != null && !form.getPassword().equals(form.getConfirmPassword())) {
             bindingResult.rejectValue("confirmPassword", "mismatch", "Mật khẩu nhập lại không khớp");
         }
+        // Số điện thoại là thông tin liên hệ để rạp gọi khi có sự cố với vé, nên không
+        // cho hai tài khoản dùng chung một số.
+        if (!bindingResult.hasFieldErrors("phoneNumber") && userService.isPhoneTaken(form.getPhoneNumber())) {
+            bindingResult.rejectValue("phoneNumber", "duplicate", "Số điện thoại này đã được đăng ký");
+        }
         if (!bindingResult.hasErrors()) {
             User created = userService.register(form);
             if (created == null) {

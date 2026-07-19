@@ -49,6 +49,15 @@ function min(n, message) {
     };
 }
 
+function max(n, message) {
+    return v => {
+        if (v.trim() === '') return null;
+        const num = Number(v);
+        if (Number.isNaN(num)) return 'Vui lòng nhập số hợp lệ';
+        return num > n ? (message || `Giá trị tối đa là ${n}`) : null;
+    };
+}
+
 function integer(message = 'Vui lòng nhập số nguyên') {
     return v => (v.trim() !== '' && !Number.isInteger(Number(v)) ? message : null);
 }

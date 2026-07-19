@@ -1,5 +1,6 @@
 package com.hsf_project.service.admin;
 
+import com.hsf_project.dto.admin.request.AdminAccountForm;
 import com.hsf_project.dto.admin.response.AdminAccountResponse;
 
 import java.util.List;
@@ -17,9 +18,9 @@ public interface AdminAccountService {
 
     void deleteAccount(Long id);
 
-    void createAccount(String email, String password, String firstName, String lastName, String roleId, String phoneNumber, String cinemaId);
+    void createAccount(AdminAccountForm form);
 
     AdminAccountResponse getAccountById(Long id);
 
-    void updateAccount(Long id, String email, String firstName, String lastName, String phoneNumber, String roleId, String cinemaId);
+    void updateAccount(Long id, AdminAccountForm form);
 }

@@ -2,12 +2,16 @@ package com.hsf_project.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+@Order(Ordered.LOWEST_PRECEDENCE)
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -42,6 +46,18 @@ public class GlobalExceptionHandler {
         log.warn("AppException: {}", ex.getMessage());
         return errorView(ex.getErrorCode().getHttpStatus(),
                 ex.getErrorCode().getCode(), ex.getMessage());
+    }
+
+    /**
+     * Tham số không ép được về kiểu khai báo — điển hình là ô "giá bán"/"tồn kho" của
+     * combo nhập số vượt ngưỡng Integer/BigDecimal. Đây là lỗi nhập liệu của người dùng
+     * nên trả 400 kèm hướng dẫn, thay vì để rơi xuống handler Exception và hiện 500.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ModelAndView handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        log.warn("Tham số '{}' không hợp lệ: {}", ex.getName(), ex.getValue());
+        return errorView(HttpStatus.BAD_REQUEST, 400,
+                "Giá trị nhập cho trường '" + ex.getName() + "' không hợp lệ hoặc vượt quá giới hạn cho phép");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -15,7 +15,12 @@ import lombok.experimental.FieldDefaults;
 public class AdminAccountResponse {
     Long id;
     String fullName;
+    /** Tách riêng để modal sửa đổ đúng vào 2 ô Họ / Tên — cắt fullName theo dấu cách
+     *  đoán sai với họ hoặc tên nhiều chữ. */
+    String firstName;
+    String lastName;
     String email;
+    String phoneNumber;
     String role;
     String createdDate;
     String status;
