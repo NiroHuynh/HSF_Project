@@ -55,18 +55,21 @@ public class AuthController {
     }
 
     /**
-     * Điều hướng sau khi đăng nhập: ADMIN -> /admin (bỏ qua redirectAfterLogin),
-     * còn lại -> URL đã lưu trước đó hoặc /home.
+     * Điều hướng sau khi đăng nhập: ADMIN -> /admin, MANAGER -> /manager/dashboard
+     * (cả hai bỏ qua redirectAfterLogin), còn lại -> URL đã lưu trước đó hoặc /home.
      *
-     * Cố ý KHÔNG điều hướng riêng cho MANAGER: khu /manager thuộc nhánh main,
-     * nhánh này không sở hữu và không nên tự quyết định trang đích cho nó.
-     * Manager vào khu quản lý qua link "Trang quản lý" trên header như cũ.
+     * Tài khoản quản trị đăng nhập là để làm việc trong khu quản trị, nên đưa thẳng
+     * vào đó thay vì thả về trang chủ rồi bắt tự bấm link trên header.
      */
     private String redirectByRole(User user, HttpSession session) {
         String roleName = (user.getRole() == null) ? "" : user.getRole().getRoleName();
         if ("ADMIN".equalsIgnoreCase(roleName)) {
             session.removeAttribute("redirectAfterLogin");
             return "redirect:/admin";
+        }
+        if ("MANAGER".equalsIgnoreCase(roleName)) {
+            session.removeAttribute("redirectAfterLogin");
+            return "redirect:/manager/dashboard";
         }
         String redirectUrl = (String) session.getAttribute("redirectAfterLogin");
         if (redirectUrl != null) {

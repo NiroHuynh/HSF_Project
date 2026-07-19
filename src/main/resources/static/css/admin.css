@@ -3184,3 +3184,119 @@ input:checked + .slider-round:before { transform: translateX(18px); }
     font-size: 12px !important;
     color: var(--text-muted) !important;
 }
+/* ==========================================================================
+   ĐỒNG BỘ KHUNG VỚI KHU ADMIN CHÍNH (admin-system.css + admin-panel.css)
+
+   Nhóm 4 trang dùng file này (movie-dashboard, movie-form, CustomerDashboard,
+   CustomerDetail) trước đây có thanh header ngang riêng, còn sidebar thì thiếu
+   khối thương hiệu ở trên và khối người dùng ở dưới. Chuyển qua lại giữa hai
+   nhóm trang là bố cục nhảy hẳn một khoảng bằng chiều cao header.
+
+   Header đã gỡ khỏi 4 template, nên sidebar phải cao hết màn hình từ mép trên.
+   Khối đè nằm CUỐI FILE để thắng các rule phía trên theo thứ tự cascade.
+   ========================================================================== */
+.app-header { display: none; }
+
+.sidebar {
+  /* 248px khớp đúng .admin-sidebar bên admin-system.css, kể cả đường viền phải,
+     để mép nội dung hai nhóm trang không xê dịch khi chuyển qua lại. */
+  width: 248px;
+  height: 100vh;
+  top: 0;
+  padding: 26px 16px;
+}
+
+/* ----- Khối thương hiệu trên cùng sidebar ----- */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 28px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.sidebar-brand-logo {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--red);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.sidebar-brand-text {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.sidebar-brand-text small {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  color: #8f9bb5;
+  margin-top: 3px;
+}
+
+/* ----- Nhóm mục trong menu ----- */
+.sidebar-section-title {
+  margin-top: 18px;
+}
+
+.sidebar-menu > .sidebar-section-title:first-child {
+  margin-top: 0;
+}
+
+/* ----- Khối người dùng dưới cùng sidebar ----- */
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 18px 5px 0;
+}
+
+.sidebar-user-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sidebar-user-info {
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.sidebar-user-info strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-user-info small {
+  display: block;
+  font-size: 10px;
+  color: #8f9bb5;
+  margin-top: 2px;
+}
+
+.sidebar-user-logout {
+  margin-left: auto;
+  color: #9ba6bd;
+  text-decoration: none;
+  font-size: 20px;
+}
