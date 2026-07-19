@@ -1,46 +1,127 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
+<!-- ============================================================
+     Sidebar cho nhóm trang dùng admin.css (movie-dashboard, movie-form,
+     CustomerDashboard, CustomerDetail).
+
+     Menu ở đây PHẢI khớp với admin/fragments.html :: sidebar. Trước đây hai bên
+     lệch nhau: bản này chỉ có 6 mục và 3 trong số đó là href="#", nên đi từ
+     trang Voucher sang trang Phim là mất đường quay lại các trang quản trị khác.
+     Sửa menu ở một bên thì phải sửa cả bên kia.
+     ============================================================ -->
 <aside class="sidebar" th:fragment="admin-sidebar(activePage)">
+    <!-- Khối thương hiệu + khối người dùng dựng lại y hệt admin/fragments.html :: sidebar.
+         Trước đây nhóm trang này để chúng trên một thanh header ngang riêng, nên chuyển
+         qua lại giữa hai nhóm trang là bố cục nhảy hẳn một khoảng. -->
+    <a class="sidebar-brand" th:href="@{/admin}">
+        <span class="sidebar-brand-logo">CM</span>
+        <span class="sidebar-brand-text">
+            CineMax
+            <small>Quản trị hệ thống</small>
+        </span>
+    </a>
+
     <ul class="sidebar-menu">
+        <li class="sidebar-section-title">TỔNG QUAN</li>
         <li>
-            <a th:href="@{/admin/movies/dashboard}" class="sidebar-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+            <a th:href="@{/admin}" class="sidebar-link"
+               th:classappend="${activePage == 'overview'} ? 'active' : ''">
                 <i class="fa-solid fa-chart-simple"></i> Tổng quan
             </a>
         </li>
         <li>
-            <a th:href="@{/admin/movies/dashboard}" class="sidebar-link" th:classappend="${activePage == 'movies'} ? 'active' : ''">
+            <a th:href="@{/admin/revenue}" class="sidebar-link"
+               th:classappend="${activePage == 'revenue'} ? 'active' : ''">
+                <i class="fa-solid fa-chart-line"></i> Báo cáo doanh thu
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/dashboard/cinema}" class="sidebar-link"
+               th:classappend="${activePage == 'dashboard-cinema'} ? 'active' : ''">
+                <i class="fa-solid fa-building"></i> Dashboard rạp
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/dashboard/combo}" class="sidebar-link"
+               th:classappend="${activePage == 'dashboard-combo'} ? 'active' : ''">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard combo
+            </a>
+        </li>
+
+        <li class="sidebar-section-title">QUẢN LÝ</li>
+        <li>
+            <a th:href="@{/admin/movies/dashboard}" class="sidebar-link"
+               th:classappend="${activePage == 'movies' or activePage == 'dashboard' or activePage == 'movie-form'} ? 'active' : ''">
                 <i class="fa-solid fa-film"></i> Phim
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link" th:classappend="${activePage == 'theaters'} ? 'active' : ''">
-                <i class="fa-solid fa-ghost"></i> Rạp
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/admin/customers/dashboard}" class="sidebar-link" th:classappend="${activePage == 'customers'} ? 'active' : ''">
+            <a th:href="@{/admin/customers/dashboard}" class="sidebar-link"
+               th:classappend="${activePage == 'customers'} ? 'active' : ''">
                 <i class="fa-solid fa-users"></i> Khách hàng
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link" th:classappend="${activePage == 'tickets'} ? 'active' : ''">
-                <i class="fa-solid fa-ticket"></i> Vé và giải trí
+            <a th:href="@{/admin/customers/by-cinema}" class="sidebar-link"
+               th:classappend="${activePage == 'customers-cinema'} ? 'active' : ''">
+                <i class="fa-solid fa-people-group"></i> Khách theo chi nhánh
             </a>
         </li>
         <li>
-            <a href="#" class="sidebar-link" th:classappend="${activePage == 'combos'} ? 'active' : ''">
-                <i class="fa-solid fa-hamburger"></i> Bắp nước
+            <a th:href="@{/admin/vouchers}" class="sidebar-link"
+               th:classappend="${activePage == 'vouchers'} ? 'active' : ''">
+                <i class="fa-solid fa-ticket"></i> Voucher
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/locations}" class="sidebar-link"
+               th:classappend="${activePage == 'locations'} ? 'active' : ''">
+                <i class="fa-solid fa-location-dot"></i> Địa điểm &amp; phòng
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/ticket-prices}" class="sidebar-link"
+               th:classappend="${activePage == 'prices'} ? 'active' : ''">
+                <i class="fa-solid fa-money-bill"></i> Giá vé
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/combos}" class="sidebar-link"
+               th:classappend="${activePage == 'combos'} ? 'active' : ''">
+                <i class="fa-solid fa-burger"></i> Combo
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/accounts}" class="sidebar-link"
+               th:classappend="${activePage == 'accounts'} ? 'active' : ''">
+                <i class="fa-solid fa-user-shield"></i> Quản lý tài khoản
+            </a>
+        </li>
+
+        <li class="sidebar-section-title">TÀI KHOẢN</li>
+        <li>
+            <a th:href="@{/home}" class="sidebar-link">
+                <i class="fa-solid fa-house"></i> Về trang chủ
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/change-password}" class="sidebar-link">
+                <i class="fa-solid fa-key"></i> Đổi mật khẩu
             </a>
         </li>
     </ul>
 
     <div class="sidebar-footer">
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="btn-logout" style="width: 100%; border: none; cursor: pointer;">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-            </button>
-        </form>
+        <div class="sidebar-user">
+            <span class="sidebar-user-avatar"
+                  th:text="${session.ttdn != null} ? ${#strings.substring(session.ttdn.fullName, 0, 1)} : 'A'">A</span>
+            <span class="sidebar-user-info">
+                <strong th:text="${session.ttdn != null} ? ${session.ttdn.fullName} : 'Admin'">Admin</strong>
+                <small>Administrator</small>
+            </span>
+            <a th:href="@{/logout}" class="sidebar-user-logout" title="Đăng xuất">↪</a>
+        </div>
     </div>
 </aside>
 </body>
