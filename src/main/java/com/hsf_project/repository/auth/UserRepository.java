@@ -16,6 +16,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmailAndPasswordAndIsDeletedFalseAndStatus(String email, String password, String status);
 
     Optional<User> findByEmailAndIsDeletedFalse(String email);
+    List<User> findByIsDeletedFalseOrderByIdDesc();
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role.roleName = 'CUSTOMER' AND u.isDeleted = false")
+    long countActiveCustomers();
+
+    @Query(value = """
+            SELECT COUNT(DISTINCT b.user_id)
+            FROM booking b
+            JOIN ticket t ON t.booking_id = b.id
+            JOIN show_time st ON st.id = t.showtime_id
+            JOIN cinema_room r ON r.id = st.room_id
+            WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 AND t.is_deleted = 0
+            """, nativeQuery = true)
+    long countCustomersByCinema(@Param("cinemaId") Integer cinemaId);
 
     //Lấy thời gian khóa mới nhất của User bằng ID
     @Query("SELECT u.lockBookingUntil FROM User u WHERE u.id = :userId")

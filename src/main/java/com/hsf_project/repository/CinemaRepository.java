@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CinemaRepository extends JpaRepository<Cinema, Integer> {
+    List<Cinema> findByIsDeletedFalseOrderByNameAsc();
 
     @Query("""
                 SELECT new com.hsf_project.dto.response.CinemaScheduleDTO(

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PromotionRepository extends JpaRepository<Promotion, Long> {
+    List<Promotion> findByIsDeletedFalseOrderByIdDesc();
     /**
      * Tìm các khuyến mãi đang kích hoạt, chưa xóa, và thời gian hiện tại nằm trong khoảng hợp lệ.
      */

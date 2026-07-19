@@ -100,27 +100,30 @@
         <div id="registerForm" class="d-none">
             <h2 class="auth-title">Tạo tài khoản CineMax mới</h2>
 
-            <form class="auth-form" th:action="@{/dang-ky}" method="post" th:object="${registerForm}">
+            <form class="auth-form" th:action="@{/dang-ky}" method="post" th:object="${registerForm}" novalidate>
+                <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}">
+                    <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
+                </div>
                 <!-- Họ tên -->
                 <div class="form-group">
                     <label class="form-label" for="fullName">Họ và tên</label>
-                    <input type="text" id="fullName" name="fullName" class="form-control"
-                           placeholder="Nhập họ và tên" required>
+                    <input type="text" id="fullName" th:field="*{fullName}" class="form-control"
+                           placeholder="Nhập họ và tên">
                 </div>
 
                 <!-- Email hoặc SĐT -->
                 <div class="form-group">
-                    <label class="form-label" for="registerUsername">Email hoặc Số điện thoại</label>
-                    <input type="text" id="registerUsername" name="username" class="form-control"
-                           placeholder="Nhập email hoặc số điện thoại" required>
+                    <label class="form-label" for="registerUsername">Email</label>
+                    <input type="email" id="registerUsername" th:field="*{email}" class="form-control"
+                           placeholder="Nhập email">
                 </div>
 
                 <!-- Mật khẩu -->
                 <div class="form-group">
                     <label class="form-label" for="registerPassword">Mật khẩu</label>
                     <div class="input-wrapper">
-                        <input type="password" id="registerPassword" name="password" class="form-control"
-                               placeholder="Nhập mật khẩu" required>
+                        <input type="password" id="registerPassword" th:field="*{password}" class="form-control"
+                               placeholder="Ít nhất 8 ký tự, gồm chữ và số">
                         <i class="bi bi-eye input-icon" onclick="togglePassword('registerPassword', this)"></i>
                     </div>
                 </div>
@@ -129,15 +132,15 @@
                 <div class="form-group">
                     <label class="form-label" for="confirmPassword">Xác nhận mật khẩu</label>
                     <div class="input-wrapper">
-                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
-                               placeholder="Nhập lại mật khẩu" required>
+                        <input type="password" id="confirmPassword" th:field="*{confirmPassword}" class="form-control"
+                               placeholder="Nhập lại mật khẩu">
                         <i class="bi bi-eye input-icon" onclick="togglePassword('confirmPassword', this)"></i>
                     </div>
                 </div>
 
                 <!-- Đồng ý điều khoản -->
                 <label class="form-check">
-                    <input type="checkbox" class="form-check-input" name="agreeTerms" required>
+                    <input type="checkbox" class="form-check-input" th:field="*{agreeTerms}">
                     <span class="form-check-label">
                         Tôi đồng ý với <a th:href="@{/dieu-khoan}" href="#" class="text-accent">Điều khoản sử dụng</a>
                     </span>
@@ -195,6 +198,9 @@
         iconEl.classList.toggle('bi-eye');
         iconEl.classList.toggle('bi-eye-slash');
     }
+</script>
+<script th:if="${showRegister}">
+    document.addEventListener('DOMContentLoaded', () => switchTab('register'));
 </script>
 
 </body>
