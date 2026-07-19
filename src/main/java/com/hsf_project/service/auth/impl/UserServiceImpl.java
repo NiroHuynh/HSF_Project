@@ -27,6 +27,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean isPhoneTaken(String phoneNumber) {
+        return phoneNumber != null && !phoneNumber.isBlank()
+                && userRepo.existsByPhoneNumberAndIsDeletedFalse(phoneNumber.trim());
+    }
+
+    @Override
     @Transactional
     public User register(RegisterForm form) {
         if (userRepo.findByEmailAndIsDeletedFalse(form.getEmail()).isPresent()) {

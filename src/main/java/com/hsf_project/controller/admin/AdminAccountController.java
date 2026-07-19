@@ -1,7 +1,6 @@
 package com.hsf_project.controller.admin;
 
 import com.hsf_project.dto.admin.response.AdminAccountResponse;
-import com.hsf_project.dto.common.ApiResponse;
 import com.hsf_project.repository.CinemaRepository;
 import com.hsf_project.service.admin.AdminAccountService;
 import lombok.AccessLevel;
@@ -9,11 +8,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Chỉ render trang quản lý tài khoản. Các endpoint JSON (tạo/sửa/xóa/khóa) nằm ở
+ * {@link AdminAccountRestController} vì chúng cần GlobalRestExceptionHandler trả lỗi
+ * dạng JSON — advice đó chỉ áp dụng cho @RestController.
+ */
 @Controller
 @RequestMapping("/admin/accounts")
 @RequiredArgsConstructor
@@ -40,56 +45,5 @@ public class AdminAccountController {
         model.addAttribute("active", "accounts");
 
         return "adminManagement";
-    }
-
-    @PostMapping("/toggle-status")
-    @ResponseBody
-    public ApiResponse<Void> toggleStatus(@RequestParam Long id, @RequestParam String status) {
-        adminAccountService.toggleStatus(id, status);
-        return ApiResponse.success(null);
-    }
-
-    @PostMapping("/delete/{id}")
-    @ResponseBody
-    public ApiResponse<Void> deleteAccount(@PathVariable Long id) {
-        adminAccountService.deleteAccount(id);
-        return ApiResponse.success(null);
-    }
-
-    @PostMapping("/create")
-    @ResponseBody
-    public ApiResponse<Void> createAccount(@RequestBody Map<String, String> body) {
-        String email = body.get("email");
-        String password = body.get("password");
-        String firstName = body.get("firstName");
-        String lastName = body.get("lastName");
-        String roleId = body.get("roleId");
-        String phoneNumber = body.get("phoneNumber");
-
-        String cinemaId = body.get("cinemaId");
-
-        adminAccountService.createAccount(email, password, firstName, lastName, roleId, phoneNumber, cinemaId);
-        return ApiResponse.success(null);
-    }
-
-    @GetMapping("/{id}")
-    @ResponseBody
-    public ApiResponse<AdminAccountResponse> getAccount(@PathVariable Long id) {
-        return ApiResponse.success(adminAccountService.getAccountById(id));
-    }
-
-    @PostMapping("/update/{id}")
-    @ResponseBody
-    public ApiResponse<Void> updateAccount(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        adminAccountService.updateAccount(
-                id,
-                body.get("email"),
-                body.get("firstName"),
-                body.get("lastName"),
-                body.get("phoneNumber"),
-                body.get("roleId"),
-                body.get("cinemaId")
-        );
-        return ApiResponse.success(null);
     }
 }

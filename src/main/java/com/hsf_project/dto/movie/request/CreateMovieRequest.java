@@ -29,8 +29,8 @@ public class CreateMovieRequest {
     String title;
 
     @NotNull(message = "Thời lượng không được để trống")
-    @Min(value = 115, message = "Thời lượng phải từ 115 đến 140 phút")
-    @Max(value = 140, message = "Thời lượng phải từ 115 đến 140 phút")
+    @Min(value = 30, message = "Thời lượng phải từ 30 đến 300 phút")
+    @Max(value = 300, message = "Thời lượng phải từ 30 đến 300 phút")
     Integer durationMinutes;
 
     @NotNull(message = "Ngày khởi chiếu không được để trống")
