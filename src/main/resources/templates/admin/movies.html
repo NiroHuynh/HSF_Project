@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Quản lý phim - CineMax</title>
+    <link rel="stylesheet" th:href="@{/css/admin-system.css}">
+</head>
+<body>
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+<main class="admin-main">
+    <div class="toast success" th:if="${success}" th:text="${success}"></div>
+    <div class="toast error" th:if="${error}" th:text="${error}"></div>
+    <header class="page-head"><div><p>QUẢN LÝ NỘI DUNG</p><h1>Danh sách phim</h1>
+        <span>Thêm, cập nhật và ẩn phim khỏi hệ thống.</span></div>
+        <button class="primary" type="button" onclick="document.getElementById('movieModal').classList.add('open')">+ Thêm phim mới</button>
+    </header>
+    <div>
+        <section class="card table-wrap">
+            <table>
+                <thead><tr><th>PHIM</th><th>THỂ LOẠI</th><th>THỜI LƯỢNG</th><th>TRẠNG THÁI</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="item : ${movies}">
+                    <td><div class="movie-cell">
+                        <img th:src="${item.posterUrl}" onerror="this.style.display='none'" alt="">
+                        <div><strong th:text="${item.title}">Tên phim</strong><small th:text="${item.director}">Đạo diễn</small></div>
+                    </div></td>
+                    <td><span class="muted" th:text="${#strings.listJoin(item.genres.![name], ', ')}">Thể loại</span></td>
+                    <td th:text="${item.durationMinutes + ' phút'}">120 phút</td>
+                    <td><span class="status on" th:text="${item.status}">NOW_SHOWING</span></td>
+                    <td><div class="actions">
+                        <a class="icon-action" th:href="@{/admin/movies(edit=${item.id})}" title="Sửa">✎</a>
+                        <form th:action="@{/admin/movies/{id}/delete(id=${item.id})}" method="post"
+                              onsubmit="return confirm('Ẩn phim này khỏi hệ thống?')">
+                            <button class="danger" title="Xóa">×</button>
+                        </form>
+                    </div></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(movies)}"><td class="empty" colspan="5">Chưa có phim.</td></tr>
+                </tbody>
+            </table>
+        </section>
+        <div class="modal" id="movieModal" th:classappend="${movie.id != null} ? ' open'">
+        <section class="modal-box editor-card form-modal-wide">
+            <button type="button" class="close" onclick="this.closest('.modal').classList.remove('open')">×</button>
+            <div class="section-head"><div><h2 th:text="${movie.id == null ? 'Thêm phim' : 'Cập nhật phim'}">Thêm phim</h2>
+                <span>Thông tin hiển thị trên website</span></div></div>
+            <form th:action="@{/admin/movies/save}" th:object="${movie}" method="post">
+                <input type="hidden" th:field="*{id}">
+                <label>Tên phim *<input th:field="*{title}" required maxlength="255"></label>
+                <div class="grid2">
+                    <label>Đạo diễn<input th:field="*{director}" maxlength="100"></label>
+                    <label>Thời lượng (phút) *<input type="number" th:field="*{durationMinutes}" min="1" required></label>
+                    <label>Ngày khởi chiếu *<input type="date" th:field="*{releaseDate}" required></label>
+                    <label>Phân loại *
+                        <select th:field="*{ageRating}" required><option value="">Chọn</option>
+                            <option th:each="a : ${ageRatings}" th:value="${a}" th:text="${a}"></option>
+                        </select>
+                    </label>
+                    <label>Trạng thái *
+                        <select th:field="*{status}" required><option value="">Chọn</option>
+                            <option th:each="s : ${movieStatuses}" th:value="${s}" th:text="${s}"></option>
+                        </select>
+                    </label>
+                </div>
+                <label>Poster
+                    <div class="poster-input-row">
+                        <input type="hidden" id="posterUrl" th:field="*{posterUrl}">
+                        <label class="upload-button upload-button-primary">Chọn ảnh từ máy
+                            <input type="file" id="posterFile" accept="image/jpeg,image/png,image/webp" hidden>
+                        </label>
+                    </div>
+                    <small>Ảnh JPG, PNG hoặc WebP, tối đa 10MB. Ảnh sẽ được tải lên Cloudinary tự động.</small>
+                    <div class="poster-preview" id="posterPreview" th:classappend="${movie.posterUrl == null or movie.posterUrl.isBlank()} ? ' is-empty'">
+                        <img id="posterPreviewImage" th:src="${movie.posterUrl}" alt="Xem trước poster">
+                        <span id="posterPreviewText">Chưa chọn ảnh</span>
+                    </div>
+                    <small class="upload-status" id="uploadStatus"></small>
+                </label>
+                <label>Diễn viên<textarea th:field="*{cast}" rows="2"></textarea></label>
+                <label>Mô tả<textarea th:field="*{description}" rows="4"></textarea></label>
+                <label>Thể loại
+                    <select name="genreIds" multiple size="5">
+                        <option th:each="g : ${genres}" th:value="${g.id}" th:text="${g.name}"
+                                th:selected="${movie.genres != null and movie.genres.contains(g)}"></option>
+                    </select>
+                    <small>Giữ Ctrl để chọn nhiều thể loại.</small>
+                </label>
+                <div class="modal-actions"><a th:if="${movie.id != null}" th:href="@{/admin/movies}">Hủy</a>
+                    <button class="primary" type="submit">Lưu phim</button></div>
+            </form>
+        </section></div>
+    </div>
+    <script>
+    document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+    const posterUrl=document.getElementById('posterUrl'),posterFile=document.getElementById('posterFile'),
+          preview=document.getElementById('posterPreview'),previewImage=document.getElementById('posterPreviewImage'),
+          uploadStatus=document.getElementById('uploadStatus');
+    function updatePosterPreview(){
+        const value=posterUrl.value.trim();
+        if(!value){preview.classList.add('is-empty');previewImage.removeAttribute('src');return}
+        preview.classList.remove('is-empty');previewImage.src=value;
+    }
+    posterUrl.addEventListener('input',updatePosterPreview);
+    previewImage.addEventListener('error',()=>{uploadStatus.textContent='Không tải được ảnh từ đường dẫn này.';uploadStatus.className='upload-status error-text'});
+    previewImage.addEventListener('load',()=>{if(!uploadStatus.classList.contains('uploading'))uploadStatus.textContent=''});
+    posterFile.addEventListener('change',async()=>{
+        const file=posterFile.files[0];if(!file)return;
+        if(file.size>10*1024*1024){uploadStatus.textContent='Ảnh không được vượt quá 10MB.';return}
+        const data=new FormData();data.append('file',file);
+        uploadStatus.textContent='Đang tải ảnh lên...';uploadStatus.className='upload-status uploading';
+        try{
+            const response=await fetch('/api/images/upload',{method:'POST',body:data});
+            if(!response.ok)throw new Error(await response.text());
+            posterUrl.value=await response.text();updatePosterPreview();
+            uploadStatus.textContent='Tải ảnh thành công.';uploadStatus.className='upload-status success-text';
+        }catch(error){
+            uploadStatus.textContent='Tải ảnh thất bại. Bạn có thể dán URL ảnh trực tiếp.';
+            uploadStatus.className='upload-status error-text';
+        }
+    });
+    </script>
+</main>
+</body>
+</html>

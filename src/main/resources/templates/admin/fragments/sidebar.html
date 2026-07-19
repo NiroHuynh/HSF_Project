@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside class="admin-sidebar" th:fragment="sidebar">
+    <a class="admin-brand" th:href="@{/admin/dashboard}">
+        <span>CM</span><div>CineMax<small>Quản trị hệ thống</small></div>
+    </a>
+    <nav>
+        <p>TỔNG QUAN</p>
+        <a th:href="@{/admin/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'">
+            <b>▦</b> Dashboard
+        </a>
+        <a th:href="@{/admin/dashboard/cinema}" th:classappend="${activePage == 'dashboard-cinema'} ? ' active'"><b>▥</b> Dashboard doanh thu</a>
+        <a th:href="@{/admin/dashboard/combo}" th:classappend="${activePage == 'dashboard-combo'} ? ' active'"><b>◫</b> Dashboard combo</a>
+        <p>QUẢN LÝ</p>
+        <a th:href="@{/admin/locations}" th:classappend="${activePage == 'locations'} ? ' active'"><b>⌖</b> Địa điểm &amp; phòng</a>
+        <a th:href="@{/admin/ticket-prices}" th:classappend="${activePage == 'prices'} ? ' active'"><b>₫</b> Giá vé</a>
+        <a th:href="@{/admin/combos}" th:classappend="${activePage == 'combos'} ? ' active'"><b>◉</b> Combo</a>
+        <a th:href="@{/admin/movies}" th:classappend="${activePage == 'movies'} ? ' active'">
+            <b>▶</b> Phim
+        </a>
+        <a th:href="@{/admin/vouchers}" th:classappend="${activePage == 'vouchers'} ? ' active'">
+            <b>◇</b> Voucher
+        </a>
+        <p>TÀI KHOẢN</p>
+        <a th:href="@{/admin/accounts}" th:classappend="${activePage == 'accounts'} ? ' active'"><b>♙</b> Tài khoản nội bộ</a>
+        <p>ĐIỀU HƯỚNG</p>
+        <a th:href="@{/home}"><b>⌂</b> Về trang khách</a>
+    </nav>
+    <div class="admin-user">
+        <div class="avatar" th:text="${#strings.substring(session.ttdn.firstName,0,1)}">A</div>
+        <div><strong th:text="${session.ttdn.fullName}">Administrator</strong><small>Administrator</small></div>
+        <a th:href="@{/logout}" title="Đăng xuất">↪</a>
+    </div>
+</aside>
+</body>
+</html>

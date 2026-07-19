@@ -24,8 +24,8 @@ public class AuthController {
 
     @GetMapping("/login")
     public String login(Model model, HttpSession session){
-        if (session.getAttribute("ttdn") != null) {
-            return "redirect:/home";
+        if (session.getAttribute("ttdn") instanceof User user) {
+            return redirectByRole(user);
         }
         User user = new User();
         model.addAttribute("user", user);
@@ -45,7 +45,7 @@ public class AuthController {
                 session.removeAttribute("redirectAfterLogin");
                 return "redirect:" + redirectUrl;
             }
-            return "redirect:/home"; // Đổi sang trang chủ
+            return redirectByRole(u);
         } else {
             redirectAttributes.addFlashAttribute("error","Username or password incorrect!!");
             return "redirect:/login";
@@ -56,5 +56,16 @@ public class AuthController {
     public String logout(HttpSession session){
         session.invalidate();
         return "redirect:/home"; // Đổi sang trang chủ
+    }
+
+    private String redirectByRole(User user) {
+        if (user.getRole() == null || user.getRole().getRoleName() == null) {
+            return "redirect:/home";
+        }
+        return switch (user.getRole().getRoleName().trim().toUpperCase()) {
+            case "ADMIN" -> "redirect:/admin/dashboard";
+            case "MANAGER" -> "redirect:/manager/dashboard";
+            default -> "redirect:/home";
+        };
     }
 }

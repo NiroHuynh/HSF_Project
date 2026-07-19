@@ -1,0 +1,14 @@
+<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dashboard kinh doanh</title><link rel="stylesheet" th:href="@{/css/admin-system.css}"></head><body>
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div><main class="admin-main">
+<header class="page-head"><div><p>BÁO CÁO KINH DOANH</p><h1 th:text="${type=='cinema'?'Dashboard Doanh Thu':'Dashboard Combo'}"></h1><span th:text="${type=='cinema'?'Theo dõi doanh thu vé theo thành phố và từng rạp.':'Theo dõi doanh thu combo theo thành phố và từng rạp.'}"></span></div></header>
+<form class="dashboard-filter">
+    <label>Từ ngày<input type="date" name="from" th:value="${from}"></label>
+    <label>Đến ngày<input type="date" name="to" th:value="${to}"></label>
+    <label>Thành phố<select name="cityId" onchange="this.form.submit()"><option value="">Tất cả thành phố</option><option th:each="x:${cities}" th:value="${x.id}" th:text="${x.name}" th:selected="${x.id==selectedCityId}"></option></select></label>
+    <label>Rạp chiếu<select name="cinemaId"><option value="">Tất cả rạp</option><option th:each="x:${cinemas}" th:value="${x.id}" th:text="${x.name}" th:selected="${x.id==selectedCinemaId}"></option></select></label>
+    <button class="primary">Lọc dữ liệu</button>
+</form>
+<section class="metrics compact"><article><span>TỔNG DOANH THU</span><b th:text="${#numbers.formatDecimal(totalRevenue,0,'POINT',0,'COMMA')+' đ'}">0 đ</b><small>Trong khoảng đã chọn</small></article><article><span>LOẠI BÁO CÁO</span><b th:text="${type=='cinema'?'Vé phim':'Combo'}"></b><small>Dữ liệu đã thanh toán</small></article><article><span>SỐ NGÀY</span><b th:text="${chartLabels.size()}"></b><small>Khoảng thời gian theo dõi</small></article></section>
+<section class="card chart-card"><div class="section-head"><div><h2>Xu hướng doanh thu</h2><span>Biến động theo ngày</span></div></div><canvas id="revenueChart" height="260"></canvas></section>
+<script th:inline="javascript">const chartLabels=/*[[${chartLabels}]]*/[];const chartValues=/*[[${chartValues}]]*/[];</script><script th:src="@{/js/admin.js}"></script>
+</main></body></html>
