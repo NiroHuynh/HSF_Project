@@ -334,9 +334,9 @@ document.addEventListener('DOMContentLoaded', function () {
             errors.push('Thời lượng không được để trống');
         } else {
             const durVal = parseInt(duration.value);
-            if (durVal < 115 || durVal > 140) {
+            if (durVal < 30 || durVal > 300) {
                 duration.classList.add('error');
-                errors.push('Thời lượng phải từ 115 đến 140 phút');
+                errors.push('Thời lượng phải từ 30 đến 300 phút');
             }
         }
 

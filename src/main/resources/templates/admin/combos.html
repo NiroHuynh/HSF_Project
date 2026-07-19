@@ -88,8 +88,11 @@
             return validateForm(form, {
                 name: [required('Vui lòng nhập tên combo'), maxLength(100, 'Tên combo tối đa 100 ký tự')],
                 description: [maxLength(255, 'Mô tả tối đa 255 ký tự')],
-                price: [required('Vui lòng nhập giá bán'), min(1000, 'Giá bán tối thiểu 1.000đ')],
-                quantity: [required('Vui lòng nhập số lượng tồn'), integer(), min(0, 'Số lượng không được âm')]
+                // Trần giá khớp cột DECIMAL(10,2) của combo.price; vượt ngưỡng là lỗi 500 lúc lưu.
+                price: [required('Vui lòng nhập giá bán'), min(1000, 'Giá bán tối thiểu 1.000đ'),
+                        max(99999999, 'Giá bán tối đa 99.999.999đ')],
+                quantity: [required('Vui lòng nhập số lượng tồn'), integer(), min(0, 'Số lượng không được âm'),
+                           max(1000000, 'Số lượng tồn tối đa 1.000.000')]
             });
         }
 

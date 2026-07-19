@@ -1,5 +1,6 @@
 package com.hsf_project.service.admin.impl;
 
+import com.hsf_project.dto.admin.request.AdminAccountForm;
 import com.hsf_project.dto.admin.response.AdminAccountResponse;
 import com.hsf_project.entity.Cinema;
 import com.hsf_project.entity.Role;
@@ -70,7 +71,7 @@ public class AdminAccountServiceImpl implements AdminAccountService {
     @Transactional
     public void toggleStatus(Long id, String newStatus) {
         User user = userRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
         user.setStatus(newStatus);
     }
 
@@ -78,29 +79,37 @@ public class AdminAccountServiceImpl implements AdminAccountService {
     @Transactional
     public void deleteAccount(Long id) {
         User user = userRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
         user.setIsDeleted(true);
     }
 
     @Override
     @Transactional
-    public void createAccount(String email, String password, String firstName, String lastName,
-                              String roleId, String phoneNumber, String cinemaId) {
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Email đã tồn tại trong hệ thống");
+    public void createAccount(AdminAccountForm form) {
+        String email = form.getEmail().trim();
+        String phone = form.getPhoneNumber().trim();
+
+        if (form.getPassword() == null || form.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Vui lòng nhập mật khẩu");
+        }
+        if (userRepository.existsByEmailAndIsDeletedFalse(email)) {
+            throw new IllegalArgumentException("Email đã tồn tại trong hệ thống");
+        }
+        if (userRepository.existsByPhoneNumberAndIsDeletedFalse(phone)) {
+            throw new IllegalArgumentException("Số điện thoại đã được sử dụng bởi tài khoản khác");
         }
 
-        int roleIdValue = Integer.parseInt(roleId);
+        int roleIdValue = form.getRoleId();
         Role role = roleRepository.getReferenceById(roleIdValue);
 
         User user = new User();
         user.setEmail(email);
-        user.setPassword(password);
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
+        user.setPassword(form.getPassword());
+        user.setFirstName(form.getFirstName().trim());
+        user.setLastName(form.getLastName().trim());
         user.setRole(role);
-        user.setCinema(resolveCinema(roleIdValue, cinemaId));
-        user.setPhoneNumber(phoneNumber);
+        user.setCinema(resolveCinema(roleIdValue, form.getCinemaId()));
+        user.setPhoneNumber(phone);
         user.setStatus("ACTIVE");
         user.setIsDeleted(false);
 
@@ -112,46 +121,47 @@ public class AdminAccountServiceImpl implements AdminAccountService {
      * user.getCinema(), nên manager không có rạp sẽ không dùng được chức năng nào.
      * Admin thì ngược lại, luôn để null.
      */
-    private Cinema resolveCinema(int roleIdValue, String cinemaId) {
+    private Cinema resolveCinema(int roleIdValue, Integer cinemaId) {
         if (roleIdValue != MANAGER_ROLE_ID) return null;
-        if (cinemaId == null || cinemaId.isBlank()) {
-            throw new RuntimeException("Vui lòng chọn rạp phụ trách cho tài khoản Manager");
+        if (cinemaId == null) {
+            throw new IllegalArgumentException("Vui lòng chọn rạp phụ trách cho tài khoản Manager");
         }
-        return cinemaRepository.findById(Integer.parseInt(cinemaId))
+        return cinemaRepository.findById(cinemaId)
                 .filter(c -> !Boolean.TRUE.equals(c.getIsDeleted()))
-                .orElseThrow(() -> new RuntimeException("Rạp được chọn không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Rạp được chọn không tồn tại"));
     }
 
     @Override
     public AdminAccountResponse getAccountById(Long id) {
         User user = userRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
         return adminAccountMapper.toResponse(user);
     }
 
     @Override
     @Transactional
-    public void updateAccount(Long id, String email, String firstName, String lastName,
-                              String phoneNumber, String roleId, String cinemaId) {
+    public void updateAccount(Long id, AdminAccountForm form) {
         User user = userRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
 
-        if (email != null && !email.isBlank()) {
-            userRepository.findByEmail(email).ifPresent(existing -> {
-                if (!existing.getId().equals(id)) {
-                    throw new RuntimeException("Email đã được sử dụng bởi tài khoản khác");
-                }
-            });
-            user.setEmail(email);
+        String email = form.getEmail().trim();
+        String phone = form.getPhoneNumber().trim();
+
+        if (userRepository.existsByEmailAndIsDeletedFalseAndIdNot(email, id)) {
+            throw new IllegalArgumentException("Email đã được sử dụng bởi tài khoản khác");
         }
-        if (firstName != null && !firstName.isBlank()) user.setFirstName(firstName);
-        if (lastName != null && !lastName.isBlank()) user.setLastName(lastName);
-        if (phoneNumber != null) user.setPhoneNumber(phoneNumber);
-        if (roleId != null && !roleId.isBlank()) {
-            int roleIdValue = Integer.parseInt(roleId);
-            user.setRole(roleRepository.getReferenceById(roleIdValue));
-            // Đổi role thì rạp phụ trách phải theo: Manager gán rạp mới, Admin gỡ rạp cũ.
-            user.setCinema(resolveCinema(roleIdValue, cinemaId));
+        if (userRepository.existsByPhoneNumberAndIsDeletedFalseAndIdNot(phone, id)) {
+            throw new IllegalArgumentException("Số điện thoại đã được sử dụng bởi tài khoản khác");
         }
+
+        user.setEmail(email);
+        user.setFirstName(form.getFirstName().trim());
+        user.setLastName(form.getLastName().trim());
+        user.setPhoneNumber(phone);
+
+        int roleIdValue = form.getRoleId();
+        user.setRole(roleRepository.getReferenceById(roleIdValue));
+        // Đổi role thì rạp phụ trách phải theo: Manager gán rạp mới, Admin gỡ rạp cũ.
+        user.setCinema(resolveCinema(roleIdValue, form.getCinemaId()));
     }
 }

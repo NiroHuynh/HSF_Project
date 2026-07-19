@@ -59,4 +59,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByRole_IdInAndIsDeletedFalse(List<Integer> roleIds);
 
     long countByRole_IdInAndStatusAndIsDeletedFalse(List<Integer> roleIds, String status);
+
+    /**
+     * Kiểm tra trùng email / số điện thoại khi tạo tài khoản.
+     * Chỉ xét tài khoản chưa bị xóa mềm để số cũ của tài khoản đã xóa dùng lại được.
+     */
+    boolean existsByEmailAndIsDeletedFalse(String email);
+
+    boolean existsByPhoneNumberAndIsDeletedFalse(String phoneNumber);
+
+    /** Bản dùng khi sửa: bỏ qua chính tài khoản đang sửa. */
+    boolean existsByEmailAndIsDeletedFalseAndIdNot(String email, Long id);
+
+    boolean existsByPhoneNumberAndIsDeletedFalseAndIdNot(String phoneNumber, Long id);
 }

@@ -1,8 +1,11 @@
 package com.hsf_project.exception;
 
 import com.hsf_project.dto.common.ApiResponse;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,7 +15,18 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
+/**
+ * Xử lý lỗi cho các endpoint trả JSON.
+ *
+ * Phải giới hạn vào @RestController và đặt độ ưu tiên cao nhất: nếu để mặc định thì
+ * thứ tự giữa advice này và GlobalExceptionHandler (@ControllerAdvice) là không xác
+ * định, nên một exception ném ra từ endpoint JSON có thể bị advice MVC bắt và trả về
+ * trang HTML "error" kèm status 500. Phía trình duyệt res.json() parse HTML thất bại,
+ * rơi vào nhánh .catch() và hiện "Lỗi kết nối mạng" thay vì thông báo thật
+ * (ví dụ "Email đã tồn tại trong hệ thống").
+ */
+@Order(Ordered.HIGHEST_PRECEDENCE)
+@RestControllerAdvice(annotations = RestController.class)
 public class GlobalRestExceptionHandler {
 
     @ExceptionHandler(AppException.class)
