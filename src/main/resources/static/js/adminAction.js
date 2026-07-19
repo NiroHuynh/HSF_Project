@@ -37,12 +37,37 @@ function openAddAccountModal() {
 
 function closeAddAccountModal() {
     document.getElementById('addAccountModal').classList.remove('open');
-    document.getElementById('addAccountForm').reset();
+    const form = document.getElementById('addAccountForm');
+    form.reset();
+    form.querySelectorAll('.field-error').forEach(e => e.remove());
+    form.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
     toggleCinemaField('add');
+}
+
+/* Ô "Rạp phụ trách" chỉ bắt buộc khi vai trò là Manager, nên không dùng required() được. */
+function cinemaRequiredForManager(form) {
+    return value => (form.roleId.value === '2' && value.trim() === ''
+        ? 'Vui lòng chọn rạp phụ trách cho tài khoản Manager' : null);
+}
+
+function accountRules(form, withPassword) {
+    const rules = {
+        lastName: [required('Vui lòng nhập họ'), personName(), maxLength(50, 'Họ tối đa 50 ký tự')],
+        firstName: [required('Vui lòng nhập tên'), personName(), maxLength(50, 'Tên tối đa 50 ký tự')],
+        email: [required('Vui lòng nhập email'), email(), maxLength(150, 'Email tối đa 150 ký tự')],
+        phoneNumber: [phone()],
+        cinemaId: [cinemaRequiredForManager(form)]
+    };
+    if (withPassword) {
+        rules.password = [required('Vui lòng nhập mật khẩu'), minLength(6, 'Mật khẩu tối thiểu 6 ký tự')];
+    }
+    return rules;
 }
 
 function submitAddAccount() {
     const form = document.getElementById('addAccountForm');
+    if (!validateForm(form, accountRules(form, true))) return;
+
     const data = {
         email: form.email.value.trim(),
         password: form.password.value.trim(),
@@ -52,16 +77,6 @@ function submitAddAccount() {
         roleId: form.roleId.value,
         cinemaId: form.cinemaId.value
     };
-
-    if (!data.email || !data.password || !data.firstName || !data.lastName) {
-        alert('Vui lòng nhập đầy đủ thông tin bắt buộc (Email, Mật khẩu, Họ, Tên)');
-        return;
-    }
-
-    if (data.roleId === '2' && !data.cinemaId) {
-        alert('Vui lòng chọn rạp phụ trách cho tài khoản Manager');
-        return;
-    }
 
     fetch('/admin/accounts/create', {
         method: 'POST',
@@ -107,11 +122,16 @@ function editAccount(accountId) {
 
 function closeEditAccountModal() {
     document.getElementById('editAccountModal').classList.remove('open');
-    document.getElementById('editAccountForm').reset();
+    const form = document.getElementById('editAccountForm');
+    form.reset();
+    form.querySelectorAll('.field-error').forEach(e => e.remove());
+    form.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
 }
 
 function submitEditAccount() {
     const form = document.getElementById('editAccountForm');
+    if (!validateForm(form, accountRules(form, false))) return;
+
     const id = form.dataset.accountId;
     const data = {
         email: form.email.value.trim(),
@@ -121,16 +141,6 @@ function submitEditAccount() {
         roleId: form.roleId.value,
         cinemaId: form.cinemaId.value
     };
-
-    if (!data.email || !data.firstName || !data.lastName) {
-        alert('Vui lòng nhập đầy đủ Email, Họ và Tên');
-        return;
-    }
-
-    if (data.roleId === '2' && !data.cinemaId) {
-        alert('Vui lòng chọn rạp phụ trách cho tài khoản Manager');
-        return;
-    }
 
     fetch(`/admin/accounts/update/${id}`, {
         method: 'POST',
@@ -186,6 +196,11 @@ function confirmDelete() {
 }
 
 // ============== CLICK OUTSIDE TO CLOSE ==============
+
+['addAccountForm', 'editAccountForm'].forEach(id => {
+    const form = document.getElementById(id);
+    if (form) bindClearOnInput(form);
+});
 
 window.addEventListener('click', function (e) {
     if (e.target === document.getElementById('addAccountModal')) closeAddAccountModal();

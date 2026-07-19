@@ -55,15 +55,17 @@
     </div>
 
     <div class="modal" id="comboModal">
-        <form class="modal-box" th:action="@{/admin/combos/save}" method="post">
+        <!-- novalidate: để form-validate.js báo lỗi inline thay vì tooltip mặc định của trình duyệt -->
+        <form class="modal-box" id="comboForm" novalidate th:action="@{/admin/combos/save}" method="post"
+              onsubmit="return validateComboForm(this);">
             <button type="button" class="close" onclick="closeModal(this)">×</button>
             <h2>Thêm combo</h2>
             <input type="hidden" name="id">
-            <label>Tên combo<input name="name" required maxlength="100"></label>
+            <label>Tên combo<input name="name" maxlength="100"></label>
             <label>Mô tả<textarea name="description" maxlength="255" rows="3"></textarea></label>
             <div class="grid2">
-                <label>Giá bán<input name="price" type="number" min="1000" step="1000" required></label>
-                <label>Số lượng tồn<input name="quantity" type="number" min="0" required></label>
+                <label>Giá bán<input name="price" type="number" step="1000"></label>
+                <label>Số lượng tồn<input name="quantity" type="number"></label>
             </div>
             <label>Trạng thái
                 <select name="status">
@@ -79,7 +81,20 @@
     </div>
 
     <div th:replace="~{admin/fragments :: confirmModal}"></div>
+    <script th:src="@{/js/form-validate.js}"></script>
     <script th:src="@{/js/admin.js}"></script>
+    <script>
+        function validateComboForm(form) {
+            return validateForm(form, {
+                name: [required('Vui lòng nhập tên combo'), maxLength(100, 'Tên combo tối đa 100 ký tự')],
+                description: [maxLength(255, 'Mô tả tối đa 255 ký tự')],
+                price: [required('Vui lòng nhập giá bán'), min(1000, 'Giá bán tối thiểu 1.000đ')],
+                quantity: [required('Vui lòng nhập số lượng tồn'), integer(), min(0, 'Số lượng không được âm')]
+            });
+        }
+
+        bindClearOnInput(document.getElementById('comboForm'));
+    </script>
 </main>
 </body>
 </html>

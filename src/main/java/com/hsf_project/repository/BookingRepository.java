@@ -128,6 +128,68 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                 @Param("from") LocalDateTime from,
                                 @Param("to") LocalDateTime to);
 
+    // ── admin — thống kê khách hàng theo chi nhánh ───────────────────────────
+    // "Khách của chi nhánh" = user từng đặt vé thành công cho suất chiếu thuộc rạp đó.
+    // users không có FK tới cinema (cột cinema_id chỉ dùng cho MANAGER) nên phải suy ra
+    // qua booking → ticket → show_time → cinema_room.
+
+    /**
+     * Số khách riêng biệt và số booking của TỪNG rạp trong khoảng ngày.
+     * LEFT JOIN để rạp chưa có khách nào vẫn xuất hiện trong bảng với số 0.
+     * Trả về [cinemaId, cinemaName, cityName, customerCount, bookingCount].
+     */
+    @Query(value = "SELECT c.id, c.name, ct.name, " +
+            "COUNT(DISTINCT b.user_id), COUNT(DISTINCT b.id) " +
+            "FROM cinema c " +
+            "JOIN city ct ON ct.id = c.city_id " +
+            "LEFT JOIN cinema_room r ON r.cinema_id = c.id " +
+            "LEFT JOIN show_time st ON st.room_id = r.id " +
+            "LEFT JOIN ticket t ON t.showtime_id = st.id " +
+            "LEFT JOIN booking b ON b.id = t.booking_id AND b.is_deleted = 0 " +
+            "  AND b.status NOT IN ('PENDING', 'CANCELED') " +
+            "  AND b.booking_date BETWEEN :from AND :to " +
+            "WHERE c.is_deleted = 0 " +
+            "GROUP BY c.id, c.name, ct.name " +
+            "ORDER BY COUNT(DISTINCT b.user_id) DESC, c.name ASC", nativeQuery = true)
+    List<Object[]> countCustomersGroupedByCinema(@Param("from") LocalDateTime from,
+                                                 @Param("to") LocalDateTime to);
+
+    /**
+     * Tổng khách riêng biệt trên TOÀN hệ thống. Không cộng dồn được từ query trên vì
+     * một khách đặt vé ở nhiều rạp sẽ bị đếm lặp; phải COUNT DISTINCT một lần.
+     */
+    @Query(value = "SELECT COUNT(DISTINCT b.user_id) FROM booking b " +
+            "JOIN ticket t ON t.booking_id = b.id " +
+            "JOIN show_time st ON st.id = t.showtime_id " +
+            "JOIN cinema_room r ON r.id = st.room_id " +
+            "WHERE b.is_deleted = 0 AND b.status NOT IN ('PENDING', 'CANCELED') " +
+            "AND b.booking_date BETWEEN :from AND :to", nativeQuery = true)
+    Long countDistinctCustomersAllCinemas(@Param("from") LocalDateTime from,
+                                          @Param("to") LocalDateTime to);
+
+    /**
+     * Danh sách khách của một rạp kèm số booking và tổng chi tiêu tại chính rạp đó.
+     * Trả về [userId, fullName, email, phoneNumber, bookingCount, totalSpent].
+     */
+    // Gom booking về DISTINCT trong subquery trước rồi mới SUM: nếu SUM thẳng trên
+    // kết quả JOIN ticket thì final_amount bị cộng lặp theo số vé của booking.
+    @Query(value = "SELECT u.user_id, u.last_name + ' ' + u.first_name, u.email, u.phone_number, " +
+            "COUNT(x.id), COALESCE(SUM(x.final_amount), 0) " +
+            "FROM users u " +
+            "JOIN (SELECT DISTINCT b.id, b.user_id, b.final_amount " +
+            "      FROM booking b " +
+            "      JOIN ticket t ON t.booking_id = b.id " +
+            "      JOIN show_time st ON st.id = t.showtime_id " +
+            "      JOIN cinema_room r ON r.id = st.room_id " +
+            "      WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "        AND b.status NOT IN ('PENDING', 'CANCELED') " +
+            "        AND b.booking_date BETWEEN :from AND :to) x ON x.user_id = u.user_id " +
+            "GROUP BY u.user_id, u.last_name, u.first_name, u.email, u.phone_number " +
+            "ORDER BY COUNT(x.id) DESC", nativeQuery = true)
+    List<Object[]> findCustomersOfCinema(@Param("cinemaId") Integer cinemaId,
+                                         @Param("from") LocalDateTime from,
+                                         @Param("to") LocalDateTime to);
+
     @Query(value = "SELECT MONTH(b.booking_date) AS mon, COALESCE(SUM(b.final_amount), 0) AS rev " +
             "FROM booking b JOIN ticket t ON t.booking_id = b.id " +
             "JOIN show_time st ON st.id = t.showtime_id " +

@@ -94,16 +94,18 @@
 
     <!-- ---------------------------- CÁC MODAL ---------------------------- -->
     <div class="modal" id="addAccountModal">
-        <form class="modal-box" id="addAccountForm" onsubmit="event.preventDefault(); submitAddAccount();">
+        <!-- novalidate + bỏ required/type=email: để form-validate.js báo lỗi inline
+             thay vì tooltip mặc định của trình duyệt (tooltip chạy trước cả sự kiện submit). -->
+        <form class="modal-box" id="addAccountForm" novalidate onsubmit="event.preventDefault(); submitAddAccount();">
             <button type="button" class="close" onclick="closeAddAccountModal()">×</button>
             <h2>Thêm tài khoản</h2>
             <div class="grid2">
-                <label>Họ<input name="lastName" required placeholder="Nguyễn"></label>
-                <label>Tên<input name="firstName" required placeholder="Văn A"></label>
+                <label>Họ<input name="lastName" placeholder="Nguyễn"></label>
+                <label>Tên<input name="firstName" placeholder="Văn A"></label>
             </div>
-            <label>Email<input type="email" name="email" required placeholder="quanly@cinemax.vn"></label>
+            <label>Email<input type="text" name="email" placeholder="quanly@cinemax.vn"></label>
             <div class="grid2">
-                <label>Mật khẩu<input type="password" name="password" required></label>
+                <label>Mật khẩu<input type="password" name="password"></label>
                 <label>Số điện thoại<input name="phoneNumber" placeholder="090xxxxxxx"></label>
             </div>
             <div class="grid2">
@@ -129,14 +131,14 @@
     </div>
 
     <div class="modal" id="editAccountModal">
-        <form class="modal-box" id="editAccountForm" onsubmit="event.preventDefault(); submitEditAccount();">
+        <form class="modal-box" id="editAccountForm" novalidate onsubmit="event.preventDefault(); submitEditAccount();">
             <button type="button" class="close" onclick="closeEditAccountModal()">×</button>
             <h2>Chỉnh sửa tài khoản</h2>
             <div class="grid2">
-                <label>Họ<input name="lastName" required></label>
-                <label>Tên<input name="firstName" required></label>
+                <label>Họ<input name="lastName"></label>
+                <label>Tên<input name="firstName"></label>
             </div>
-            <label>Email<input type="email" name="email" required></label>
+            <label>Email<input type="text" name="email"></label>
             <label>Số điện thoại<input name="phoneNumber" placeholder="090xxxxxxx"></label>
             <div class="grid2">
                 <label>Vai trò
@@ -171,6 +173,7 @@
         </div>
     </div>
 
+    <script th:src="@{/js/form-validate.js}"></script>
     <script th:src="@{/js/adminAction.js}"></script>
 </main>
 </body>

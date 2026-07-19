@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 /** FE-Admin-05: CRUD Voucher (entity Promotion). Chỉ ADMIN vào được (AuthFilter chặn /admin/**). */
 @Controller
@@ -60,7 +62,7 @@ public class AdminVoucherController {
                          BindingResult bindingResult,
                          Model model,
                          RedirectAttributes redirectAttributes) {
-        validateBusinessRules(form, bindingResult);
+        validateBusinessRules(form, bindingResult, null);
         if (!bindingResult.hasFieldErrors("code")
                 && promotionRepository.existsByCodeIgnoreCaseAndIsDeletedFalse(form.getCode().trim())) {
             bindingResult.rejectValue("code", "duplicate", "Mã voucher này đã tồn tại");
@@ -109,7 +111,8 @@ public class AdminVoucherController {
                        BindingResult bindingResult,
                        Model model,
                        RedirectAttributes redirectAttributes) {
-        validateBusinessRules(form, bindingResult);
+        LocalDateTime originalStart = promotionService.getById(id).map(Promotion::getStartDate).orElse(null);
+        validateBusinessRules(form, bindingResult, originalStart);
         if (!bindingResult.hasFieldErrors("code")
                 && promotionRepository.existsByCodeIgnoreCaseAndIsDeletedFalseAndIdNot(form.getCode().trim(), id)) {
             bindingResult.rejectValue("code", "duplicate", "Mã voucher này đã tồn tại");
@@ -141,8 +144,21 @@ public class AdminVoucherController {
         return "redirect:/admin/vouchers";
     }
 
-    /** Rule nghiệp vụ vượt ra ngoài annotation: khoảng ngày hợp lệ, PERCENT tối đa 100. */
-    private void validateBusinessRules(PromotionForm form, BindingResult bindingResult) {
+    /**
+     * Rule nghiệp vụ vượt ra ngoài annotation: không bắt đầu trong quá khứ,
+     * khoảng ngày hợp lệ, PERCENT tối đa 100.
+     *
+     * @param originalStart thời gian bắt đầu đang lưu trong DB (null khi tạo mới).
+     *                      Voucher cũ đã chạy từ quá khứ vẫn phải sửa được các field khác,
+     *                      nên chỉ chặn quá khứ khi người dùng thực sự đổi startDate.
+     */
+    private void validateBusinessRules(PromotionForm form, BindingResult bindingResult,
+                                       LocalDateTime originalStart) {
+        LocalDateTime start = form.getStartDate();
+        if (start != null && start.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES))
+                && !start.equals(originalStart)) {
+            bindingResult.rejectValue("startDate", "past", "Thời gian bắt đầu không được ở quá khứ");
+        }
         if (form.getStartDate() != null && form.getEndDate() != null
                 && !form.getEndDate().isAfter(form.getStartDate())) {
             bindingResult.rejectValue("endDate", "range", "Thời gian kết thúc phải sau thời gian bắt đầu");

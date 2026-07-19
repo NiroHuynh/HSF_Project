@@ -1,8 +1,10 @@
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabs button,.tab-pane').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active')}));
-function openModal(id){const m=document.getElementById(id);m.querySelector('form').reset();m.querySelector('[name=id]').value='';m.classList.add('open')}
+function openModal(id){const m=document.getElementById(id);m.querySelector('form').reset();m.querySelector('[name=id]').value='';clearErrors(m);m.classList.add('open')}
+/* Xoá lỗi validation còn sót của lần mở modal trước (form-validate.js sinh ra .field-error). */
+function clearErrors(scope){scope.querySelectorAll('.field-error').forEach(e=>e.remove());scope.querySelectorAll('.is-invalid').forEach(e=>e.classList.remove('is-invalid'))}
 function closeModal(el){el.closest('.modal').classList.remove('open')}
 document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
-function fill(id,data,title){const m=document.getElementById(id);Object.entries(data).forEach(([k,v])=>{const x=m.querySelector(`[name=${k}]`);if(x)x.value=v??''});if(title)m.querySelector('h2').textContent=title;m.classList.add('open')}
+function fill(id,data,title){const m=document.getElementById(id);clearErrors(m);Object.entries(data).forEach(([k,v])=>{const x=m.querySelector(`[name=${k}]`);if(x)x.value=v??''});if(title)m.querySelector('h2').textContent=title;m.classList.add('open')}
 function editCity(b){fill('cityModal',{id:b.dataset.id,name:b.dataset.name},'Chỉnh sửa thành phố')}
 function editCinema(b){fill('cinemaModal',{id:b.dataset.id,name:b.dataset.name,address:b.dataset.address,cityId:b.dataset.city},'Chỉnh sửa rạp chiếu')}
 function editRoom(b){fill('roomModal',{id:b.dataset.id,name:b.dataset.name,roomType:b.dataset.type,standardRows:b.dataset.standardRows,vipRows:b.dataset.vipRows,sweetboxRows:b.dataset.sweetboxRows,cinemaId:b.dataset.cinema},'Chỉnh sửa phòng chiếu');updateSeatPreview()}

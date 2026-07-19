@@ -90,5 +90,28 @@
         </div>
 </main>
 
+<script>
+    /* Chặn chọn thời gian bắt đầu ở quá khứ ngay trên trình duyệt (server vẫn kiểm tra lại).
+       Voucher cũ đang có startDate quá khứ thì KHÔNG đặt min, nếu không trình duyệt
+       coi ô đó là invalid và người dùng không sửa được các field khác. */
+    (function () {
+        const start = document.getElementById('startDate');
+        const end = document.getElementById('endDate');
+        const pad = n => String(n).padStart(2, '0');
+        const nowLocal = () => {
+            const d = new Date();
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        };
+
+        const now = nowLocal();
+        if (!start.value || start.value >= now) start.min = now;
+
+        // Kết thúc luôn phải sau bắt đầu.
+        const syncEndMin = () => { if (start.value) end.min = start.value; };
+        syncEndMin();
+        start.addEventListener('change', syncEndMin);
+    })();
+</script>
+
 </body>
 </html>

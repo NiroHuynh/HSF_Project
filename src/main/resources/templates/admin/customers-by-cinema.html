@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('Khách hàng theo chi nhánh')}"></head>
+<body class="admin-body">
+
+<aside th:replace="~{admin/fragments :: sidebar(${active})}"></aside>
+<header th:replace="~{admin/fragments :: mobile}"></header>
+
+<main class="admin-main">
+    <div th:replace="~{admin/fragments :: flash}"></div>
+
+    <div class="page-head">
+        <div>
+            <p>KHÁCH HÀNG</p>
+            <h1>Khách hàng theo chi nhánh</h1>
+            <span>Tổng lượng khách toàn hệ thống và phân bổ theo từng rạp.</span>
+        </div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-label">Tổng khách toàn hệ thống <span class="stat-icon"><i class="bi bi-people"></i></span></div>
+            <div class="stat-value" th:text="${totalCustomers}">0</div>
+            <div class="stat-note">Khách riêng biệt đã đặt vé trong kỳ</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Tổng lượt đặt <span class="stat-icon"><i class="bi bi-bag-check"></i></span></div>
+            <div class="stat-value" th:text="${totalBookings}">0</div>
+            <div class="stat-note">Đơn đã thanh toán trong kỳ</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Số chi nhánh <span class="stat-icon"><i class="bi bi-building"></i></span></div>
+            <div class="stat-value" th:text="${cinemaCount}">0</div>
+            <div class="stat-note">Rạp đang hoạt động</div>
+        </div>
+    </div>
+
+    <div class="section-head">
+        <div>
+            <h2>Phân bổ theo chi nhánh</h2>
+            <span>Một khách đặt vé ở nhiều rạp được tính cho từng rạp, nên tổng các dòng có thể lớn hơn tổng toàn hệ thống.</span>
+        </div>
+        <form class="date-filter" method="get" th:action="@{/admin/customers/by-cinema}">
+            <label>Từ ngày<input type="date" name="from" th:value="${from}"></label>
+            <label>Đến ngày<input type="date" name="to" th:value="${to}"></label>
+            <label>Chi nhánh
+                <select name="cinemaId">
+                    <option value="">Tất cả chi nhánh</option>
+                    <option th:each="c:${cinemas}" th:value="${c.id}" th:text="${c.name}"
+                            th:selected="${selectedCinemaId != null and selectedCinemaId == c.id}"></option>
+                </select>
+            </label>
+            <button class="primary" type="submit">Lọc</button>
+        </form>
+    </div>
+
+    <div class="card table-wrap">
+        <table>
+            <thead>
+            <tr><th>CHI NHÁNH</th><th>THÀNH PHỐ</th><th>SỐ KHÁCH</th><th>LƯỢT ĐẶT</th><th>TỶ TRỌNG</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="s:${stats}"
+                th:classappend="${selectedCinemaId != null and selectedCinemaId == s.cinemaId} ? 'active'">
+                <td><strong th:text="${s.cinemaName}">CineMax</strong></td>
+                <td class="muted" th:text="${s.cityName}">Hà Nội</td>
+                <td><b th:text="${s.customerCount}">0</b></td>
+                <td th:text="${s.bookingCount}">0</td>
+                <td class="muted"
+                    th:text="${totalCustomers == 0 ? '—'
+                             : #numbers.formatDecimal(s.customerCount * 100.0 / totalCustomers, 1, 1) + '%'}">—</td>
+                <td class="actions">
+                    <a class="btn-link"
+                       th:href="@{/admin/customers/by-cinema(from=${from},to=${to},cinemaId=${s.cinemaId})}">Xem khách</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(stats)}"><td class="empty" colspan="6">Chưa có chi nhánh nào</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${customers != null}">
+        <div class="section-head">
+            <div>
+                <h2>Khách của <span th:text="${selectedCinemaName}">chi nhánh</span></h2>
+                <span th:text="'Tổng ' + ${#lists.size(customers)} + ' khách trong kỳ đã chọn'">Danh sách khách</span>
+            </div>
+            <a class="btn-link" th:href="@{/admin/customers/by-cinema(from=${from},to=${to})}">Bỏ lọc chi nhánh</a>
+        </div>
+
+        <div class="card table-wrap">
+            <table>
+                <thead>
+                <tr><th>KHÁCH HÀNG</th><th>EMAIL</th><th>ĐIỆN THOẠI</th><th>LƯỢT ĐẶT</th><th>CHI TIÊU</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="c:${customers}">
+                    <td><strong th:text="${c.fullName}">Nguyễn Văn A</strong></td>
+                    <td class="muted" th:text="${c.email}">a@gmail.com</td>
+                    <td class="muted" th:text="${c.phoneNumber != null} ? ${c.phoneNumber} : '—'">—</td>
+                    <td><b th:text="${c.bookingCount}">0</b></td>
+                    <td class="price" th:text="${#numbers.formatDecimal(c.totalSpent,0,'POINT',0,'COMMA')} + ' ₫'">0 ₫</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(customers)}">
+                    <td class="empty" colspan="5">Chi nhánh này chưa có khách đặt vé trong kỳ</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:src="@{/js/admin.js}"></script>
+</main>
+</body>
+</html>
