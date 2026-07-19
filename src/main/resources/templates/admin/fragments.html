@@ -35,6 +35,8 @@
         <a th:href="@{/admin/dashboard/combo}" th:classappend="${active == 'dashboard-combo'} ? 'active'"><b class="bi bi-pie-chart"></b> Dashboard combo</a>
 
         <p>QUẢN LÝ</p>
+        <a th:href="@{/admin/movies/dashboard}" th:classappend="${active == 'movies'} ? 'active'"><b class="bi bi-film"></b> Phim</a>
+        <a th:href="@{/admin/customers/by-cinema}" th:classappend="${active == 'customers-cinema'} ? 'active'"><b class="bi bi-people"></b> Khách theo chi nhánh</a>
         <a th:href="@{/admin/vouchers}" th:classappend="${active == 'vouchers'} ? 'active'"><b class="bi bi-ticket-perforated"></b> Voucher</a>
         <a th:href="@{/admin/locations}" th:classappend="${active == 'locations'} ? 'active'"><b class="bi bi-geo-alt"></b> Địa điểm &amp; phòng</a>
         <a th:href="@{/admin/ticket-prices}" th:classappend="${active == 'prices'} ? 'active'"><b class="bi bi-cash-coin"></b> Giá vé</a>

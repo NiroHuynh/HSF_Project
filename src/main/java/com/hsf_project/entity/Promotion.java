@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,11 +22,15 @@ public class Promotion {
     @Column(name = "code", nullable = false, length = 50)
     private String code;
 
+    // Cột name/description trong DB là NVARCHAR; thiếu @Nationalized thì Hibernate
+    // bind tham số kiểu VARCHAR và tiếng Việt bị mất dấu khi lưu.
+    @Nationalized
     @Size(max = 100)
     @NotNull
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Nationalized
     @Size(max = 255)
     @Column(name = "description")
     private String description;
