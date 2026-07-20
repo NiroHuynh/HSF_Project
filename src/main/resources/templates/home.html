@@ -160,7 +160,7 @@
                     </div>
 
                     <button th:data-code="${promo.code}"
-                            onclick="navigator.clipboard.writeText(this.dataset.code); alert('Đã sao chép mã ưu đãi: ' + this.dataset.code);"
+                            onclick="copyVoucherCode(this)"
                             class="btn-copy">
                         Sao chép mã
                     </button>
@@ -176,5 +176,39 @@
    ============================================================ -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 <script th:replace="~{fragments/header :: header-script}"></script>
+<script>
+    let copyToastTimer;
+    async function copyVoucherCode(button) {
+        const code = button.dataset.code;
+        try {
+            await navigator.clipboard.writeText(code);
+        } catch (_) {
+            const input = document.createElement('textarea');
+            input.value = code;
+            input.style.position = 'fixed';
+            input.style.opacity = '0';
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            input.remove();
+        }
+        let toast = document.getElementById('copyToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'copyToast';
+            toast.setAttribute('role', 'status');
+            toast.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:10000;padding:14px 18px;color:#fff;background:#18181D;border:1px solid rgba(45,122,79,.7);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,.45);transition:opacity .2s ease,transform .2s ease';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = '✓ Đã sao chép mã ưu đãi: ' + code;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+        clearTimeout(copyToastTimer);
+        copyToastTimer = setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(12px)';
+        }, 2600);
+    }
+</script>
 </body>
 </html>
