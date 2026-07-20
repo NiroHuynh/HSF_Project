@@ -1,7 +1,7 @@
 package com.hsf_project.controller;
 
 import com.hsf_project.entity.Booking;
-import com.hsf_project.entity.BookingStatus;
+import com.hsf_project.entity.enums.BookingStatus;
 import com.hsf_project.entity.User;
 import com.hsf_project.repository.BookingRepository;
 import com.hsf_project.service.BookingConfirmService;
@@ -75,8 +75,7 @@ public class PaymentReturnController {
         }
 
         model.addAttribute("booking", booking);
-        model.addAttribute("success", BookingStatus.CONFIRMED.name().equals(booking.getStatus())
-                || BookingStatus.EXPORTED.name().equals(booking.getStatus()));
+        model.addAttribute("success", BookingStatus.CONFIRMED.name().equals(booking.getStatus()));
         if (!booking.getTickets().isEmpty()) {
             model.addAttribute("showtime", booking.getTickets().get(0).getShowtime());
         }

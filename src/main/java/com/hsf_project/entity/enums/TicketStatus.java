@@ -1,4 +1,4 @@
-package com.hsf_project.entity;
+package com.hsf_project.entity.enums;
 
 /**
  * Vé chỉ có 2 trạng thái: PENDING (đang giữ ghế) và PAID.

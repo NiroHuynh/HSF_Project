@@ -1,4 +1,4 @@
-package com.hsf_project.repository.movie;
+package com.hsf_project.repository;
 
 import com.hsf_project.entity.Genre;
 import org.springframework.data.jpa.repository.JpaRepository;

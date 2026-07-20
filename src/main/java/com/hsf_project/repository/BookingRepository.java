@@ -82,6 +82,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND EXISTS (SELECT 1 FROM Ticket t WHERE t.booking = b AND t.showtime.room.cinema.id = :cinemaId) " +
             "GROUP BY FUNCTION('MONTH', b.bookingDate)")
     List<Object[]> monthlyRevenueByCinema(@Param("year") int year, @Param("cinemaId") Integer cinemaId);
+
     @EntityGraph(attributePaths = {
             "user", "tickets", "tickets.seat",
             "tickets.showtime", "tickets.showtime.movie", "tickets.showtime.room"

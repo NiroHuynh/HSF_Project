@@ -1,7 +1,7 @@
 package com.hsf_project.dto.movie.request;
 
-import com.hsf_project.entity.AgeRating;
-import com.hsf_project.entity.MovieStatus;
+import com.hsf_project.entity.enums.AgeRating;
+import com.hsf_project.entity.enums.MovieStatus;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
