@@ -389,4 +389,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByBookingDateBetweenAndIsDeletedFalse(LocalDateTime from, LocalDateTime to);
 
     List<Booking> findByIsDeletedFalse();
+
+    @Query("SELECT COUNT(b) > 0 FROM Booking b JOIN b.tickets t WHERE t.showtime.movie.id = :movieId AND b.status NOT IN ('PENDING', 'CANCELED') AND b.isDeleted = false")
+    boolean hasConfirmedBookingsByMovie(@Param("movieId") Integer movieId);
 }

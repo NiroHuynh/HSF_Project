@@ -5,6 +5,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const genreTagList = document.getElementById('genreTagList');
     const genreIdsValue = document.getElementById('genreIdsValue');
 
+    // ========== DISABLE FORM WHEN ENDED / CANCELLED ==========
+    if (mode === 'edit' && MOVIE_STATUS && (MOVIE_STATUS === 'ENDED' || MOVIE_STATUS === 'CANCELLED')) {
+        form.querySelectorAll('input, select, textarea, button[type="submit"]').forEach(el => {
+            if (el.name !== 'status') el.disabled = true;
+        });
+        document.querySelector('.btn-top-submit').textContent = 'KHÔNG THỂ SỬA';
+        document.getElementById('posterUpload').style.pointerEvents = 'none';
+    }
+
     // ========== GENRE TAG CHIPS (dropdown) ==========
     const allGenres = typeof GENRES !== 'undefined' ? GENRES : [
         { id: 1, name: 'Hành động' },
@@ -293,22 +302,39 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ========== FORM VALIDATION ==========
+    function isDisabled(el) {
+        return el.disabled === true;
+    }
+
     function validateForm() {
         const errors = [];
         const errorBox = document.getElementById('formErrorBox');
         form.querySelectorAll('.form-item-input, .form-item-select, .tag-list-box-line, .tag-combo-container')
             .forEach(el => el.classList.remove('error'));
 
+        if (mode === 'edit' && MOVIE_STATUS && (MOVIE_STATUS === 'ENDED' || MOVIE_STATUS === 'CANCELLED')) {
+            errors.push('Phim đã ' + (MOVIE_STATUS === 'ENDED' ? 'kết thúc' : 'hủy') + ', không thể chỉnh sửa thông tin');
+            const errorBox = document.getElementById('formErrorBox');
+            let html = '';
+            errors.forEach(msg => {
+                html += '<div class="error-item"><i class="fa-solid fa-circle-exclamation"></i> ' + msg + '</div>';
+            });
+            errorBox.innerHTML = html;
+            errorBox.style.display = 'block';
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+
         // Tên phim
         const title = form.querySelector('[name="title"]');
-        if (!title.value.trim()) {
+        if (!isDisabled(title) && !title.value.trim()) {
             title.classList.add('error');
             errors.push('Tên phim không được để trống');
         }
 
         // Mô tả
         const desc = form.querySelector('[name="description"]');
-        if (!desc.value.trim()) {
+        if (!isDisabled(desc) && !desc.value.trim()) {
             desc.classList.add('error');
             errors.push('Mô tả phim không được để trống');
         }
@@ -322,27 +348,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Phân loại độ tuổi
         const ageRating = form.querySelector('[name="ageRating"]');
-        if (!ageRating.value) {
+        if (!isDisabled(ageRating) && !ageRating.value) {
             ageRating.classList.add('error');
             errors.push('Vui lòng chọn phân loại độ tuổi');
         }
 
         // Thời lượng
         const duration = form.querySelector('[name="durationMinutes"]');
-        if (!duration.value) {
-            duration.classList.add('error');
-            errors.push('Thời lượng không được để trống');
-        } else {
-            const durVal = parseInt(duration.value);
-            if (durVal < 30 || durVal > 300) {
+        if (!isDisabled(duration)) {
+            if (!duration.value) {
                 duration.classList.add('error');
-                errors.push('Thời lượng phải từ 30 đến 300 phút');
+                errors.push('Thời lượng không được để trống');
+            } else {
+                const durVal = parseInt(duration.value);
+                if (durVal < 30 || durVal > 300) {
+                    duration.classList.add('error');
+                    errors.push('Thời lượng phải từ 30 đến 300 phút');
+                }
             }
         }
 
         // Quốc gia
         const lang = form.querySelector('[name="language"]');
-        if (!lang.value) {
+        if (!isDisabled(lang) && !lang.value) {
             lang.classList.add('error');
             errors.push('Vui lòng chọn quốc gia');
         }
@@ -363,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Ngày khởi chiếu
         const releaseDate = form.querySelector('[name="releaseDate"]');
-        if (!releaseDate.value) {
+        if (!isDisabled(releaseDate) && !releaseDate.value) {
             releaseDate.classList.add('error');
             errors.push('Vui lòng chọn ngày khởi chiếu');
         }
@@ -376,7 +404,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Ngày kết thúc phải sau ngày khởi chiếu
-        if (releaseDate.value && endDate.value && endDate.value < releaseDate.value) {
+        const refRelease = form.querySelector('[name="releaseDate"]');
+        if (endDate.value && refRelease.value && endDate.value < refRelease.value) {
             endDate.classList.add('error');
             errors.push('Ngày kết thúc phải sau ngày khởi chiếu');
         }
@@ -480,10 +509,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const posterHasFile = posterUpload.dataset.hasFile === 'true';
         const posterFileEl = posterFile.files[0];
 
+        const durationEl = form.querySelector('[name="durationMinutes"]');
+        const releaseDateEl = form.querySelector('[name="releaseDate"]');
+
         const body = {
             title: formData.get('title'),
-            durationMinutes: parseInt(formData.get('durationMinutes')),
-            releaseDate: formData.get('releaseDate'),
+            durationMinutes: !durationEl.disabled && formData.get('durationMinutes')
+                    ? parseInt(formData.get('durationMinutes')) : undefined,
+            releaseDate: !releaseDateEl.disabled ? formData.get('releaseDate') : undefined,
             director: formData.get('director') || null,
             cast: formData.get('cast') || null,
             description: formData.get('description') || null,
@@ -491,7 +524,6 @@ document.addEventListener('DOMContentLoaded', function () {
             genreIds: genreIdsValue.value ? genreIdsValue.value.split(',').map(Number) : [],
             language: formData.get('language') || null,
             endDate: formData.get('endDate') || null,
-            isFeatured: document.querySelector('[name=isFeatured]').checked,
             ...(mode === 'edit' ? { status: formData.get('status') } : {})
         };
 

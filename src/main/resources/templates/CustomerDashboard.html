@@ -32,12 +32,24 @@
                         <p class="dashboard-desc">Phân tích chuyên sâu về dữ liệu người dùng và hoạt động chi nhánh.</p>
                     </div>
 
-                    <div class="date-filter-box">
-                        <span class="filter-lbl">TỪ NGÀY</span>
-                        <input type="date" id="fromDate" class="filter-date-input">
-                        <span class="filter-lbl">ĐẾN NGÀY</span>
-                        <input type="date" id="toDate" class="filter-date-input">
-                        <button type="button" id="filterBtn" class="filter-btn">Lọc</button>
+                    <div class="date-filter">
+                        <div class="date-filter-group">
+                            <div class="date-field">
+                                <span class="date-label">Từ ngày</span>
+                                <div class="date-input-wrapper">
+                                    <input type="date" id="fromDate" class="date-input">
+                                    <i class="fa-regular fa-calendar"></i>
+                                </div>
+                            </div>
+                            <div class="date-field">
+                                <span class="date-label">Đến ngày</span>
+                                <div class="date-input-wrapper">
+                                    <input type="date" id="toDate" class="date-input">
+                                    <i class="fa-regular fa-calendar"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="filterBtn" class="btn btn-primary">Lọc</button>
                     </div>
                 </header>
 
@@ -110,6 +122,7 @@
                                 <th>KHÁCH HÀNG</th>
                                 <th>LƯỢT ĐẶT</th>
                                 <th>PHIM GẦN NHẤT</th>
+                                <th>TRẠNG THÁI</th>
                                 <th class="text-right">THAO TÁC</th>
                             </tr>
                             </thead>
@@ -126,10 +139,18 @@
                                 </td>
                                 <td><span class="highlight-text" th:text="${customer.bookingCount + ' vé'}">0 vé</span></td>
                                 <td class="movie-name-td" th:text="${customer.latestMovie != null ? customer.latestMovie : '---'}">---</td>
-                                <td class="text-right"><a th:href="@{/admin/customers/{id}/detail(id=${customer.customerId})}" class="dot-action-btn"><i class="fa-solid fa-ellipsis"></i></a></td>
+                                <td>
+                                    <span class="status-pill" th:classappend="${customer.status == 'ACTIVE' ? 'active' : 'locked'}" th:text="${customer.status == 'ACTIVE' ? 'Hoạt động' : 'Bị khóa'}">Hoạt động</span>
+                                </td>
+                                <td class="text-right">
+                                    <a th:href="@{/admin/customers/{id}/detail(id=${customer.customerId})}" class="action-btn" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
+                                    <button class="action-btn" th:onclick="'lockAccount(' + ${customer.customerId} + ')'" th:title="${customer.status == 'LOCKED' ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}">
+                                        <i th:class="${customer.status == 'LOCKED' ? 'fa-solid fa-unlock' : 'fa-solid fa-lock'}"></i>
+                                    </button>
+                                </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(customers)}">
-                                <td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Không tìm thấy khách hàng</td>
+                                <td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">Không tìm thấy khách hàng</td>
                             </tr>
                             </tbody>
                         </table>
@@ -150,5 +171,20 @@
 </div>
 
 <script th:src="@{/js/CustomerDashboard.js}"></script>
+<script>
+    function lockAccount(id) {
+        if (!confirm('Bạn có chắc chắn muốn thực hiện thao tác này?')) return;
+        fetch('/admin/customers/' + id + '/toggle-status', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.code === 200) {
+                    location.reload();
+                } else {
+                    alert('Thao tác thất bại!');
+                }
+            })
+            .catch(function () { alert('Có lỗi xảy ra!'); });
+    }
+</script>
 </body>
 </html>

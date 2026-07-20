@@ -99,7 +99,8 @@
                                     <div class="form-item">
                                         <span class="form-item-label">Thời lượng (Phút)</span>
                                         <input type="number" name="durationMinutes" class="form-item-input" required min="30" max="300"
-                                               th:value="${movie != null ? movie.durationMinutes : '120'}" placeholder="30-300">
+                                               th:value="${movie != null ? movie.durationMinutes : '120'}" placeholder="30-300"
+                                               th:disabled="${movie != null and (movie.status.name() == 'NOW_SHOWING' or hasShowtimes)}">
                                     </div>
 
                                     <!-- Quốc gia -->
@@ -151,7 +152,8 @@
                                     <div class="form-item">
                                         <span class="form-item-label">Ngày khởi chiếu</span>
                                         <input type="date" name="releaseDate" class="form-item-input" required
-                                               th:value="${movie != null ? movie.releaseDate : ''}">
+                                               th:value="${movie != null ? movie.releaseDate : ''}"
+                                               th:disabled="${movie != null and movie.status.name() == 'NOW_SHOWING'}">
                                     </div>
                                     <div class="form-item">
                                         <span class="form-item-label">Ngày kết thúc dự kiến</span>
@@ -172,20 +174,17 @@
                                         <span class="form-item-label">Trạng thái</span>
                                         <div class="select-wrapper">
                                             <select name="status" class="form-item-select">
-                                                <option value="COMING_SOON" th:selected="${movie.status.name() == 'COMING_SOON'}">COMING SOON</option>
-                                                <option value="NOW_SHOWING" th:selected="${movie.status.name() == 'NOW_SHOWING'}">NOW SHOWING</option>
-                                                <option value="ENDED" th:selected="${movie.status.name() == 'ENDED'}">ENDED</option>
+                                                <option value="COMING_SOON"
+                                                        th:selected="${movie.status.name() == 'COMING_SOON'}"
+                                                        th:if="${movie.status.name() == 'COMING_SOON'}">COMING SOON</option>
+                                                <option value="NOW_SHOWING"
+                                                        th:selected="${movie.status.name() == 'NOW_SHOWING'}"
+                                                        th:if="${movie.status.name() != 'ENDED' and movie.status.name() != 'CANCELLED'}">NOW SHOWING</option>
+                                                <option value="ENDED"
+                                                        th:selected="${movie.status.name() == 'ENDED'}"
+                                                        th:if="${movie.status.name() != 'CANCELLED'}">ENDED</option>
                                             </select>
                                         </div>
-                                    </div>
-
-                                    <!-- Phim nổi bật (Toggle Switch) -->
-                                    <div class="form-item toggle-row" style="align-self: flex-end; padding-bottom: 4px;">
-                                        <span class="form-item-label row-label">Phim Nổi Bật</span>
-                                        <label class="switch-toggle-container">
-                                            <input type="checkbox" name="isFeatured" th:checked="${movie != null and movie.isFeatured == true}">
-                                            <span class="switch-slider"></span>
-                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -246,6 +245,7 @@
 <script th:inline="javascript">
     const GENRES = /*[[${genres}]]*/ [];
     const MOVIE = /*[[${movie}]]*/ null;
+    const MOVIE_STATUS = MOVIE ? MOVIE.status : null;
 </script>
 <script th:src="@{/js/admin-movie-form.js}"></script>
 

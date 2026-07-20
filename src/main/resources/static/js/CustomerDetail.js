@@ -1,22 +1,31 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener('DOMContentLoaded', function () {
+    var rows = document.querySelectorAll('#transactionBody .tx-row');
+    if (rows.length === 0) return;
 
-    const editBtn = document.getElementById('editBtn');
-    if (editBtn) {
-        editBtn.addEventListener('click', function () {
-            alert('Chức năng chỉnh sửa đang được phát triển.');
-        });
+    var pageSize = 5;
+    var currentPage = 0;
+    var totalPages = Math.ceil(rows.length / pageSize);
+
+    var prevBtn = document.getElementById('txPrevPage');
+    var nextBtn = document.getElementById('txNextPage');
+    var pageInfo = document.getElementById('txPageInfo');
+
+    function showPage(page) {
+        for (var i = 0; i < rows.length; i++) {
+            rows[i].style.display = (i >= page * pageSize && i < (page + 1) * pageSize) ? '' : 'none';
+        }
+        pageInfo.textContent = 'Trang ' + (page + 1) + ' / ' + totalPages;
+        prevBtn.disabled = page <= 0;
+        nextBtn.disabled = page >= totalPages - 1;
     }
 
-    const exportBtn = document.getElementById('exportBtn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', function () {
-            const pathParts = window.location.pathname.split('/');
-            const id = pathParts[pathParts.length - 2];
-            if (id && !isNaN(id)) {
-                window.open('/admin/customers/' + id + '/export', '_blank');
-            } else {
-                alert('Không thể xuất báo cáo.');
-            }
-        });
-    }
+    prevBtn.addEventListener('click', function () {
+        if (currentPage > 0) { currentPage--; showPage(currentPage); }
+    });
+
+    nextBtn.addEventListener('click', function () {
+        if (currentPage < totalPages - 1) { currentPage++; showPage(currentPage); }
+    });
+
+    showPage(0);
 });

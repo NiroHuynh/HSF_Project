@@ -19,4 +19,5 @@ public class ActiveCustomerResponse {
     String email;
     int bookingCount;
     String latestMovie;
+    String status;
 }

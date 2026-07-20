@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const customers = page.content || [];
 
             if (customers.length === 0) {
-                customerTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Không tìm thấy khách hàng</td></tr>';
+                customerTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">Không tìm thấy khách hàng</td></tr>';
             } else {
                 customerTableBody.innerHTML = customers.map(function (c) {
                     return '<tr>' +
@@ -161,7 +161,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         '</td>' +
                         '<td><span class="highlight-text">' + (c.bookingCount || 0) + ' vé</span></td>' +
                         '<td class="movie-name-td">' + escapeHtml(c.latestMovie || '---') + '</td>' +
-                        '<td class="text-right"><a href="/admin/customers/' + (c.customerId || '') + '/detail" class="dot-action-btn"><i class="fa-solid fa-ellipsis"></i></a></td>' +
+                        '<td><span class="status-pill ' + (c.status === 'ACTIVE' ? 'active' : 'locked') + '">' + (c.status === 'ACTIVE' ? 'Hoạt động' : 'Bị khóa') + '</span></td>' +
+                        '<td class="text-right">' +
+                        '<a href="/admin/customers/' + (c.customerId || '') + '/detail" class="action-btn" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>' +
+                        '<button class="action-btn" onclick="lockAccount(' + (c.customerId || '') + ')" title="' + (c.status === 'LOCKED' ? 'Mở khóa tài khoản' : 'Khóa tài khoản') + '">' +
+                        '<i class="fa-solid ' + (c.status === 'LOCKED' ? 'fa-unlock' : 'fa-lock') + '"></i></button>' +
+                        '</td>' +
                         '</tr>';
                 }).join('');
             }
