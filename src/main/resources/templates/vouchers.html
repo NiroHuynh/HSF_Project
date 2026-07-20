@@ -86,7 +86,7 @@
                 <!-- Thymeleaf không cho nối chuỗi biến trong th:onclick (chống XSS)
                      → đưa mã vào data-code rồi đọc lại trong handler -->
                 <button th:data-code="${v.code}"
-                        onclick="navigator.clipboard.writeText(this.dataset.code); alert('Đã sao chép mã ưu đãi: ' + this.dataset.code);"
+                        onclick="navigator.clipboard.writeText(this.dataset.code); showToast('Đã sao chép mã ưu đãi: ' + this.dataset.code);"
                         class="btn-copy">
                     Sao chép mã
                 </button>

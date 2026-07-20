@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head(${formTitle})}"></head>
+<body class="admin-body">
+
+<aside th:replace="~{admin/fragments :: sidebar('vouchers')}"></aside>
+<header th:replace="~{admin/fragments :: mobile}"></header>
+
+<main class="admin-content">
+        <h1 class="admin-page-title" th:text="${formTitle}">Thêm Voucher mới</h1>
+        <p class="admin-page-sub">
+            <a th:href="@{/admin/vouchers}" class="text-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại danh sách
+            </a>
+        </p>
+
+        <div class="admin-panel" style="max-width: 720px;">
+            <form class="admin-form" th:action="@{${formAction}}" method="post" th:object="${promotionForm}">
+
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label class="form-label" for="code">Mã voucher *</label>
+                        <input type="text" id="code" th:field="*{code}" class="form-control"
+                               placeholder="VD: SUMMER10" style="text-transform: uppercase;">
+                        <small class="text-danger" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></small>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label" for="name">Tên voucher *</label>
+                        <input type="text" id="name" th:field="*{name}" class="form-control"
+                               placeholder="VD: Khuyến mãi mùa hè">
+                        <small class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="description">Mô tả</label>
+                        <textarea id="description" th:field="*{description}" class="form-control" rows="2"
+                                  placeholder="Mô tả ngắn về chương trình khuyến mãi"></textarea>
+                        <small class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="discountType">Loại giảm giá *</label>
+                        <select id="discountType" th:field="*{discountType}" class="form-select">
+                            <option value="PERCENT">Giảm theo % đơn hàng</option>
+                            <option value="FIXED">Giảm số tiền cố định (đ)</option>
+                        </select>
+                        <small class="text-danger" th:if="${#fields.hasErrors('discountType')}" th:errors="*{discountType}"></small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="discountValue">Giá trị giảm *</label>
+                        <input type="number" id="discountValue" th:field="*{discountValue}" class="form-control"
+                               step="0.01" min="0.01" placeholder="VD: 10 (%) hoặc 50000 (đ)">
+                        <small class="text-danger" th:if="${#fields.hasErrors('discountValue')}" th:errors="*{discountValue}"></small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="startDate">Bắt đầu *</label>
+                        <input type="datetime-local" id="startDate" th:field="*{startDate}" class="form-control">
+                        <small class="text-danger" th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}"></small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="endDate">Kết thúc *</label>
+                        <input type="datetime-local" id="endDate" th:field="*{endDate}" class="form-control">
+                        <small class="text-danger" th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}"></small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="usageLimit">Giới hạn lượt dùng</label>
+                        <input type="number" id="usageLimit" th:field="*{usageLimit}" class="form-control"
+                               min="1" placeholder="Bỏ trống = không giới hạn">
+                        <small class="text-danger" th:if="${#fields.hasErrors('usageLimit')}" th:errors="*{usageLimit}"></small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="status">Trạng thái *</label>
+                        <select id="status" th:field="*{status}" class="form-select">
+                            <option value="ACTIVE">Kích hoạt</option>
+                            <option value="INACTIVE">Khoá</option>
+                        </select>
+                        <small class="text-danger" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></small>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-admin-primary">
+                        <i class="bi bi-check-lg"></i> Lưu voucher
+                    </button>
+                    <a th:href="@{/admin/vouchers}" class="btn btn-admin-ghost">Huỷ</a>
+                </div>
+            </form>
+        </div>
+</main>
+
+<script>
+    /* Chặn chọn thời gian bắt đầu ở quá khứ ngay trên trình duyệt (server vẫn kiểm tra lại).
+       Voucher cũ đang có startDate quá khứ thì KHÔNG đặt min, nếu không trình duyệt
+       coi ô đó là invalid và người dùng không sửa được các field khác. */
+    (function () {
+        const start = document.getElementById('startDate');
+        const end = document.getElementById('endDate');
+        const pad = n => String(n).padStart(2, '0');
+        const nowLocal = () => {
+            const d = new Date();
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        };
+
+        const now = nowLocal();
+        if (!start.value || start.value >= now) start.min = now;
+
+        // Kết thúc luôn phải sau bắt đầu.
+        const syncEndMin = () => { if (start.value) end.min = start.value; };
+        syncEndMin();
+        start.addEventListener('change', syncEndMin);
+    })();
+</script>
+
+</body>
+</html>

@@ -43,4 +43,33 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "GROUP BY u " +
             "ORDER BY u.createdAt DESC")
     List<Object[]> findCustomersWithStatsByCinema(@Param("cinemaId") Integer cinemaId);
+
+    Optional<User> findByEmail(String email);
+
+    List<User> findByIsDeletedFalseOrIsDeletedNull();
+
+    List<User> findByCreatedAtBetweenAndIsDeletedFalse(LocalDateTime from, LocalDateTime to);
+
+    long countByIsDeletedFalseOrIsDeletedNull();
+
+    Optional<User> findByIdAndIsDeletedFalse(Long id);
+
+    List<User> findByRole_IdInAndIsDeletedFalse(List<Integer> roleIds);
+
+    long countByRole_IdInAndIsDeletedFalse(List<Integer> roleIds);
+
+    long countByRole_IdInAndStatusAndIsDeletedFalse(List<Integer> roleIds, String status);
+
+    /**
+     * Kiểm tra trùng email / số điện thoại khi tạo tài khoản.
+     * Chỉ xét tài khoản chưa bị xóa mềm để số cũ của tài khoản đã xóa dùng lại được.
+     */
+    boolean existsByEmailAndIsDeletedFalse(String email);
+
+    boolean existsByPhoneNumberAndIsDeletedFalse(String phoneNumber);
+
+    /** Bản dùng khi sửa: bỏ qua chính tài khoản đang sửa. */
+    boolean existsByEmailAndIsDeletedFalseAndIdNot(String email, Long id);
+
+    boolean existsByPhoneNumberAndIsDeletedFalseAndIdNot(String phoneNumber, Long id);
 }

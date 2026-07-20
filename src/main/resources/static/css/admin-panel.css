@@ -1,0 +1,258 @@
+/* ============================================================
+   ADMIN-PANEL.CSS — COMPONENT của khu quản trị CineMax Admin (dark theme)
+   KHUNG trang (body, sidebar, .admin-main, bảng, modal, toast) do
+   admin-system.css lo — file này chỉ bổ sung component riêng
+   (stat card, panel, admin-table, badge, form bootstrap, nút).
+   Load SAU bootstrap + style.css + admin-system.css.
+   ============================================================ */
+
+/* Sidebar cao đúng 100vh nhưng menu có thể dài hơn màn hình (nhất là laptop
+   màn thấp) -> cho cuộn riêng, nếu không mục "Tài khoản" ở dưới bị cắt mất. */
+.admin-sidebar {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, .18) transparent;
+  /* bỏ đệm đáy để thanh user dính sát mép dưới; phần đệm do chính nó gánh */
+  padding-bottom: 0;
+}
+.admin-sidebar::-webkit-scrollbar { width: 6px; }
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, .18);
+  border-radius: 3px;
+}
+.admin-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, .3); }
+.admin-sidebar::-webkit-scrollbar-track { background: transparent; }
+
+/* Khối user là THANH ĐÁY liền khối của sidebar, không phải một ô rời:
+   margin âm để tràn hết chiều ngang (bù padding 26px/18px của .admin-sidebar),
+   sticky bottom để luôn dính đáy kể cả khi menu phải cuộn. */
+.admin-sidebar .admin-user {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: auto -18px 0;
+  padding: 16px 18px 22px;
+  background: #111114;
+  border-top: 1px solid var(--line, rgba(255, 255, 255, .08));
+  gap: 12px;
+}
+/* Đổ bóng nhẹ lên trên để tách khỏi menu đang cuộn phía sau */
+.admin-sidebar .admin-user::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 20px;
+  background: linear-gradient(to top, #111114, rgba(17, 17, 20, 0));
+  pointer-events: none;
+}
+.admin-sidebar .admin-user .avatar { flex-shrink: 0; }
+/* Tên dài thì xuống dòng gọn thay vì đẩy nút đăng xuất ra khỏi sidebar */
+.admin-sidebar .admin-user > div:not(.avatar) { min-width: 0; }
+.admin-sidebar .admin-user strong {
+  display: block;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.admin-sidebar .admin-user > a {
+  flex-shrink: 0;
+  align-self: center;
+  line-height: 1;
+}
+
+/* .admin-content là tên cũ của vùng nội dung; giữ để tương thích và cho
+   hành xử giống hệt .admin-main của admin-system.css. */
+.admin-content {
+  margin-left: 248px;
+  padding: 36px 42px;
+  min-height: 100vh;
+  max-width: 1600px;
+  min-width: 0;
+}
+@media (max-width: 750px) {
+  .admin-content { margin-left: 0; padding: 24px 15px; }
+}
+
+.admin-page-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.admin-page-sub {
+  color: var(--color-text-secondary, #A0A0B0);
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+/* ---------- Stat cards ---------- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--color-surface, #111114);
+  border: 1px solid var(--color-border, rgba(255,255,255,.08));
+  border-radius: var(--radius-md, 12px);
+  padding: 20px;
+}
+.stat-card .stat-label {
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary, #A0A0B0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.stat-card .stat-icon {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-brand-red-light, rgba(227,27,35,.15));
+  color: var(--color-brand-red, #E31B23);
+  font-size: 18px;
+}
+.stat-card .stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.stat-card .stat-note {
+  font-size: 13px;
+  color: var(--color-text-muted, #606070);
+  margin-top: 6px;
+}
+
+/* ---------- Panel (khung chart / bảng) ---------- */
+.admin-panel {
+  background: var(--color-surface, #111114);
+  border: 1px solid var(--color-border, rgba(255,255,255,.08));
+  border-radius: var(--radius-md, 12px);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.admin-panel h5 {
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+/* ---------- Bảng dữ liệu ---------- */
+.admin-table {
+  width: 100%;
+  color: var(--color-text-primary, #fff);
+  font-size: 14px;
+  border-collapse: collapse;
+}
+.admin-table thead th {
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary, #A0A0B0);
+  border-bottom: 1px solid var(--color-border-strong, rgba(255,255,255,.16));
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+.admin-table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,.08));
+  vertical-align: middle;
+}
+.admin-table tbody tr:hover { background: var(--color-surface-raised, #18181D); }
+.admin-table .money { color: var(--color-brand-red, #E31B23); font-weight: 700; }
+
+/* ---------- Badge trạng thái ---------- */
+.badge-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill, 9999px);
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-status.active   { background: rgba(45,122,79,.2);  color: #5BD68F; }
+.badge-status.inactive { background: rgba(160,160,176,.15); color: #A0A0B0; }
+.badge-status.expired  { background: rgba(227,27,35,.15); color: #E31B23; }
+
+/* ---------- Form trong khu admin ---------- */
+.admin-form .form-label {
+  color: var(--color-text-secondary, #A0A0B0);
+  font-size: 13px;
+  font-weight: 600;
+}
+.admin-form .form-control,
+.admin-form .form-select {
+  background: var(--color-surface-raised, #18181D);
+  border: 1px solid var(--color-border-strong, rgba(255,255,255,.16));
+  color: var(--color-text-primary, #fff);
+}
+.admin-form .form-control:focus,
+.admin-form .form-select:focus {
+  background: var(--color-surface-raised, #18181D);
+  color: #fff;
+  border-color: var(--color-brand-red, #E31B23);
+  box-shadow: 0 0 0 .15rem rgba(227,27,35,.25);
+}
+.admin-form .form-control::placeholder { color: var(--color-text-muted, #606070); }
+/* icon lịch/datetime của input trên nền tối */
+.admin-form input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+/* ---------- Nút ---------- */
+.btn-admin-primary {
+  background: var(--color-brand-red, #E31B23);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+}
+.btn-admin-primary:hover { background: var(--color-brand-red-hover, #C41219); color: #fff; }
+.btn-admin-ghost {
+  background: transparent;
+  border: 1px solid var(--color-border-strong, rgba(255,255,255,.16));
+  color: var(--color-text-secondary, #A0A0B0);
+}
+.btn-admin-ghost:hover { color: #fff; border-color: #fff; }
+
+/* ---------- Bổ sung cho form trong modal ---------- */
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 560px) { .grid3 { grid-template-columns: 1fr; } }
+
+.field-group-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary, #A0A0B0);
+  margin: 22px 0 0;
+}
+.field-hint {
+  font-size: 11px;
+  color: var(--color-text-muted, #808090);
+  margin: 12px 0 0;
+  line-height: 1.6;
+}
+.field-hint b { color: var(--color-brand-red, #E31B23); }
+
+/* ---------- Modal xác nhận dùng chung ---------- */
+.confirm-modal .modal-box { width: min(430px, 100%); }
+.confirm-message {
+  color: var(--color-text-secondary, #A0A0B0);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: -12px 0 0;
+}
+.confirm-modal .modal-actions .primary { background: var(--color-brand-red, #E31B23) !important; }
+
+/* ---------- Phân trang (bootstrap) trên nền tối ---------- */
+.pagination .page-link {
+  background: var(--color-surface-raised, #18181D);
+  border-color: var(--color-border-strong, rgba(255,255,255,.16));
+  color: var(--color-text-secondary, #A0A0B0);
+}
+.pagination .page-item.active .page-link {
+  background: var(--color-brand-red, #E31B23);
+  border-color: var(--color-brand-red, #E31B23);
+  color: #fff;
+}
+.pagination .page-item.disabled .page-link { background: transparent; color: var(--color-text-muted, #606070); }

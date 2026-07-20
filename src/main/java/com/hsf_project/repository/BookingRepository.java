@@ -24,6 +24,65 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countByUserIdAndIsDeletedFalseAndStatusAndNoteAndBookingDateAfter(Long userId, String status, String note, LocalDateTime bookingDate);
 // ── manager/tickets ───────────────────────────────────────────────────────
 
+    @Query("SELECT b FROM Booking b WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) AND b.bookingDate >= :from AND b.bookingDate < :to")
+    List<Booking> findPaidInRange(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /* ================== Aggregate cho dashboard doanh thu ================== */
+
+    /** Tổng doanh thu thực thu (final_amount) của các booking đã thanh toán trong [from, to). */
+    @Query("SELECT COALESCE(SUM(b.finalAmount), 0) FROM Booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND b.bookingDate >= :from AND b.bookingDate < :to")
+    java.math.BigDecimal sumRevenue(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** Số booking đã thanh toán trong [from, to). */
+    @Query("SELECT COUNT(b) FROM Booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND b.bookingDate >= :from AND b.bookingDate < :to")
+    long countPaid(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** Doanh thu theo từng tháng của một năm: mỗi phần tử = [tháng (1-12), tổng doanh thu]. */
+    @Query("SELECT FUNCTION('MONTH', b.bookingDate), COALESCE(SUM(b.finalAmount), 0) FROM Booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND FUNCTION('YEAR', b.bookingDate) = :year " +
+            "GROUP BY FUNCTION('MONTH', b.bookingDate)")
+    List<Object[]> monthlyRevenue(@Param("year") int year);
+
+    /**
+     * Booking đã thanh toán kèm rạp (mọi vé trong 1 booking cùng suất chiếu nên cùng rạp).
+     * DISTINCT để mỗi booking chỉ ra 1 dòng dù có nhiều vé — tổng hợp SUM làm ở tầng service
+     * để tránh doanh thu bị nhân bản theo số vé.
+     * Mỗi phần tử = [cinemaId, cinemaName, bookingId, finalAmount].
+     */
+    @Query("SELECT DISTINCT c.id, c.name, b.id, b.finalAmount FROM Booking b " +
+            "JOIN b.tickets t JOIN t.showtime st JOIN st.room r JOIN r.cinema c " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND b.bookingDate >= :from AND b.bookingDate < :to")
+    List<Object[]> paidBookingsWithCinema(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /* ---------- Bản giới hạn theo rạp (trang Manager) ---------- */
+
+    @Query("SELECT COALESCE(SUM(b.finalAmount), 0) FROM Booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND b.bookingDate >= :from AND b.bookingDate < :to " +
+            "AND EXISTS (SELECT 1 FROM Ticket t WHERE t.booking = b AND t.showtime.room.cinema.id = :cinemaId)")
+    java.math.BigDecimal sumRevenueByCinema(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to,
+                                            @Param("cinemaId") Integer cinemaId);
+
+    @Query("SELECT COUNT(b) FROM Booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND b.bookingDate >= :from AND b.bookingDate < :to " +
+            "AND EXISTS (SELECT 1 FROM Ticket t WHERE t.booking = b AND t.showtime.room.cinema.id = :cinemaId)")
+    long countPaidByCinema(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to,
+                           @Param("cinemaId") Integer cinemaId);
+
+    @Query("SELECT FUNCTION('MONTH', b.bookingDate), COALESCE(SUM(b.finalAmount), 0) FROM Booking b " +
+            "WHERE b.status IN ('CONFIRMED', 'EXPORTED') AND (b.isDeleted IS NULL OR b.isDeleted = false) " +
+            "AND FUNCTION('YEAR', b.bookingDate) = :year " +
+            "AND EXISTS (SELECT 1 FROM Ticket t WHERE t.booking = b AND t.showtime.room.cinema.id = :cinemaId) " +
+            "GROUP BY FUNCTION('MONTH', b.bookingDate)")
+    List<Object[]> monthlyRevenueByCinema(@Param("year") int year, @Param("cinemaId") Integer cinemaId);
+
     @EntityGraph(attributePaths = {
             "user", "tickets", "tickets.seat",
             "tickets.showtime", "tickets.showtime.movie", "tickets.showtime.room"
@@ -69,6 +128,68 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Long countCustomersByCinema(@Param("cinemaId") Integer cinemaId,
                                 @Param("from") LocalDateTime from,
                                 @Param("to") LocalDateTime to);
+
+    // ── admin — thống kê khách hàng theo chi nhánh ───────────────────────────
+    // "Khách của chi nhánh" = user từng đặt vé thành công cho suất chiếu thuộc rạp đó.
+    // users không có FK tới cinema (cột cinema_id chỉ dùng cho MANAGER) nên phải suy ra
+    // qua booking → ticket → show_time → cinema_room.
+
+    /**
+     * Số khách riêng biệt và số booking của TỪNG rạp trong khoảng ngày.
+     * LEFT JOIN để rạp chưa có khách nào vẫn xuất hiện trong bảng với số 0.
+     * Trả về [cinemaId, cinemaName, cityName, customerCount, bookingCount].
+     */
+    @Query(value = "SELECT c.id, c.name, ct.name, " +
+            "COUNT(DISTINCT b.user_id), COUNT(DISTINCT b.id) " +
+            "FROM cinema c " +
+            "JOIN city ct ON ct.id = c.city_id " +
+            "LEFT JOIN cinema_room r ON r.cinema_id = c.id " +
+            "LEFT JOIN show_time st ON st.room_id = r.id " +
+            "LEFT JOIN ticket t ON t.showtime_id = st.id " +
+            "LEFT JOIN booking b ON b.id = t.booking_id AND b.is_deleted = 0 " +
+            "  AND b.status NOT IN ('PENDING', 'CANCELED') " +
+            "  AND b.booking_date BETWEEN :from AND :to " +
+            "WHERE c.is_deleted = 0 " +
+            "GROUP BY c.id, c.name, ct.name " +
+            "ORDER BY COUNT(DISTINCT b.user_id) DESC, c.name ASC", nativeQuery = true)
+    List<Object[]> countCustomersGroupedByCinema(@Param("from") LocalDateTime from,
+                                                 @Param("to") LocalDateTime to);
+
+    /**
+     * Tổng khách riêng biệt trên TOÀN hệ thống. Không cộng dồn được từ query trên vì
+     * một khách đặt vé ở nhiều rạp sẽ bị đếm lặp; phải COUNT DISTINCT một lần.
+     */
+    @Query(value = "SELECT COUNT(DISTINCT b.user_id) FROM booking b " +
+            "JOIN ticket t ON t.booking_id = b.id " +
+            "JOIN show_time st ON st.id = t.showtime_id " +
+            "JOIN cinema_room r ON r.id = st.room_id " +
+            "WHERE b.is_deleted = 0 AND b.status NOT IN ('PENDING', 'CANCELED') " +
+            "AND b.booking_date BETWEEN :from AND :to", nativeQuery = true)
+    Long countDistinctCustomersAllCinemas(@Param("from") LocalDateTime from,
+                                          @Param("to") LocalDateTime to);
+
+    /**
+     * Danh sách khách của một rạp kèm số booking và tổng chi tiêu tại chính rạp đó.
+     * Trả về [userId, fullName, email, phoneNumber, bookingCount, totalSpent].
+     */
+    // Gom booking về DISTINCT trong subquery trước rồi mới SUM: nếu SUM thẳng trên
+    // kết quả JOIN ticket thì final_amount bị cộng lặp theo số vé của booking.
+    @Query(value = "SELECT u.user_id, u.last_name + ' ' + u.first_name, u.email, u.phone_number, " +
+            "COUNT(x.id), COALESCE(SUM(x.final_amount), 0) " +
+            "FROM users u " +
+            "JOIN (SELECT DISTINCT b.id, b.user_id, b.final_amount " +
+            "      FROM booking b " +
+            "      JOIN ticket t ON t.booking_id = b.id " +
+            "      JOIN show_time st ON st.id = t.showtime_id " +
+            "      JOIN cinema_room r ON r.id = st.room_id " +
+            "      WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "        AND b.status NOT IN ('PENDING', 'CANCELED') " +
+            "        AND b.booking_date BETWEEN :from AND :to) x ON x.user_id = u.user_id " +
+            "GROUP BY u.user_id, u.last_name, u.first_name, u.email, u.phone_number " +
+            "ORDER BY COUNT(x.id) DESC", nativeQuery = true)
+    List<Object[]> findCustomersOfCinema(@Param("cinemaId") Integer cinemaId,
+                                         @Param("from") LocalDateTime from,
+                                         @Param("to") LocalDateTime to);
 
     @Query(value = "SELECT MONTH(b.booking_date) AS mon, COALESCE(SUM(b.final_amount), 0) AS rev " +
             "FROM booking b JOIN ticket t ON t.booking_id = b.id " +
@@ -260,4 +381,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Object[]> getTopMoviesByCinema(@Param("cinemaId") Integer cinemaId,
                                         @Param("from") LocalDateTime from,
                                         @Param("to") LocalDateTime to);
+
+    List<Booking> findByBookingDateBetweenAndStatusAndIsDeletedFalse(
+            LocalDateTime from, LocalDateTime to, String status);
+
+    List<Booking> findByUserIdAndIsDeletedFalse(Long userId);
+
+    List<Booking> findByBookingDateBetweenAndIsDeletedFalse(LocalDateTime from, LocalDateTime to);
+
+    List<Booking> findByIsDeletedFalse();
+
+    @Query("SELECT COUNT(b) > 0 FROM Booking b JOIN b.tickets t WHERE t.showtime.movie.id = :movieId AND b.status NOT IN ('PENDING', 'CANCELED') AND b.isDeleted = false")
+    boolean hasConfirmedBookingsByMovie(@Param("movieId") Integer movieId);
 }
