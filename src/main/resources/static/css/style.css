@@ -590,6 +590,23 @@ input, textarea, select {
   );
 }
 
+/* Nút Đặt Vé phủ toàn card, chỉ hiện khi hover (đồng bộ với trang Phim) */
+.movie-card__book-btn {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.40);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  text-decoration: none;
+  z-index: 3;
+}
+.movie-card:hover .movie-card__book-btn {
+  opacity: 1;
+}
+
 /* Rating badge — top right */
 .movie-card__rating {
   position: absolute;
@@ -1520,4 +1537,24 @@ body{
   display:flex;
   justify-content:space-between;
   margin-top:20px;
+}
+/* ============================================================
+   VALIDATION - thông báo lỗi do form-validate.js sinh ra.
+   Dùng chung cho form đăng ký (customer) và các modal khu admin.
+   ============================================================ */
+.field-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #e5484d;
+}
+
+.is-invalid {
+  border-color: #e5484d !important;
+}
+
+.is-invalid:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(229, 72, 77, .18);
 }

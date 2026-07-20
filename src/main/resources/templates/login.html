@@ -47,6 +47,11 @@
                 <p th:text="${error}"></p>
             </div>
 
+            <!-- Thông báo thành công (đăng ký / đặt lại mật khẩu) -->
+            <div class="alert alert-success py-2" th:if="${success}">
+                <p th:text="${success}"></p>
+            </div>
+
             <form class="auth-form" th:action="@{/login-submit}" method="post" th:object="${user}">
                 <!-- Email hoặc Số điện thoại -->
                 <div class="form-group">
@@ -73,14 +78,10 @@
                     </div>
                 </div>
 
-                <!-- Ghi nhớ đăng nhập + Quên mật khẩu -->
-<!--                <div class="auth-extras">-->
-<!--                    <label class="form-check">-->
-<!--                        <input type="checkbox" class="form-check-input" name="remember-me">-->
-<!--                        <span class="form-check-label">Ghi nhớ đăng nhập</span>-->
-<!--                    </label>-->
-<!--                    <a th:href="@{/quen-mat-khau}" href="#" class="forgot-link">Quên mật khẩu?</a>-->
-<!--                </div>-->
+                <!-- Quên mật khẩu -->
+                <div class="auth-extras">
+                    <a th:href="@{/forgot-password}" class="forgot-link">Quên mật khẩu?</a>
+                </div>
 
                 <!-- Nút submit -->
                 <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">Sign In</button>
@@ -100,48 +101,63 @@
         <div id="registerForm" class="d-none">
             <h2 class="auth-title">Tạo tài khoản CineMax mới</h2>
 
-            <form class="auth-form" th:action="@{/dang-ky}" method="post" th:object="${registerForm}">
-                <!-- Họ tên -->
-                <div class="form-group">
-                    <label class="form-label" for="fullName">Họ và tên</label>
-                    <input type="text" id="fullName" name="fullName" class="form-control"
-                           placeholder="Nhập họ và tên" required>
+            <!-- novalidate + bỏ required/type=email: form-validate.js báo lỗi inline chi tiết hơn
+                 (vd tên có chứa số) thay vì tooltip mặc định của trình duyệt. Server vẫn validate lại. -->
+            <form class="auth-form" id="registerFormEl" novalidate th:action="@{/register}" method="post"
+                  th:object="${registerForm}" onsubmit="return validateRegisterForm(this);">
+                <!-- Họ + Tên -->
+                <div class="row g-2">
+                    <div class="col-6 form-group">
+                        <label class="form-label" for="lastName">Họ</label>
+                        <input type="text" id="lastName" th:field="*{lastName}" class="form-control"
+                               placeholder="VD: Nguyễn Văn">
+                        <small class="text-danger" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></small>
+                    </div>
+                    <div class="col-6 form-group">
+                        <label class="form-label" for="firstName">Tên</label>
+                        <input type="text" id="firstName" th:field="*{firstName}" class="form-control"
+                               placeholder="VD: An">
+                        <small class="text-danger" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></small>
+                    </div>
                 </div>
 
-                <!-- Email hoặc SĐT -->
+                <!-- Email -->
                 <div class="form-group">
-                    <label class="form-label" for="registerUsername">Email hoặc Số điện thoại</label>
-                    <input type="text" id="registerUsername" name="username" class="form-control"
-                           placeholder="Nhập email hoặc số điện thoại" required>
+                    <label class="form-label" for="registerEmail">Email</label>
+                    <input type="text" id="registerEmail" th:field="*{email}" class="form-control"
+                           placeholder="Nhập email">
+                    <small class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+                </div>
+
+                <!-- Số điện thoại (tuỳ chọn) -->
+                <div class="form-group">
+                    <label class="form-label" for="registerPhone">Số điện thoại (tuỳ chọn)</label>
+                    <input type="text" id="registerPhone" th:field="*{phoneNumber}" class="form-control"
+                           placeholder="VD: 0912345678">
+                    <small class="text-danger" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></small>
                 </div>
 
                 <!-- Mật khẩu -->
                 <div class="form-group">
                     <label class="form-label" for="registerPassword">Mật khẩu</label>
                     <div class="input-wrapper">
-                        <input type="password" id="registerPassword" name="password" class="form-control"
-                               placeholder="Nhập mật khẩu" required>
+                        <input type="password" id="registerPassword" th:field="*{password}" class="form-control"
+                               placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)">
                         <i class="bi bi-eye input-icon" onclick="togglePassword('registerPassword', this)"></i>
                     </div>
+                    <small class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
                 </div>
 
                 <!-- Xác nhận mật khẩu -->
                 <div class="form-group">
                     <label class="form-label" for="confirmPassword">Xác nhận mật khẩu</label>
                     <div class="input-wrapper">
-                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
-                               placeholder="Nhập lại mật khẩu" required>
+                        <input type="password" id="confirmPassword" th:field="*{confirmPassword}" class="form-control"
+                               placeholder="Nhập lại mật khẩu">
                         <i class="bi bi-eye input-icon" onclick="togglePassword('confirmPassword', this)"></i>
                     </div>
+                    <small class="text-danger" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></small>
                 </div>
-
-                <!-- Đồng ý điều khoản -->
-                <label class="form-check">
-                    <input type="checkbox" class="form-check-input" name="agreeTerms" required>
-                    <span class="form-check-label">
-                        Tôi đồng ý với <a th:href="@{/dieu-khoan}" href="#" class="text-accent">Điều khoản sử dụng</a>
-                    </span>
-                </label>
 
                 <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">Đăng ký</button>
             </form>
@@ -166,7 +182,22 @@
      JS: Bootstrap bundle (nếu cần dropdown/modal) + xử lý tab & ẩn hiện mật khẩu
      ============================================================ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/form-validate.js}"></script>
 <script>
+    function validateRegisterForm(form) {
+        return validateForm(form, {
+            lastName: [required('Vui lòng nhập họ'), personName('Họ chỉ được chứa chữ, không chứa số hay ký tự đặc biệt'), maxLength(50, 'Họ tối đa 50 ký tự')],
+            firstName: [required('Vui lòng nhập tên'), personName('Tên chỉ được chứa chữ, không chứa số hay ký tự đặc biệt'), maxLength(50, 'Tên tối đa 50 ký tự')],
+            email: [required('Vui lòng nhập email'), email(), maxLength(150, 'Email tối đa 150 ký tự')],
+            phoneNumber: [phone()],
+            password: [required('Vui lòng nhập mật khẩu'), minLength(6, 'Mật khẩu từ 6 đến 50 ký tự'), maxLength(50, 'Mật khẩu từ 6 đến 50 ký tự')],
+            confirmPassword: [required('Vui lòng nhập lại mật khẩu'), matches('password', 'Mật khẩu nhập lại không khớp')]
+        });
+    }
+
+    bindClearOnInput(document.getElementById('registerFormEl'));
+</script>
+<script th:inline="javascript">
     // Chuyển đổi giữa form Đăng nhập / Đăng ký
     function switchTab(tab) {
         const tabLogin = document.getElementById('tabLogin');
@@ -186,6 +217,13 @@
             loginForm.classList.add('d-none');
         }
     }
+
+    // Mở sẵn tab Đăng ký khi form đăng ký bị lỗi validation
+    /*<![CDATA[*/
+    if (/*[[${showRegister != null && showRegister}]]*/ false) {
+        switchTab('register');
+    }
+    /*]]>*/
 
     // Ẩn / hiện mật khẩu khi click icon con mắt
     function togglePassword(inputId, iconEl) {

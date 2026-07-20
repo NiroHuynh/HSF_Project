@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('Quản lý tài khoản')}"></head>
+<body class="admin-body">
+
+<aside th:replace="~{admin/fragments :: sidebar('accounts')}"></aside>
+<header th:replace="~{admin/fragments :: mobile}"></header>
+
+<main class="admin-main">
+    <div th:replace="~{admin/fragments :: flash}"></div>
+
+    <div class="page-head">
+        <div>
+            <p>HỆ THỐNG</p>
+            <h1>Quản lý tài khoản</h1>
+            <span>Tài khoản quản trị và quản lý rạp, phân quyền truy cập hệ thống.</span>
+        </div>
+        <button class="primary" onclick="openAddAccountModal()">＋ Thêm tài khoản</button>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-label">Tổng tài khoản <span class="stat-icon"><i class="bi bi-people"></i></span></div>
+            <div class="stat-value" th:text="${totalCount}">0</div>
+            <div class="stat-note">Admin và Manager</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Đang hoạt động <span class="stat-icon"><i class="bi bi-check-circle"></i></span></div>
+            <div class="stat-value" th:text="${activeCount}">0</div>
+            <div class="stat-note">Đăng nhập được vào hệ thống</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Bị khóa <span class="stat-icon"><i class="bi bi-lock"></i></span></div>
+            <div class="stat-value" th:text="${lockedCount}">0</div>
+            <div class="stat-note">Tạm ngưng truy cập</div>
+        </div>
+    </div>
+
+    <form class="tabs" method="get" th:action="@{/admin/accounts}">
+        <input type="hidden" name="keyword" th:value="${keyword}">
+        <button name="role" value="ALL" type="submit"
+                th:classappend="${selectedRole == 'ALL' || selectedRole == null} ? 'active'">Tất cả</button>
+        <button name="role" value="ADMIN" type="submit"
+                th:classappend="${selectedRole == 'ADMIN'} ? 'active'">Admin</button>
+        <button name="role" value="MANAGER" type="submit"
+                th:classappend="${selectedRole == 'MANAGER'} ? 'active'">Manager</button>
+    </form>
+
+    <div class="section-head">
+        <div><h2>Danh sách tài khoản</h2><span>Tìm theo họ tên hoặc email</span></div>
+        <form class="date-filter" method="get" th:action="@{/admin/accounts}">
+            <input type="hidden" name="role" th:value="${selectedRole}">
+            <label>Từ khóa<input type="text" name="keyword" th:value="${keyword}" placeholder="Tên hoặc email..."></label>
+            <button class="primary" type="submit">Tìm</button>
+        </form>
+    </div>
+
+    <div class="card table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>STT</th><th>HỌ TÊN &amp; THÔNG TIN</th><th>VAI TRÒ</th>
+                <th>RẠP PHỤ TRÁCH</th><th>NGÀY TẠO</th><th>TRẠNG THÁI</th><th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="account,iter:${accounts}">
+                <td th:text="${#numbers.formatInteger(iter.count, 2)}">01</td>
+                <td>
+                    <strong th:text="${account.fullName}">Nguyễn Văn A</strong>
+                    <div class="muted" th:text="${account.email}">a@cinemax.vn</div>
+                </td>
+                <td><span th:class="${account.role == 'ADMIN'} ? 'badge' : 'badge purple'"
+                          th:text="${account.role}">ADMIN</span></td>
+                <td class="muted" th:text="${account.cinemaName != null} ? ${account.cinemaName} : '—'">—</td>
+                <td class="muted" th:text="${account.createdDate}">18/07/2026</td>
+                <td>
+                    <span th:class="${account.status == 'ACTIVE'} ? 'status on' : 'status off'"
+                          th:text="${account.status == 'ACTIVE'} ? 'Hoạt động' : 'Đã khóa'">Hoạt động</span>
+                </td>
+                <td class="actions">
+                    <button th:onclick="'editAccount(' + ${account.id} + ')'" title="Sửa">✎</button>
+                    <button th:attr="data-id=${account.id},data-status=${account.status}"
+                            onclick="toggleAccountStatus(this)"
+                            th:title="${account.status == 'ACTIVE'} ? 'Khóa tài khoản' : 'Mở khóa'"
+                            th:text="${account.status == 'ACTIVE'} ? '🔒' : '🔓'">🔒</button>
+                    <button class="danger" th:onclick="'deleteAccount(' + ${account.id} + ')'" title="Xóa">⌫</button>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(accounts)}"><td colspan="7" class="empty">Chưa có tài khoản nào</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ---------------------------- CÁC MODAL ---------------------------- -->
+    <div class="modal" id="addAccountModal">
+        <!-- novalidate + bỏ required/type=email: để form-validate.js báo lỗi inline
+             thay vì tooltip mặc định của trình duyệt (tooltip chạy trước cả sự kiện submit). -->
+        <form class="modal-box" id="addAccountForm" novalidate onsubmit="event.preventDefault(); submitAddAccount();">
+            <button type="button" class="close" onclick="closeAddAccountModal()">×</button>
+            <h2>Thêm tài khoản</h2>
+            <div class="grid2">
+                <label>Họ<input name="lastName" placeholder="Nguyễn"></label>
+                <label>Tên<input name="firstName" placeholder="Văn A"></label>
+            </div>
+            <label>Email<input type="text" name="email" placeholder="quanly@cinemax.vn"></label>
+            <div class="grid2">
+                <label>Mật khẩu<input type="password" name="password"></label>
+                <label>Số điện thoại<input name="phoneNumber" placeholder="090xxxxxxx"></label>
+            </div>
+            <div class="grid2">
+                <label>Vai trò
+                    <select name="roleId" onchange="toggleCinemaField('add')">
+                        <option value="1">Admin</option>
+                        <option value="2">Manager</option>
+                    </select>
+                </label>
+                <label id="addCinemaField" style="display:none">Rạp phụ trách
+                    <select name="cinemaId">
+                        <option value="">-- Chọn rạp --</option>
+                        <option th:each="c:${cinemas}" th:value="${c.id}" th:text="${c.name}"></option>
+                    </select>
+                </label>
+            </div>
+            <p class="field-hint">Manager chỉ quản lý được dữ liệu của rạp mình phụ trách nên bắt buộc phải chọn rạp.</p>
+            <div class="modal-actions">
+                <button type="button" onclick="closeAddAccountModal()">Hủy</button>
+                <button class="primary">Thêm tài khoản</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal" id="editAccountModal">
+        <form class="modal-box" id="editAccountForm" novalidate onsubmit="event.preventDefault(); submitEditAccount();">
+            <button type="button" class="close" onclick="closeEditAccountModal()">×</button>
+            <h2>Chỉnh sửa tài khoản</h2>
+            <div class="grid2">
+                <label>Họ<input name="lastName"></label>
+                <label>Tên<input name="firstName"></label>
+            </div>
+            <label>Email<input type="text" name="email"></label>
+            <label>Số điện thoại<input name="phoneNumber" placeholder="090xxxxxxx"></label>
+            <div class="grid2">
+                <label>Vai trò
+                    <select name="roleId" onchange="toggleCinemaField('edit')">
+                        <option value="1">Admin</option>
+                        <option value="2">Manager</option>
+                    </select>
+                </label>
+                <label id="editCinemaField" style="display:none">Rạp phụ trách
+                    <select name="cinemaId">
+                        <option value="">-- Chọn rạp --</option>
+                        <option th:each="c:${cinemas}" th:value="${c.id}" th:text="${c.name}"></option>
+                    </select>
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button type="button" onclick="closeEditAccountModal()">Hủy</button>
+                <button class="primary">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal" id="deleteConfirmModal">
+        <div class="modal-box">
+            <button type="button" class="close" onclick="closeDeleteModal()">×</button>
+            <h2>Xóa tài khoản</h2>
+            <p class="field-hint" id="deleteConfirmText">Tài khoản sẽ bị ẩn khỏi hệ thống. Bạn có chắc chắn?</p>
+            <div class="modal-actions">
+                <button type="button" onclick="closeDeleteModal()">Hủy</button>
+                <button type="button" class="primary" onclick="confirmDelete()">Xóa tài khoản</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/form-validate.js}"></script>
+    <script th:src="@{/js/adminAction.js}"></script>
+</main>
+</body>
+</html>
