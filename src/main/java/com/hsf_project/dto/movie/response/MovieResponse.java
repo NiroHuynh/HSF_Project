@@ -1,7 +1,7 @@
 package com.hsf_project.dto.movie.response;
 
-import com.hsf_project.entity.AgeRating;
-import com.hsf_project.entity.MovieStatus;
+import com.hsf_project.entity.enums.AgeRating;
+import com.hsf_project.entity.enums.MovieStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

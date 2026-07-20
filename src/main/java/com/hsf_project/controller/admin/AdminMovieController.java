@@ -6,7 +6,7 @@ import com.hsf_project.dto.movie.request.CreateMovieRequest;
 import com.hsf_project.dto.movie.request.UpdateMovieRequest;
 import com.hsf_project.dto.movie.response.MovieResponse;
 import com.hsf_project.entity.Movie;
-import com.hsf_project.entity.MovieStatus;
+import com.hsf_project.entity.enums.MovieStatus;
 import com.hsf_project.entity.User;
 import com.hsf_project.mapper.MovieAdminMapper;
 import com.hsf_project.service.MovieService;
