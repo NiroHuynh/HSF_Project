@@ -178,6 +178,7 @@
         </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script th:src="@{/js/admin-toast.js}"></script>
 <script th:inline="javascript">
     const GENRES = /*[[${genres}]]*/ [];
     function editMovie(id) {
@@ -187,9 +188,17 @@
         if (!confirm('Bạn có chắc chắn muốn xóa phim này không?')) return;
         fetch('/admin/movies/' + id, { method: 'DELETE' })
             .then(r => r.json())
-            .then(data => { if (data.code === 200) location.reload(); else alert('Xóa thất bại!'); })
-            .catch(() => alert('Có lỗi xảy ra!'));
+            .then(data => { if (data.code === 200) { showAppToast('Xóa phim thành công!'); setTimeout(() => location.reload(), 800); } else showAppToast('Xóa thất bại!', 'error'); })
+            .catch(() => showAppToast('Có lỗi xảy ra!', 'error'));
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const toastMsg = sessionStorage.getItem('movieFormToast');
+        if (toastMsg) {
+            sessionStorage.removeItem('movieFormToast');
+            showAppToast(toastMsg);
+        }
+    });
 </script>
 <script th:src="@{/js/admin-dashboard.js}"></script>
 </body>
