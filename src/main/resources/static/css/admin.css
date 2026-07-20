@@ -3328,3 +3328,90 @@ input:checked + .slider-round:before { transform: translateX(18px); }
   text-decoration: none;
   font-size: 20px;
 }
+
+/* Movie/Customer dashboards dùng chung khung chuẩn của toàn bộ admin. */
+.admin-body .legacy-dashboard {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.legacy-dashboard .page-content {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.legacy-dashboard .page-header {
+  margin: 0 0 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.legacy-dashboard .dashboard-title {
+  color: #fff;
+  font-size: 28px;
+  letter-spacing: -.7px;
+}
+
+.legacy-dashboard .dashboard-desc,
+.legacy-dashboard .breadcrumb,
+.legacy-dashboard .breadcrumb-item {
+  color: #a0a0b0;
+}
+
+.legacy-dashboard .breadcrumb-item.active,
+.legacy-dashboard .stat-value.red,
+.legacy-dashboard .highlight-text {
+  color: #e31b23;
+}
+
+.legacy-dashboard .stat-card,
+.legacy-dashboard .chart-card,
+.legacy-dashboard .table-card {
+  background: #111114;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: none;
+}
+
+.legacy-dashboard .stat-card:hover,
+.legacy-dashboard .chart-card:hover,
+.legacy-dashboard .table-card:hover {
+  border-color: rgba(227,27,35,.28);
+}
+
+.legacy-dashboard .data-table thead th {
+  background: #18181d;
+  color: #a0a0b0;
+  border-color: rgba(255,255,255,.08);
+}
+
+.legacy-dashboard .data-table tbody td {
+  color: #a0a0b0;
+  border-color: rgba(255,255,255,.08);
+}
+
+.legacy-dashboard .data-table tbody tr:hover {
+  background: #18181d;
+}
+
+.legacy-dashboard .date-filter,
+.legacy-dashboard .table-search-box,
+.legacy-dashboard .table-sort-select {
+  background: #111114;
+  border-color: rgba(255,255,255,.12);
+}
+
+.legacy-dashboard input,
+.legacy-dashboard select {
+  color-scheme: dark;
+}
+
+@media (max-width: 750px) {
+  .admin-body .legacy-dashboard {
+    margin-left: 0;
+    padding: 24px 15px;
+  }
+}
