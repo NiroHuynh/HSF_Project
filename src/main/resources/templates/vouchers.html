@@ -45,6 +45,15 @@
             font-weight: 700;
             margin-bottom: var(--space-lg);
         }
+        .copy-toast {
+            position: fixed; right: 24px; bottom: 24px; z-index: 10000;
+            display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+            color: #fff; background: #18181D; border: 1px solid rgba(45, 122, 79, .7);
+            border-radius: 10px; box-shadow: 0 12px 36px rgba(0,0,0,.45);
+            opacity: 0; transform: translateY(12px); pointer-events: none;
+            transition: opacity .2s ease, transform .2s ease;
+        }
+        .copy-toast.is-visible { opacity: 1; transform: translateY(0); }
 
     </style>
 </head>
@@ -86,7 +95,7 @@
                 <!-- Thymeleaf không cho nối chuỗi biến trong th:onclick (chống XSS)
                      → đưa mã vào data-code rồi đọc lại trong handler -->
                 <button th:data-code="${v.code}"
-                        onclick="navigator.clipboard.writeText(this.dataset.code); alert('Đã sao chép mã ưu đãi: ' + this.dataset.code);"
+                        onclick="copyVoucherCode(this)"
                         class="btn-copy">
                     Sao chép mã
                 </button>
@@ -102,7 +111,34 @@
 
 <!-- FOOTER dùng chung toàn site -->
 <div th:replace="~{fragments/footer :: footer}"></div>
+<div id="copyToast" class="copy-toast" role="status" aria-live="polite">
+    <span class="material-symbols-outlined" style="color:#4CAF78">check_circle</span>
+    <span id="copyToastText">Đã sao chép mã ưu đãi</span>
+</div>
 <script th:replace="~{fragments/header :: header-script}"></script>
+<script>
+    let copyToastTimer;
+    async function copyVoucherCode(button) {
+        const code = button.dataset.code;
+        try {
+            await navigator.clipboard.writeText(code);
+        } catch (_) {
+            const input = document.createElement('textarea');
+            input.value = code;
+            input.style.position = 'fixed';
+            input.style.opacity = '0';
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            input.remove();
+        }
+        const toast = document.getElementById('copyToast');
+        document.getElementById('copyToastText').textContent = 'Đã sao chép mã ưu đãi: ' + code;
+        toast.classList.add('is-visible');
+        clearTimeout(copyToastTimer);
+        copyToastTimer = setTimeout(() => toast.classList.remove('is-visible'), 2600);
+    }
+</script>
 
 </body>
 </html>
