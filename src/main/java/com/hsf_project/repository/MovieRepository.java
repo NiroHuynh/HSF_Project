@@ -33,6 +33,8 @@ public interface MovieRepository extends JpaRepository<Movie, Integer> {
     Page<Movie> findByTitleContainingIgnoreCaseAndStatusAndIsDeletedFalse(
             String title, MovieStatus status, Pageable pageable);
 
+    Page<Movie> findDistinctByGenres_IdInAndStatusAndIsDeletedFalse(List<Integer> genreIds, MovieStatus status, Pageable pageable);
+
     @Query("SELECT DISTINCT m FROM Movie m JOIN m.genres g WHERE g.id IN :genreIds AND m.status = :status AND (m.isDeleted IS NULL OR m.isDeleted = false)")
     Page<Movie> findByGenreIdsAndStatus(@Param("genreIds") List<Integer> genreIds, @Param("status") MovieStatus status, Pageable pageable);
 
