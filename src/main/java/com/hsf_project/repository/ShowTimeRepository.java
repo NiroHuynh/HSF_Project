@@ -11,6 +11,14 @@ import java.util.Optional;
 
 public interface ShowTimeRepository extends JpaRepository<ShowTime, Long> {
 
+    List<ShowTime> findByMovieIdAndIsDeletedFalse(Integer movieId);
+
+    @Query("SELECT COUNT(st) FROM ShowTime st WHERE st.movie.id = :movieId AND (st.isDeleted IS NULL OR st.isDeleted = false) AND st.startTime > :now")
+    long countUpcomingByMovie(@Param("movieId") Integer movieId, @Param("now") LocalDateTime now);
+
+    @Query("SELECT DISTINCT b.user.id FROM Booking b JOIN b.tickets t WHERE t.showtime.movie.id = :movieId AND b.isDeleted = false AND t.isDeleted = false")
+    List<Long> findDistinctUserIdsByMovieId(@Param("movieId") Integer movieId);
+
     @Query("SELECT st FROM ShowTime st " +
             "JOIN FETCH st.room r JOIN FETCH r.cinema c JOIN FETCH st.movie m " +
             "WHERE st.id = :id")
@@ -35,6 +43,30 @@ public interface ShowTimeRepository extends JpaRepository<ShowTime, Long> {
     Long countByCinemaAndDateRange(@Param("cinemaId") Integer cinemaId,
                                    @Param("from") LocalDateTime from,
                                    @Param("to") LocalDateTime to);
+
+    /** Suất chiếu chưa diễn ra trong 1 phòng — dùng để chặn xóa phòng còn lịch sắp tới. */
+    @Query("SELECT COUNT(st) FROM ShowTime st " +
+            "WHERE st.room.id = :roomId " +
+            "AND (st.isDeleted IS NULL OR st.isDeleted = false) " +
+            "AND st.startTime >= :from")
+    long countUpcomingByRoom(@Param("roomId") Integer roomId, @Param("from") LocalDateTime from);
+
+    /** Suất chiếu chưa diễn ra trong toàn bộ phòng của 1 rạp. */
+    @Query("SELECT COUNT(st) FROM ShowTime st " +
+            "WHERE st.room.cinema.id = :cinemaId " +
+            "AND (st.isDeleted IS NULL OR st.isDeleted = false) " +
+            "AND (st.room.isDeleted IS NULL OR st.room.isDeleted = false) " +
+            "AND st.startTime >= :from")
+    long countUpcomingByCinema(@Param("cinemaId") Integer cinemaId, @Param("from") LocalDateTime from);
+
+    /** Suất chiếu chưa diễn ra trong toàn bộ rạp của 1 thành phố. */
+    @Query("SELECT COUNT(st) FROM ShowTime st " +
+            "WHERE st.room.cinema.city.id = :cityId " +
+            "AND (st.isDeleted IS NULL OR st.isDeleted = false) " +
+            "AND (st.room.isDeleted IS NULL OR st.room.isDeleted = false) " +
+            "AND (st.room.cinema.isDeleted IS NULL OR st.room.cinema.isDeleted = false) " +
+            "AND st.startTime >= :from")
+    long countUpcomingByCity(@Param("cityId") Integer cityId, @Param("from") LocalDateTime from);
 
     /** Dùng cho tạo mới — check trùng lịch trong cùng phòng */
     @Query("SELECT COUNT(st) FROM ShowTime st " +

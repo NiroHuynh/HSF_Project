@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê Khách hàng - CineMax Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;900&family=Be+Vietnam+Pro:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-system.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-panel.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+        <aside th:replace="~{admin/fragments :: sidebar('customers')}"></aside>
+        <header th:replace="~{admin/fragments :: mobile}"></header>
+        <main class="admin-content legacy-dashboard">
+            <div class="page-content">
+
+                <header class="page-header">
+                    <div class="dashboard-header">
+                        <div class="breadcrumb">
+                            <span class="breadcrumb-item">QUẢN TRỊ</span>
+                            <span class="breadcrumb-sep">&gt;</span>
+                            <span class="breadcrumb-item active">KHÁCH HÀNG</span>
+                        </div>
+                        <h1 class="dashboard-title">Thống kê Khách hàng</h1>
+                        <p class="dashboard-desc">Phân tích chuyên sâu về dữ liệu người dùng và hoạt động chi nhánh.</p>
+                    </div>
+
+                    <div class="date-filter">
+                        <div class="date-filter-group">
+                            <div class="date-field">
+                                <span class="date-label">Từ ngày</span>
+                                <div class="date-input-wrapper">
+                                    <input type="date" id="fromDate" class="date-input">
+                                    <i class="fa-regular fa-calendar"></i>
+                                </div>
+                            </div>
+                            <div class="date-field">
+                                <span class="date-label">Đến ngày</span>
+                                <div class="date-input-wrapper">
+                                    <input type="date" id="toDate" class="date-input">
+                                    <i class="fa-regular fa-calendar"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="filterBtn" class="btn btn-primary">Lọc</button>
+                    </div>
+                </header>
+
+                <div class="stats-grid-4">
+                    <div class="stat-card">
+                        <div class="stat-label">TỔNG SỐ KHÁCH HÀNG HIỆN CÓ</div>
+                        <div class="stat-value red" id="totalCustomers" th:text="${#numbers.formatInteger(totalCustomers, 1, 'DEFAULT')}">0</div>
+                        <i class="fa-solid fa-users card-bg-icon"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">KHÁCH MỚI (THÁNG)</div>
+                        <div class="stat-value" id="newCustomers" th:text="${#numbers.formatInteger(newCustomers, 1, 'DEFAULT')}">0</div>
+                        <i class="fa-solid fa-user-plus card-bg-icon"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">CHI TIÊU TB/NGƯỜI</div>
+                        <div class="stat-value" id="avgSpending" th:text="${avgSpending}">0</div>
+                        <i class="fa-solid fa-wallet card-bg-icon"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">LƯỢT TRUY CẬP/THÁNG</div>
+                        <div class="stat-value" id="monthlyVisits" th:text="${#numbers.formatInteger(monthlyVisits, 1, 'DEFAULT')}">0</div>
+                        <i class="fa-solid fa-arrow-pointer card-bg-icon"></i>
+                    </div>
+                </div>
+
+                <section class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-group">
+                            <div class="chart-square-icon"><i class="fa-solid fa-chart-bar"></i></div>
+                            <div>
+                                <h2 class="chart-title">Tăng trưởng Khách hàng</h2>
+                                <p class="chart-subtitle">Dữ liệu thống kê mẫu theo chu kỳ thời gian</p>
+                            </div>
+                        </div>
+                        <div class="period-tabs">
+                            <button class="period-tab active" data-period="month">Tháng</button>
+                            <button class="period-tab" data-period="quarter">Quý</button>
+                            <button class="period-tab" data-period="year">Năm</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-wrapper">
+                        <canvas id="customerChart"></canvas>
+                    </div>
+                </section>
+
+                <section class="table-card">
+                    <div class="table-header-row">
+                        <h3 class="table-main-title">Khách hàng tích cực</h3>
+                        <div class="table-controls">
+                            <div class="table-search-box">
+                                <i class="fa-solid fa-search"></i>
+                                <input type="text" id="searchInput" placeholder="Tìm kiếm khách hàng...">
+                            </div>
+                            <div class="table-sort-select">
+                                <i class="fa-solid fa-sliders"></i>
+                                <select id="sortSelect">
+                                    <option value="bookingCount" selected>Lượt đặt</option>
+                                    <option value="totalSpending">Chi tiêu</option>
+                                    <option value="joinDate">Ngày tham gia</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>KHÁCH HÀNG</th>
+                                <th>LƯỢT ĐẶT</th>
+                                <th>PHIM GẦN NHẤT</th>
+                                <th>TRẠNG THÁI</th>
+                                <th class="text-right">THAO TÁC</th>
+                            </tr>
+                            </thead>
+                            <tbody id="customerTableBody">
+                            <tr th:each="customer : ${customers}">
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="avatar-letter" th:text="${customer.avatar}">?</div>
+                                        <div>
+                                            <div class="user-name" th:text="${customer.fullName}">Tên</div>
+                                            <div class="user-email" th:text="${customer.email}">email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="highlight-text" th:text="${customer.bookingCount + ' vé'}">0 vé</span></td>
+                                <td class="movie-name-td" th:text="${customer.latestMovie != null ? customer.latestMovie : '---'}">---</td>
+                                <td>
+                                    <span class="status-pill" th:classappend="${customer.status == 'ACTIVE' ? 'active' : 'locked'}" th:text="${customer.status == 'ACTIVE' ? 'Hoạt động' : 'Bị khóa'}">Hoạt động</span>
+                                </td>
+                                <td class="text-right">
+                                    <a th:href="@{/admin/customers/{id}/detail(id=${customer.customerId})}" class="action-btn" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
+                                    <button class="action-btn" th:onclick="'lockAccount(' + ${customer.customerId} + ')'" th:title="${customer.status == 'LOCKED' ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}">
+                                        <i th:class="${customer.status == 'LOCKED' ? 'fa-solid fa-unlock' : 'fa-solid fa-lock'}"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(customers)}">
+                                <td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">Không tìm thấy khách hàng</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <span class="footer-count" id="pageInfo">Hiển thị 0 của 0 khách hàng</span>
+                        <div class="pagination-arrows">
+                            <button class="p-btn" id="prevPage"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="p-btn" id="nextPage"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+<script th:src="@{/js/CustomerDashboard.js}"></script>
+<script>
+    function lockAccount(id) {
+        if (!confirm('Bạn có chắc chắn muốn thực hiện thao tác này?')) return;
+        fetch('/admin/customers/' + id + '/toggle-status', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.code === 200) {
+                    location.reload();
+                } else {
+                    alert('Thao tác thất bại!');
+                }
+            })
+            .catch(function () { alert('Có lỗi xảy ra!'); });
+    }
+</script>
+</body>
+</html>

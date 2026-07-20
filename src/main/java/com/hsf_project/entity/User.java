@@ -75,7 +75,10 @@ public class User {
     @Column(name = "lock_booking_until")
     private LocalDateTime lockBookingUntil;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // EAGER (giống role) vì User được cất trong session làm "ttdn": sang request sau
+    // Hibernate session đã đóng, chạm proxy LAZY sẽ ném LazyInitializationException.
+    // Manager luôn có cinema nên mọi trang /manager đều dính lỗi này nếu để LAZY.
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cinema_id")
     private Cinema cinema;  // null nếu là ADMIN hoặc CUSTOMER
 

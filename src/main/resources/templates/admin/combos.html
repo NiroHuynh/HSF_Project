@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('Quản lý combo')}"></head>
+<body class="admin-body">
+
+<aside th:replace="~{admin/fragments :: sidebar(${active})}"></aside>
+<header th:replace="~{admin/fragments :: mobile}"></header>
+
+<main class="admin-main">
+    <div th:replace="~{admin/fragments :: flash}"></div>
+
+    <div class="page-head">
+        <div>
+            <p>DỊCH VỤ ĂN UỐNG</p>
+            <h1>Quản lý Combo</h1>
+            <span>Quản lý sản phẩm, tồn kho và trạng thái bán.</span>
+        </div>
+        <button class="primary" onclick="openModal('comboModal')">＋ Thêm combo</button>
+    </div>
+
+    <div class="metrics compact">
+        <article><span>TỔNG COMBO</span><b th:text="${#lists.size(combos)}">0</b></article>
+        <article><span>ĐANG BÁN</span><b class="green" th:text="${#lists.size(combos.?[status=='ACTIVE'])}">0</b></article>
+        <article><span>SẮP HẾT HÀNG</span><b class="orange" th:text="${#lists.size(combos.?[quantity <= 10])}">0</b></article>
+    </div>
+
+    <div class="card table-wrap">
+        <table>
+            <thead><tr><th>MÃ</th><th>COMBO</th><th>MÔ TẢ</th><th>GIÁ BÁN</th><th>TỒN KHO</th><th>TRẠNG THÁI</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="x:${combos}">
+                <td th:text="'CB'+${x.id}"></td>
+                <td><strong th:text="${x.name}"></strong></td>
+                <td class="muted" th:text="${x.description}"></td>
+                <td class="price" th:text="${#numbers.formatDecimal(x.price,0,'POINT',0,'COMMA')}+' ₫'"></td>
+                <td><b th:text="${x.quantity}"></b></td>
+                <td>
+                    <span class="status" th:classappend="${x.status=='ACTIVE'}?'on':'off'"
+                          th:text="${x.status=='ACTIVE'}?'Đang bán':'Tạm ngưng'"></span>
+                </td>
+                <td class="actions">
+                    <button th:attr="data-id=${x.id},data-name=${x.name},data-description=${x.description},data-price=${x.price},data-quantity=${x.quantity},data-status=${x.status}"
+                            onclick="editCombo(this)" title="Sửa">✎</button>
+                    <form th:action="@{'/admin/combos/'+${x.id}+'/delete'}" method="post"
+                          data-confirm-title="Xóa combo"
+                          th:attr="data-confirm='Combo &quot;'+${x.name}+'&quot; sẽ ngừng bán và bị ẩn khỏi hệ thống. Bạn có chắc chắn?'"
+                          data-confirm-ok="Xóa combo">
+                        <button class="danger" title="Xóa">⌫</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(combos)}"><td class="empty" colspan="7">Chưa có combo</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="comboModal">
+        <!-- novalidate: để form-validate.js báo lỗi inline thay vì tooltip mặc định của trình duyệt -->
+        <form class="modal-box" id="comboForm" novalidate th:action="@{/admin/combos/save}" method="post"
+              onsubmit="return validateComboForm(this);">
+            <button type="button" class="close" onclick="closeModal(this)">×</button>
+            <h2>Thêm combo</h2>
+            <input type="hidden" name="id">
+            <label>Tên combo<input name="name" maxlength="100"></label>
+            <label>Mô tả<textarea name="description" maxlength="255" rows="3"></textarea></label>
+            <div class="grid2">
+                <label>Giá bán<input name="price" type="number" step="1000"></label>
+                <label>Số lượng tồn<input name="quantity" type="number"></label>
+            </div>
+            <label>Trạng thái
+                <select name="status">
+                    <option value="ACTIVE">Đang bán</option>
+                    <option value="INACTIVE">Tạm ngưng</option>
+                </select>
+            </label>
+            <div class="modal-actions">
+                <button type="button" onclick="closeModal(this)">Hủy</button>
+                <button class="primary">Lưu combo</button>
+            </div>
+        </form>
+    </div>
+
+    <div th:replace="~{admin/fragments :: confirmModal}"></div>
+    <script th:src="@{/js/form-validate.js}"></script>
+    <script th:src="@{/js/admin.js}"></script>
+    <script>
+        function validateComboForm(form) {
+            return validateForm(form, {
+                name: [required('Vui lòng nhập tên combo'), maxLength(100, 'Tên combo tối đa 100 ký tự')],
+                description: [maxLength(255, 'Mô tả tối đa 255 ký tự')],
+                // Trần giá khớp cột DECIMAL(10,2) của combo.price; vượt ngưỡng là lỗi 500 lúc lưu.
+                price: [required('Vui lòng nhập giá bán'), min(1000, 'Giá bán tối thiểu 1.000đ'),
+                        max(99999999, 'Giá bán tối đa 99.999.999đ')],
+                quantity: [required('Vui lòng nhập số lượng tồn'), integer(), min(0, 'Số lượng không được âm'),
+                           max(1000000, 'Số lượng tồn tối đa 1.000.000')]
+            });
+        }
+
+        bindClearOnInput(document.getElementById('comboForm'));
+    </script>
+</main>
+</body>
+</html>

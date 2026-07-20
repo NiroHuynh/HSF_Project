@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('Quản lý địa điểm')}"></head>
+<body class="admin-body">
+
+<aside th:replace="~{admin/fragments :: sidebar(${active})}"></aside>
+<header th:replace="~{admin/fragments :: mobile}"></header>
+
+<main class="admin-main">
+    <div th:replace="~{admin/fragments :: flash}"></div>
+
+    <div class="page-head">
+        <div>
+            <p>HỆ THỐNG RẠP</p>
+            <h1>Quản lý địa điểm</h1>
+            <span>Quản lý thành phố, chi nhánh và phòng chiếu trong cùng một nơi.</span>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="active" data-tab="cities">Thành phố <i th:text="${#lists.size(cities)}">0</i></button>
+        <button data-tab="cinemas">Rạp chiếu <i th:text="${#lists.size(cinemas)}">0</i></button>
+        <button data-tab="rooms">Phòng chiếu <i th:text="${#lists.size(rooms)}">0</i></button>
+    </div>
+
+    <!-- ---------------------------- THÀNH PHỐ ---------------------------- -->
+    <section class="tab-pane active" id="cities">
+        <div class="section-head">
+            <div><h2>Danh sách thành phố</h2><span>Các khu vực đang vận hành</span></div>
+            <button class="primary" onclick="openModal('cityModal')">＋ Thêm thành phố</button>
+        </div>
+        <div class="card table-wrap">
+            <table>
+                <thead><tr><th>MÃ</th><th>TÊN THÀNH PHỐ</th><th>SỐ RẠP</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="x:${cities}">
+                    <td th:text="'CT'+${x.id}"></td>
+                    <td><strong th:text="${x.name}"></strong></td>
+                    <td th:text="${cityCinemaCounts.getOrDefault(x.id,0L)}"></td>
+                    <td class="actions">
+                        <button th:attr="data-id=${x.id},data-name=${x.name}" onclick="editCity(this)" title="Sửa">✎</button>
+                        <form th:action="@{'/admin/cities/'+${x.id}+'/delete'}" method="post"
+                              data-confirm-title="Xóa thành phố"
+                              th:attr="data-confirm='Thành phố &quot;'+${x.name}+'&quot; cùng '
+                                     + ${cityCinemaCounts.getOrDefault(x.id,0L)}+' rạp và '
+                                     + ${cityRoomCounts.getOrDefault(x.id,0L)}+' phòng chiếu (kèm sơ đồ ghế, bảng giá) sẽ bị ẩn khỏi hệ thống. Bạn có chắc chắn?'"
+                              data-confirm-ok="Xóa thành phố">
+                            <button class="danger" title="Xóa">⌫</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(cities)}"><td colspan="4" class="empty">Chưa có thành phố</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ---------------------------- RẠP CHIẾU ---------------------------- -->
+    <section class="tab-pane" id="cinemas">
+        <div class="section-head">
+            <div><h2>Danh sách rạp chiếu</h2><span>Các chi nhánh trong hệ thống</span></div>
+            <button class="primary" onclick="openModal('cinemaModal')">＋ Thêm rạp</button>
+        </div>
+        <div class="card table-wrap">
+            <table>
+                <thead><tr><th>MÃ</th><th>TÊN RẠP</th><th>ĐỊA CHỈ</th><th>THÀNH PHỐ</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="x:${cinemas}">
+                    <td th:text="'CN'+${x.id}"></td>
+                    <td><strong th:text="${x.name}"></strong></td>
+                    <td th:text="${x.address}"></td>
+                    <td><span class="badge" th:text="${x.city.name}"></span></td>
+                    <td class="actions">
+                        <button th:attr="data-id=${x.id},data-name=${x.name},data-address=${x.address},data-city=${x.city.id}"
+                                onclick="editCinema(this)" title="Sửa">✎</button>
+                        <form th:action="@{'/admin/cinemas/'+${x.id}+'/delete'}" method="post"
+                              data-confirm-title="Xóa rạp chiếu"
+                              th:attr="data-confirm='Rạp &quot;'+${x.name}+'&quot; cùng '
+                                     + ${cinemaRoomCounts.getOrDefault(x.id,0L)}+' phòng chiếu (kèm sơ đồ ghế, bảng giá) sẽ bị ẩn khỏi hệ thống. Bạn có chắc chắn?'"
+                              data-confirm-ok="Xóa rạp">
+                            <button class="danger" title="Xóa">⌫</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(cinemas)}"><td colspan="5" class="empty">Chưa có rạp chiếu</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ---------------------------- PHÒNG CHIẾU ---------------------------- -->
+    <section class="tab-pane" id="rooms">
+        <div class="section-head">
+            <div><h2>Danh sách phòng chiếu</h2><span>Phòng, bố cục ghế và sức chứa</span></div>
+            <button class="primary" onclick="openModal('roomModal')">＋ Thêm phòng</button>
+        </div>
+        <div class="card table-wrap">
+            <table>
+                <thead><tr><th>MÃ</th><th>PHÒNG</th><th>RẠP</th><th>LOẠI</th><th>BỐ CỤC GHẾ</th><th>SỨC CHỨA</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="x:${rooms}" th:with="layout=${roomLayouts.get(x.id)}">
+                    <td th:text="'RM'+${x.id}"></td>
+                    <td><strong th:text="${x.name}"></strong></td>
+                    <td th:text="${x.cinema.name}"></td>
+                    <td><span class="badge purple" th:text="${x.roomType}"></span></td>
+                    <td class="muted"
+                        th:text="${layout.getOrDefault('STANDARD',0)}+' hàng thường · '
+                               + ${layout.getOrDefault('VIP',0)}+' hàng VIP · '
+                               + ${layout.getOrDefault('SWEETBOX',0)}+' hàng sweetbox'"></td>
+                    <td th:text="${x.totalSeats}+' ghế'"></td>
+                    <td class="actions">
+                        <button th:attr="data-id=${x.id},data-name=${x.name},data-type=${x.roomType},data-cinema=${x.cinema.id},
+                                         data-standard-rows=${layout.getOrDefault('STANDARD',0)},
+                                         data-vip-rows=${layout.getOrDefault('VIP',0)},
+                                         data-sweetbox-rows=${layout.getOrDefault('SWEETBOX',0)}"
+                                onclick="editRoom(this)" title="Sửa">✎</button>
+                        <form th:action="@{'/admin/rooms/'+${x.id}+'/delete'}" method="post"
+                              data-confirm-title="Xóa phòng chiếu"
+                              th:attr="data-confirm='Phòng &quot;'+${x.name}+'&quot; cùng sơ đồ ghế và bảng giá vé sẽ bị ẩn khỏi hệ thống. Bạn có chắc chắn?'"
+                              data-confirm-ok="Xóa phòng">
+                            <button class="danger" title="Xóa">⌫</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(rooms)}"><td colspan="7" class="empty">Chưa có phòng chiếu</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ---------------------------- CÁC MODAL ---------------------------- -->
+    <div class="modal" id="cityModal">
+        <form class="modal-box" th:action="@{/admin/cities/save}" method="post">
+            <button type="button" class="close" onclick="closeModal(this)">×</button>
+            <h2>Thêm thành phố</h2>
+            <input type="hidden" name="id">
+            <label>Tên thành phố<input name="name" required maxlength="100" placeholder="VD: Hồ Chí Minh"></label>
+            <div class="modal-actions">
+                <button type="button" onclick="closeModal(this)">Hủy</button>
+                <button class="primary">Lưu thành phố</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal" id="cinemaModal">
+        <form class="modal-box" th:action="@{/admin/cinemas/save}" method="post">
+            <button type="button" class="close" onclick="closeModal(this)">×</button>
+            <h2>Thêm rạp chiếu</h2>
+            <input type="hidden" name="id">
+            <label>Tên rạp<input name="name" required maxlength="100"></label>
+            <label>Địa chỉ<input name="address" required maxlength="255"></label>
+            <label>Thành phố
+                <select name="cityId" required>
+                    <option th:each="x:${cities}" th:value="${x.id}" th:text="${x.name}"></option>
+                </select>
+            </label>
+            <div class="modal-actions">
+                <button type="button" onclick="closeModal(this)">Hủy</button>
+                <button class="primary">Lưu rạp</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal" id="roomModal">
+        <form class="modal-box" th:action="@{/admin/rooms/save}" method="post">
+            <button type="button" class="close" onclick="closeModal(this)">×</button>
+            <h2>Thêm phòng chiếu</h2>
+            <input type="hidden" name="id">
+            <label>Tên phòng<input name="name" required maxlength="50"></label>
+            <div class="grid2">
+                <label>Loại phòng
+                    <select name="roomType">
+                        <option th:each="x:${roomTypes}" th:value="${x}" th:text="${x}"></option>
+                    </select>
+                </label>
+                <label>Rạp chiếu
+                    <select name="cinemaId" required>
+                        <option th:each="x:${cinemas}" th:value="${x.id}" th:text="${x.name}"></option>
+                    </select>
+                </label>
+            </div>
+
+            <!-- Bố cục ghế: nhập theo HÀNG để tạo được đủ 3 loại ghế, kể cả sweetbox -->
+            <p class="field-group-label">Bố cục ghế (theo hàng, tính từ màn hình xuống)</p>
+            <div class="grid3">
+                <label>Hàng ghế thường<input name="standardRows" type="number" min="0" max="26" required value="4"></label>
+                <label>Hàng ghế VIP<input name="vipRows" type="number" min="0" max="26" required value="4"></label>
+                <label>Hàng sweetbox<input name="sweetboxRows" type="number" min="0" max="26" required value="1"></label>
+            </div>
+            <p class="field-hint">
+                Ghế thường và VIP: 10 ghế/hàng · Sweetbox (ghế đôi): 8 ghế/hàng ·
+                Sức chứa: <b id="seatPreview">88 ghế</b>
+            </p>
+
+            <div class="modal-actions">
+                <button type="button" onclick="closeModal(this)">Hủy</button>
+                <button class="primary">Lưu phòng</button>
+            </div>
+        </form>
+    </div>
+
+    <div th:replace="~{admin/fragments :: confirmModal}"></div>
+    <script th:src="@{/js/admin.js}"></script>
+</main>
+</body>
+</html>
