@@ -99,6 +99,7 @@
         .status-pending { background-color: rgba(245, 197, 24, 0.15); color: #F5C518; }
         .status-confirmed { background-color: var(--color-brand-red-light); color: var(--color-brand-red); }
         .status-completed { background-color: rgba(45, 122, 79, 0.15); color: #2D7A4F; }
+        .status-exported { background-color: rgba(109, 185, 240, 0.15); color: #6DB9F0; }
         .status-cancelled { background-color: rgba(255, 255, 255, 0.05); color: var(--color-text-muted); }
 
         .price-group {
@@ -147,6 +148,13 @@
         .price-row-summary.total-final { font-size: 18px; font-weight: 800; color: var(--color-brand-red); margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.16); }
         .close-bill-btn { background: none; border: none; color: var(--color-text-muted); cursor: pointer; }
         .close-bill-btn:hover { color: #fff; }
+
+        .invoice-wrapper { max-height: 90vh; overflow-y: auto; }
+        .bill-section-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; margin: 16px 0 8px; font-weight: 700; letter-spacing: 0.04em; }
+        .bill-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .bill-table th { text-align: left; font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .bill-table td { font-size: 13px; padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--color-text-primary); }
+        .bill-table td:last-child, .bill-table th:last-child { text-align: right; }
     </style>
 </head>
 <body>
@@ -163,15 +171,30 @@
                        data-total=${#numbers.formatDecimal(b.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ',
                        data-discount=${b.discountAmount != null ? #numbers.formatDecimal(b.discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'},
                        data-final=${#numbers.formatDecimal(b.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ',
-                       data-status=${b.status}">
+                       data-status=${b.status},
+                       data-status-label=${b.status == 'PENDING' ? 'Chờ thanh toán' : (b.status == 'CONFIRMED' ? 'Đã thanh toán' : (b.status == 'EXPORTED' ? 'Hoàn thành' : 'Đã hủy'))}">
 
             <div class="hidden-data" style="display: none;">
                 <span class="h-title" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.movie.title} : 'N/A'"></span>
                 <span class="h-poster" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.movie.posterUrl} : ''"></span>
-                <span class="h-room" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.room.name} : 'N/A'"></span>
-                <span class="h-time" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${#temporals.format(b.tickets[0].showtime.startTime, 'HH:mm')} : '---'"></span>
+                <span class="h-room" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? (${b.tickets[0].showtime.room.name} + ' (' + ${b.tickets[0].showtime.room.roomType} + ')') : 'N/A'"></span>
+                <span class="h-time" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${#temporals.format(b.tickets[0].showtime.startTime, 'HH:mm - dd/MM/yyyy')} : '---'"></span>
+                <span class="h-cinema" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.room.cinema.name} : 'N/A'"></span>
+                <span class="h-address" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${b.tickets[0].showtime.room.cinema.address} : ''"></span>
                 <div class="h-seats-box">
                     <span th:each="t : ${b.tickets}" th:text="${t.seat.rowLabel + t.seat.seatNumber} + ' '"></span>
+                </div>
+                <div class="h-seat-rows">
+                    <div th:each="t : ${b.tickets}" class="h-seat-row"
+                         th:attr="data-seat=${t.seat.rowLabel + t.seat.seatNumber},
+                                   data-type=${t.ticketPrice.seatType},
+                                   data-price=${#numbers.formatDecimal(t.ticketPrice.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
+                </div>
+                <div class="h-combo-rows">
+                    <div th:each="bc : ${b.bookingCombos}" class="h-combo-row"
+                         th:attr="data-name=${bc.combo.name},
+                                   data-qty=${bc.quantity},
+                                   data-total=${#numbers.formatDecimal(bc.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
                 </div>
             </div>
 
@@ -189,8 +212,8 @@
                 </p>
 
                 <span class="badge"
-                      th:classappend="${b.status == 'PENDING' ? 'status-pending' : (b.status == 'PAID' ? 'status-completed' : 'status-cancelled')}"
-                      th:text="${b.status == 'PENDING' ? 'Chờ thanh toán' : (b.status == 'PAID' ? 'Đã thanh toán' : 'Đã hủy')}">Trạng thái</span>
+                      th:classappend="${b.status == 'PENDING' ? 'status-pending' : (b.status == 'CONFIRMED' ? 'status-completed' : (b.status == 'EXPORTED' ? 'status-exported' : 'status-cancelled'))}"
+                      th:text="${b.status == 'PENDING' ? 'Chờ thanh toán' : (b.status == 'CONFIRMED' ? 'Đã thanh toán' : (b.status == 'EXPORTED' ? 'Hoàn thành' : 'Đã hủy'))}">Trạng thái</span>
             </div>
 
             <div class="price-group">
@@ -231,8 +254,24 @@
             <div class="info-grid-bill">
                 <div><span class="bill-label">Suất Chiếu</span><div class="bill-value" id="m-time">00:00</div></div>
                 <div><span class="bill-label">Phòng Chiếu</span><div class="bill-value" id="m-room">Phòng</div></div>
-                <div style="grid-column: span 2;"><span class="bill-label">Ghế Đã Chọn</span><div class="bill-value" style="color: var(--color-brand-red);" id="m-seats">---</div></div>
+                <div><span class="bill-label">Rạp</span><div class="bill-value" id="m-cinema">---</div></div>
+                <div><span class="bill-label">Địa Chỉ</span><div class="bill-value" id="m-address">---</div></div>
             </div>
+
+            <div class="bill-section-label">Chi Tiết Ghế</div>
+            <table class="bill-table">
+                <thead><tr><th>Ghế</th><th>Loại</th><th>Giá Vé</th></tr></thead>
+                <tbody id="m-seat-table"></tbody>
+            </table>
+
+            <div id="m-combo-section">
+                <div class="bill-section-label">Combo Đã Đặt</div>
+                <table class="bill-table">
+                    <thead><tr><th>Combo</th><th>Số Lượng</th><th>Thành Tiền</th></tr></thead>
+                    <tbody id="m-combo-table"></tbody>
+                </table>
+            </div>
+
             <div style="background-color: #18181D; padding: 12px; border-radius: 8px;">
                 <div class="price-row-summary"><span>Tổng tiền gốc</span><span id="m-total">0 đ</span></div>
                 <div class="price-row-summary"><span>Giảm giá</span><span style="color: #2D7A4F;" id="m-discount">0 đ</span></div>
@@ -251,22 +290,46 @@
         document.getElementById('m-discount').textContent = '- ' + element.dataset.discount;
         document.getElementById('m-final').textContent = element.dataset.final;
         document.getElementById('m-date').textContent = element.dataset.date;
-        document.getElementById('m-status').textContent = 'Trạng thái: ' + element.dataset.status;
+        document.getElementById('m-status').textContent = 'Trạng thái: ' + element.dataset.statusLabel;
 
         // Quét dữ liệu từ khối ẩn bằng DOM để tuyệt đối không lỗi biên dịch
         document.getElementById('m-movie').textContent = element.querySelector('.h-title').textContent;
         document.getElementById('m-room').textContent = element.querySelector('.h-room').textContent;
         document.getElementById('m-time').textContent = element.querySelector('.h-time').textContent;
+        document.getElementById('m-cinema').textContent = element.querySelector('.h-cinema').textContent;
+        document.getElementById('m-address').textContent = element.querySelector('.h-address').textContent;
         document.getElementById('m-poster').src = element.querySelector('.h-poster').textContent || 'https://placehold.co/70x100?text=No+Image';
 
-        // Gộp danh sách ghế
-        const seatSpans = element.querySelectorAll('.h-seats-box span');
-        let seatsArr = [];
-        seatSpans.forEach(span => {
-            let s = span.textContent.trim();
-            if(s) seatsArr.push(s);
+        // Bảng chi tiết ghế: ghế / loại / giá vé
+        function addRow(tbody, values) {
+            const tr = document.createElement('tr');
+            values.forEach(v => {
+                const td = document.createElement('td');
+                td.textContent = v;
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        }
+
+        const seatTbody = document.getElementById('m-seat-table');
+        seatTbody.innerHTML = '';
+        element.querySelectorAll('.h-seat-row').forEach(row => {
+            addRow(seatTbody, [row.dataset.seat, row.dataset.type, row.dataset.price]);
         });
-        document.getElementById('m-seats').textContent = seatsArr.length > 0 ? seatsArr.join(', ') : '---';
+
+        // Bảng combo đã đặt (ẩn cả block nếu booking không có combo nào)
+        const comboRows = element.querySelectorAll('.h-combo-row');
+        const comboSection = document.getElementById('m-combo-section');
+        const comboTbody = document.getElementById('m-combo-table');
+        comboTbody.innerHTML = '';
+        if (comboRows.length > 0) {
+            comboSection.style.display = '';
+            comboRows.forEach(row => {
+                addRow(comboTbody, [row.dataset.name, row.dataset.qty, row.dataset.total]);
+            });
+        } else {
+            comboSection.style.display = 'none';
+        }
 
         // Bật hiển thị Popup
         document.getElementById('billModal').classList.add('is-active');

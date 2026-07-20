@@ -1558,3 +1558,47 @@ body{
   outline: none;
   box-shadow: 0 0 0 3px rgba(229, 72, 77, .18);
 }
+
+/* ============================================================
+   TOAST - thông báo góc trên phải, thay cho alert() mặc định
+   của trình duyệt trên các trang khách hàng (dùng chung qua
+   fragments/header :: header-script -> showToast()).
+   ============================================================ */
+.app-toast-wrap {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-card-hover);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateX(16px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.app-toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.app-toast .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.app-toast-success .material-symbols-outlined { color: var(--color-status-done); }
+.app-toast-error .material-symbols-outlined { color: var(--color-brand-red); }
