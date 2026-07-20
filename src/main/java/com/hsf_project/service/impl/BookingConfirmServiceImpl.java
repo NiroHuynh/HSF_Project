@@ -267,8 +267,62 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
     }
 
     @Override
+    @Transactional
     public ConfirmResult preparePayment(String bookingCode, Long userId, Long paymentMethodId, String promoCode) {
-        return null;
+        Booking booking = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy booking: " + bookingCode));
+
+        if (!booking.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Đơn hàng không thuộc về tài khoản đang đăng nhập.");
+        }
+        if (!BookingStatus.PENDING.name().equals(booking.getStatus())) {
+            throw new IllegalArgumentException("Đơn hàng đã được xử lý trước đó.");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        if (booking.getExpiredAt() == null || now.isAfter(booking.getExpiredAt())) {
+            throw new IllegalArgumentException("Đơn hàng đã hết thời gian giữ ghế, vui lòng đặt lại.");
+        }
+
+        // Validate lại mã khuyến mãi phía server — không nhận số tiền giảm từ form
+        BigDecimal discount = BigDecimal.ZERO;
+        if (promoCode != null && !promoCode.isBlank()) {
+            PromotionService.PromotionResult promoResult =
+                    promotionService.validate(promoCode, booking.getTotalAmount());
+            if (!promoResult.valid()) {
+                throw new IllegalArgumentException("Mã khuyến mãi không hợp lệ: " + promoResult.message());
+            }
+            discount = promoResult.discountAmount();
+            booking.setPromotion(entityManager.getReference(Promotion.class, promoResult.promotionId()));
+        } else {
+            booking.setPromotion(null);
+        }
+
+        BigDecimal finalAmount = booking.getTotalAmount().subtract(discount);
+        if (finalAmount.compareTo(BigDecimal.ZERO) < 0) {
+            finalAmount = BigDecimal.ZERO;
+        }
+        booking.setDiscountAmount(discount);
+        booking.setFinalAmount(finalAmount);
+        booking.setUpdatedAt(now);
+        bookingRepository.save(booking);
+
+        PaymentMethod paymentMethod = entityManager.getReference(PaymentMethod.class, paymentMethodId);
+
+        // Tái sử dụng bản ghi payment PENDING nếu user quay lại bấm thanh toán lần nữa
+        Payment payment = paymentRepository.findFirstByBookingIdOrderByIdDesc(booking.getId())
+                .filter(p -> p.getPaymentTime() == null)
+                .orElseGet(Payment::new);
+        payment.setBooking(booking);
+        payment.setPaymentMethod(paymentMethod);
+        payment.setAmount(finalAmount);
+        payment.setPaymentStatus("PENDING");
+        if (payment.getId() == null) {
+            payment.setCreatedAt(now);
+        }
+        paymentRepository.save(payment);
+
+        return new ConfirmResult(booking.getBookingCode(), finalAmount,
+                toVnpBankCode(paymentMethod), booking.getExpiredAt());
     }
 
     @Override
@@ -291,7 +345,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         payment.setPaymentTime(now);
 
         if (success) {
-            booking.setStatus("PAID");
+            booking.setStatus(BookingStatus.CONFIRMED.name());
             for (Ticket ticket : booking.getTickets()) {
                 ticket.setStatus("PAID");
                 ticket.setPaidAt(now);
@@ -301,7 +355,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
                 promotionService.markUsed(booking.getPromotion().getId());
             }
         } else {
-            booking.setStatus("CANCELLED");
+            booking.setStatus(BookingStatus.CANCELED.name());
             // Ràng buộc CK_ticket_status trong DB chỉ cho PAID/PENDING nên không set
             // ticket = CANCELLED được; soft-delete để giải phóng ghế
             // (existsBookedSeat lọc isDeleted = false).

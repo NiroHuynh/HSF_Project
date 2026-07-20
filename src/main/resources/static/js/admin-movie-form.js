@@ -313,11 +313,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function handlePosterFile(file) {
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
         if (!validTypes.includes(file.type)) {
-            alert('Chỉ chấp nhận định dạng: JPG, JPEG, PNG, WEBP');
+            showAppToast('Chỉ chấp nhận định dạng: JPG, JPEG, PNG, WEBP', 'error');
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            alert('File không được vượt quá 5MB');
+            showAppToast('File không được vượt quá 5MB', 'error');
             return;
         }
 
@@ -614,7 +614,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            alert(mode === 'add' ? 'Tạo phim thành công!' : 'Cập nhật phim thành công!');
+            sessionStorage.setItem('movieFormToast', mode === 'add' ? 'Tạo phim thành công!' : 'Cập nhật phim thành công!');
             window.location.href = '/admin/movies/dashboard';
 
         } catch (err) {
