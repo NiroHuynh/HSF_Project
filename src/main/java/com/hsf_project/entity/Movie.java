@@ -43,7 +43,6 @@ public class Movie {
     private String director;
 
     @Nationalized
-    @Lob
     @Column(name = "\"cast\"")
     private String cast;
 
@@ -77,6 +76,25 @@ public class Movie {
     @ColumnDefault("getdate()")
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Nationalized
+    @Column(name = "updated_by", length = 100)
+    private String updatedBy;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Size(max = 50)
+    @Nationalized
+    @Column(name = "language", length = 50)
+    private String language;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @ColumnDefault("0")
+    @Column(name = "is_featured")
+    private Boolean isFeatured;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -205,6 +223,46 @@ public class Movie {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public Boolean getIsFeatured() {
+        return isFeatured;
+    }
+
+    public void setIsFeatured(Boolean isFeatured) {
+        this.isFeatured = isFeatured;
     }
 
 }
