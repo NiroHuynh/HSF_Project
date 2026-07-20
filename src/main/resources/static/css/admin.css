@@ -754,17 +754,20 @@ body {
   padding-bottom: 4px;
 }
 
-/* SIDEBAR MỚI */
+/* SIDEBAR MỚI
+   Màu nền/viền/kiểu active khớp với .admin-sidebar trong admin-system.css
+   (dùng ở các trang admin khác) để sidebar không đổi giao diện khi chuyển
+   qua lại giữa nhóm trang Phim/Khách hàng và các trang admin còn lại. */
 .sidebar {
-  background-color: #0b0c12;
-  border-right: 1px solid #1a1c29;
-  width: 240px;
+  background-color: #111114;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  width: 248px;
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
 }
 .sidebar-section-title {
-  color: #4a4e69;
+  color: #6e7a96;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -784,9 +787,12 @@ body {
   transition: all 0.2s;
 }
 .sidebar-link:hover, .sidebar-link.active {
-  background-color: var(--brand-red-cinemax);
+  background-color: #18181d;
   color: #ffffff;
   font-weight: 600;
+}
+.sidebar-link.active {
+  box-shadow: inset 3px 0 #e31b23;
 }
 .sidebar-footer {
   margin-top: auto;
@@ -3244,7 +3250,7 @@ input:checked + .slider-round:before { transform: translateX(18px); }
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: var(--red);
+  background: #e31b23;
   font-family: 'Montserrat', sans-serif;
   font-size: 15px;
   font-weight: 900;
@@ -3279,7 +3285,7 @@ input:checked + .slider-round:before { transform: translateX(18px); }
   display: flex;
   align-items: center;
   gap: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 18px 5px 0;
 }
 
@@ -3289,7 +3295,7 @@ input:checked + .slider-round:before { transform: translateX(18px); }
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--red);
+  background: #e31b23;
   color: #fff;
   font-weight: 700;
   flex-shrink: 0;

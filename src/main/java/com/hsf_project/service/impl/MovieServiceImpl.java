@@ -140,8 +140,8 @@ public class MovieServiceImpl implements MovieService {
         if (request.getReleaseDate().isBefore(LocalDate.now()))
             throw new AppException(ErrorCode.INVALID_RELEASE_DATE);
 
-        if (request.getEndDate() != null && !request.getEndDate().isAfter(request.getReleaseDate()))
-            throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau ngày khởi chiếu");
+        if (request.getEndDate() != null && request.getEndDate().isBefore(request.getReleaseDate()))
+            throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu");
         if (request.getEndDate() != null && request.getEndDate().isBefore(LocalDate.now()))
             throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc không được trong quá khứ");
 
@@ -202,8 +202,8 @@ public class MovieServiceImpl implements MovieService {
 
         if (request.getEndDate() != null) {
             LocalDate refRelease = request.getReleaseDate() != null ? request.getReleaseDate() : movie.getReleaseDate();
-            if (!request.getEndDate().isAfter(refRelease))
-                throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau ngày khởi chiếu");
+            if (request.getEndDate().isBefore(refRelease))
+                throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu");
         }
 
         if (request.getGenreIds() != null && !request.getGenreIds().isEmpty()) {
