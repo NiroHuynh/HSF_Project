@@ -183,7 +183,7 @@
                 <span class="h-time" th:text="${b.tickets != null and !b.tickets.isEmpty()} ? ${#temporals.format(b.tickets[0].showtime.startTime, 'HH:mm - dd/MM/yyyy')} : '---'"></span>
                 <div class="h-seats-box">
                     <span th:each="t : ${b.tickets}"
-                          th:attr="data-code=${t.seat.seatCode},data-type=${t.seat.type},data-price=${#numbers.formatDecimal(t.ticketPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                          th:attr="data-code=${t.seat.seatCode},data-type=${t.seat.type},data-price=${#numbers.formatDecimal(t.ticketPrice.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
                 </div>
                 <div class="h-combos-box">
                     <span th:each="bc : ${b.bookingCombos}"
