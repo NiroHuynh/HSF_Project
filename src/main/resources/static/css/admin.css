@@ -1644,15 +1644,15 @@ body {
 }
 
 .table-sort-select select {
-  background: rgba(0,0,0,0.2);
+  background: transparent;
   border: none;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 12px;
-  padding: 5px 10px;
-  border-radius: 4px;
+  padding: 0 4px;
   font-family: inherit;
   outline: none;
   cursor: pointer;
+  font-weight: 600;
 }
 
 /* METRICS GRID 4 COLUMNS */
@@ -1808,11 +1808,16 @@ body {
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   padding: 8px 14px;
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
+  transition: border-color 0.2s;
+}
+.table-sort-select:hover {
+  border-color: rgba(255,255,255,0.12);
 }
 
 .table-wrapper {
@@ -2076,6 +2081,13 @@ body {
   display: inline-block;
 }
 
+.metrics-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
 .metrics-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2233,6 +2245,16 @@ body {
 .status-pill.canceled {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-secondary);
+}
+
+.status-pill.active {
+  background: rgba(0, 255, 102, 0.12);
+  color: #00FF66;
+}
+
+.status-pill.locked {
+  background: rgba(255, 44, 59, 0.12);
+  color: #FF2C3B;
 }
 
 :root {

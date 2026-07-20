@@ -60,4 +60,8 @@ public interface MovieRepository extends JpaRepository<Movie, Integer> {
     List<Movie> findByIsDeletedFalseOrIsDeletedNull();
 
     List<Movie> findByStatusAndIsDeletedFalse(MovieStatus status);
+
+    List<Movie> findByStatusAndReleaseDateLessThanEqualAndIsDeletedFalse(MovieStatus status, LocalDate today);
+
+    List<Movie> findByStatusAndEndDateBeforeAndIsDeletedFalse(MovieStatus status, LocalDate today);
 }

@@ -71,6 +71,12 @@ public class AdminCustomerController {
         return ApiResponse.success(customerDashboardService.getCustomerDetail(id));
     }
 
+    @PostMapping("/admin/customers/{id}/toggle-status")
+    public ApiResponse<Void> toggleCustomerStatus(@PathVariable Long id) {
+        customerDashboardService.toggleCustomerStatus(id);
+        return ApiResponse.success(null);
+    }
+
     @GetMapping("/admin/customers/export")
     public ResponseEntity<byte[]> exportCustomers(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

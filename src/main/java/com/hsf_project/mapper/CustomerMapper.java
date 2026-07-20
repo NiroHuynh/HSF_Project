@@ -16,6 +16,7 @@ public interface CustomerMapper {
     @Mapping(target = "customerId", source = "user.id")
     @Mapping(target = "fullName", expression = "java(user.getFullName())")
     @Mapping(target = "avatar", expression = "java(getAvatar(user))")
+    @Mapping(target = "status", source = "user.status")
     @Mapping(target = "bookingCount", source = "bookingCount")
     @Mapping(target = "latestMovie", source = "latestMovie")
     ActiveCustomerResponse toActiveCustomerResponse(User user, int bookingCount, String latestMovie);

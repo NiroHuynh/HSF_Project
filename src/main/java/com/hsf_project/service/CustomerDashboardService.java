@@ -26,4 +26,6 @@ public interface CustomerDashboardService {
     List<TransactionResponse> getRecentTransactions(Long userId, int limit);
 
     byte[] exportCustomers(LocalDate from, LocalDate to, String format);
+
+    void toggleCustomerStatus(Long id);
 }
