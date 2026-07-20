@@ -13,6 +13,9 @@ public interface ShowTimeRepository extends JpaRepository<ShowTime, Long> {
 
     List<ShowTime> findByMovieIdAndIsDeletedFalse(Integer movieId);
 
+    @Query("SELECT COUNT(st) FROM ShowTime st WHERE st.movie.id = :movieId AND (st.isDeleted IS NULL OR st.isDeleted = false) AND st.startTime > :now")
+    long countUpcomingByMovie(@Param("movieId") Integer movieId, @Param("now") LocalDateTime now);
+
     @Query("SELECT DISTINCT b.user.id FROM Booking b JOIN b.tickets t WHERE t.showtime.movie.id = :movieId AND b.isDeleted = false AND t.isDeleted = false")
     List<Long> findDistinctUserIdsByMovieId(@Param("movieId") Integer movieId);
 

@@ -12,6 +12,7 @@ import com.hsf_project.entity.AgeRating;
 import com.hsf_project.entity.Movie;
 import com.hsf_project.mapper.GenreMapper;
 import com.hsf_project.mapper.MovieAdminMapper;
+import com.hsf_project.repository.ShowTimeRepository;
 import com.hsf_project.repository.movie.GenreRepository;
 import com.hsf_project.service.CloudinaryService;
 import com.hsf_project.service.CustomerDashboardService;
@@ -50,6 +51,7 @@ public class AdminPageController {
     GenreMapper genreMapper;
     MovieAdminMapper movieAdminMapper;
     CloudinaryService cloudinaryService;
+    ShowTimeRepository showTimeRepository;
 
     @GetMapping("/customers/dashboard")
     public String customerDashboard(Model model) {
@@ -96,7 +98,7 @@ public class AdminPageController {
         model.addAttribute("activePage", "customers");
         CustomerDetailResponse detail = customerDashboardService.getCustomerDetail(id);
         model.addAttribute("customer", detail);
-        List<TransactionResponse> transactions = customerDashboardService.getRecentTransactions(id, 10);
+        List<TransactionResponse> transactions = customerDashboardService.getRecentTransactions(id, 20);
         model.addAttribute("transactions", transactions);
         return "CustomerDetail";
     }
@@ -142,6 +144,7 @@ public class AdminPageController {
         model.addAttribute("mode", "add");
         model.addAttribute("activePage", "movie-form");
         model.addAttribute("posterOptimized", "");
+        model.addAttribute("hasShowtimes", false);
         return "movie-form";
     }
 
@@ -163,6 +166,7 @@ public class AdminPageController {
         model.addAttribute("castStr", movie.getCast());
 
         model.addAttribute("posterOptimized", cloudinaryService.getResizedUrl(movie.getPosterUrl(), 400, 600));
+        model.addAttribute("hasShowtimes", !showTimeRepository.findByMovieIdAndIsDeletedFalse(id).isEmpty());
 
         return "movie-form";
     }

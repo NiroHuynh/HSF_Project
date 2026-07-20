@@ -37,6 +37,8 @@ public interface MovieService {
 
     MovieResponse cancelMovie(Integer id);
 
+    void autoUpdateMovieStatuses();
+
     String uploadPoster(Integer id, MultipartFile file);
 
     int uploadSeedPosters();

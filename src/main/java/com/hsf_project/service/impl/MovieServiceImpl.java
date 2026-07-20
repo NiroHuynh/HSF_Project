@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +42,7 @@ public class MovieServiceImpl implements MovieService {
     MovieRepository movieRepository;
     GenreRepository genreRepository;
     ShowTimeRepository showTimeRepository;
+    BookingRepository bookingRepository;
     NotificationRepository notificationRepository;
     UserNotificationRepository userNotificationRepository;
     MovieAdminMapper movieAdminMapper;
@@ -138,10 +140,21 @@ public class MovieServiceImpl implements MovieService {
         if (request.getReleaseDate().isBefore(LocalDate.now()))
             throw new AppException(ErrorCode.INVALID_RELEASE_DATE);
 
+        if (request.getEndDate() != null && !request.getEndDate().isAfter(request.getReleaseDate()))
+            throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau ngày khởi chiếu");
+        if (request.getEndDate() != null && request.getEndDate().isBefore(LocalDate.now()))
+            throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc không được trong quá khứ");
+
         List<Genre> genres = validateGenres(request.getGenreIds());
 
         Movie movie = movieAdminMapper.toMovie(request);
-        movie.setStatus(request.getStatus() != null ? request.getStatus() : MovieStatus.COMING_SOON);
+        if (request.getStatus() != null) {
+            movie.setStatus(request.getStatus());
+        } else if (!request.getReleaseDate().isAfter(LocalDate.now())) {
+            movie.setStatus(MovieStatus.NOW_SHOWING);
+        } else {
+            movie.setStatus(MovieStatus.COMING_SOON);
+        }
         movie.setAgeRating(request.getAgeRating() != null ? request.getAgeRating() : AgeRating.P);
         movie.setIsDeleted(false);
         movie.setCreatedAt(LocalDateTime.now());
@@ -168,14 +181,29 @@ public class MovieServiceImpl implements MovieService {
                     });
         }
 
-        if (request.getDurationMinutes() != null && movie.getStatus() == MovieStatus.NOW_SHOWING)
-            throw new AppException(ErrorCode.MOVIE_NOW_SHOWING, "Không thể thay đổi thời lượng khi phim đang chiếu");
+        if (movie.getStatus() == MovieStatus.ENDED || movie.getStatus() == MovieStatus.CANCELLED)
+            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION,
+                    "Không thể cập nhật phim đã " +
+                    (movie.getStatus() == MovieStatus.ENDED ? "kết thúc" : "hủy"));
+
+        if (request.getDurationMinutes() != null
+                && !showTimeRepository.findByMovieIdAndIsDeletedFalse(id).isEmpty())
+            throw new AppException(ErrorCode.MOVIE_NOW_SHOWING, "Không thể thay đổi thời lượng khi phim đã có suất chiếu");
 
         if (request.getReleaseDate() != null) {
             if (movie.getStatus() == MovieStatus.NOW_SHOWING)
                 throw new AppException(ErrorCode.MOVIE_NOW_SHOWING, "Không thể thay đổi ngày khởi chiếu khi phim đang chiếu");
             if (request.getReleaseDate().isBefore(LocalDate.now()))
                 throw new AppException(ErrorCode.INVALID_RELEASE_DATE);
+            if (movie.getStatus() == MovieStatus.COMING_SOON && !request.getReleaseDate().isAfter(LocalDate.now())) {
+                movie.setStatus(MovieStatus.NOW_SHOWING);
+            }
+        }
+
+        if (request.getEndDate() != null) {
+            LocalDate refRelease = request.getReleaseDate() != null ? request.getReleaseDate() : movie.getReleaseDate();
+            if (!request.getEndDate().isAfter(refRelease))
+                throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau ngày khởi chiếu");
         }
 
         if (request.getGenreIds() != null && !request.getGenreIds().isEmpty()) {
@@ -201,6 +229,10 @@ public class MovieServiceImpl implements MovieService {
                 if (!valid)
                     throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION,
                             "Không thể chuyển từ " + current + " sang " + target);
+                if (target == MovieStatus.ENDED
+                        && showTimeRepository.countUpcomingByMovie(id, LocalDateTime.now()) > 0)
+                    throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION,
+                            "Không thể kết thúc phim khi còn suất chiếu trong tương lai");
                 movie.setStatus(target);
             }
         }
@@ -216,8 +248,11 @@ public class MovieServiceImpl implements MovieService {
     public void deleteMovie(Integer id) {
         Movie movie = getMovieByIdAdmin(id);
 
-        if (!showTimeRepository.findByMovieIdAndIsDeletedFalse(id).isEmpty())
+        long upcomingShowtimes = showTimeRepository.countUpcomingByMovie(id, LocalDateTime.now());
+        if (upcomingShowtimes > 0)
             throw new AppException(ErrorCode.MOVIE_HAS_SHOWTIMES);
+        if (bookingRepository.hasConfirmedBookingsByMovie(id))
+            throw new AppException(ErrorCode.MOVIE_HAS_BOOKINGS);
 
         movie.setIsDeleted(true);
         movieRepository.save(movie);
@@ -247,6 +282,9 @@ public class MovieServiceImpl implements MovieService {
                 || (current == MovieStatus.NOW_SHOWING && target == MovieStatus.ENDED);
         if (!valid)
             throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION, "Không thể chuyển từ " + current + " sang " + target);
+        if (target == MovieStatus.ENDED
+                && showTimeRepository.countUpcomingByMovie(id, LocalDateTime.now()) > 0)
+            throw new AppException(ErrorCode.NO_FUTURE_SHOWTIMES, "Không thể kết thúc phim khi còn suất chiếu trong tương lai");
 
         movie.setStatus(target);
         return movieAdminMapper.toMovieResponse(movieRepository.save(movie));
@@ -260,11 +298,33 @@ public class MovieServiceImpl implements MovieService {
         if (movie.getStatus() != MovieStatus.NOW_SHOWING && movie.getStatus() != MovieStatus.COMING_SOON)
             throw new AppException(ErrorCode.MOVIE_CANNOT_CANCEL);
 
+        if (bookingRepository.hasConfirmedBookingsByMovie(id))
+            throw new AppException(ErrorCode.MOVIE_HAS_BOOKINGS, "Không thể hủy phim đã có vé đặt");
+
         movie.setStatus(MovieStatus.CANCELLED);
         movieRepository.save(movie);
 
         createCancellationNotifications(movie);
         return movieAdminMapper.toMovieResponse(movie);
+    }
+
+    @Override
+    @Scheduled(fixedRate = 300000)
+    @Transactional
+    public void autoUpdateMovieStatuses() {
+        LocalDate today = LocalDate.now();
+
+        List<Movie> comingSoon = movieRepository.findByStatusAndReleaseDateLessThanEqualAndIsDeletedFalse(MovieStatus.COMING_SOON, today);
+        for (Movie m : comingSoon) {
+            m.setStatus(MovieStatus.NOW_SHOWING);
+        }
+        movieRepository.saveAll(comingSoon);
+
+        List<Movie> nowShowing = movieRepository.findByStatusAndEndDateBeforeAndIsDeletedFalse(MovieStatus.NOW_SHOWING, today);
+        for (Movie m : nowShowing) {
+            m.setStatus(MovieStatus.ENDED);
+        }
+        movieRepository.saveAll(nowShowing);
     }
 
     @Override

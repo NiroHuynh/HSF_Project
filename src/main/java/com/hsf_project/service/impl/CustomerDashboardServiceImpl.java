@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -67,7 +68,7 @@ public class CustomerDashboardServiceImpl implements CustomerDashboardService {
 
         List<Booking> periodBookings = bookingRepository.findByBookingDateBetweenAndIsDeletedFalse(fromDateTime, toDateTime);
         List<Booking> paidBookings = periodBookings.stream()
-                .filter(b -> "PAID".equals(b.getStatus()))
+                .filter(b -> b.getStatus() != null && Set.of("CONFIRMED", "EXPORTED").contains(b.getStatus()))
                 .toList();
 
         BigDecimal totalSpending = paidBookings.stream()
@@ -184,7 +185,7 @@ public class CustomerDashboardServiceImpl implements CustomerDashboardService {
                     List<Booking> bookings = bookingRepository.findByUserIdAndIsDeletedFalse(user.getId());
                     int count = bookings.size();
                     BigDecimal spent = bookings.stream()
-                            .filter(b -> "PAID".equals(b.getStatus()))
+                            .filter(b -> b.getStatus() != null && Set.of("CONFIRMED", "EXPORTED").contains(b.getStatus()))
                             .map(Booking::getFinalAmount)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     String latestMovie = getLatestMovie(bookings);
@@ -238,7 +239,7 @@ public class CustomerDashboardServiceImpl implements CustomerDashboardService {
                     List<Booking> bookings = bookingRepository.findByUserIdAndIsDeletedFalse(u.getId());
                     int count = bookings.size();
                     BigDecimal spent = bookings.stream()
-                            .filter(b -> "PAID".equals(b.getStatus()))
+                            .filter(b -> b.getStatus() != null && Set.of("CONFIRMED", "EXPORTED").contains(b.getStatus()))
                             .map(Booking::getFinalAmount)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     String latestMovie = getLatestMovie(bookings);
@@ -288,7 +289,7 @@ public class CustomerDashboardServiceImpl implements CustomerDashboardService {
         int totalBookings = bookings.size();
 
         BigDecimal totalSpent = bookings.stream()
-                .filter(b -> "PAID".equals(b.getStatus()))
+                .filter(b -> b.getStatus() != null && Set.of("CONFIRMED", "EXPORTED").contains(b.getStatus()))
                 .map(Booking::getFinalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -336,9 +337,9 @@ public class CustomerDashboardServiceImpl implements CustomerDashboardService {
         }
 
         String statusLabel = switch (b.getStatus()) {
-            case "PAID" -> "Hoàn thành";
-            case "PENDING" -> "Chờ xử lý";
-            case "REFUNDED" -> "Hoàn tiền";
+            case "CONFIRMED" -> "Hoàn thành";
+            case "EXPORTED" -> "Đã xuất vé";
+            case "PENDING" -> "Chờ thanh toán";
             case "CANCELED" -> "Đã hủy";
             default -> b.getStatus() != null ? b.getStatus() : "---";
         };
@@ -443,6 +444,18 @@ public class CustomerDashboardServiceImpl implements CustomerDashboardService {
             return bos.toByteArray();
         } catch (IOException e) {
             throw new AppException(ErrorCode.INTERNAL_ERROR, "Lỗi khi tạo file Excel: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void toggleCustomerStatus(Long id) {
+        User user = userRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CUSTOMER_NOT_FOUND));
+        if ("ACTIVE".equals(user.getStatus())) {
+            user.setStatus("LOCKED");
+        } else {
+            user.setStatus("ACTIVE");
         }
     }
 

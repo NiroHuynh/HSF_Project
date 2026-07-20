@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi tiết khách hàng - CineMax Admin</title>
+    <title th:text="${customer.fullName + ' - Chi tiết khách hàng - CineMax Admin'}">Chi tiết khách hàng - CineMax Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;900&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
@@ -24,10 +24,7 @@
                     <a th:href="@{/admin/customers/dashboard}" class="back-btn">
                         <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách
                     </a>
-                    <div class="right-actions">
-                        <button class="btn btn-outline" id="exportBtn"><i class="fa-solid fa-download"></i> Xuất báo cáo</button>
-                        <button class="btn btn-danger" id="editBtn"><i class="fa-solid fa-pencil"></i> Chỉnh sửa hồ sơ</button>
-                    </div>
+
                 </div>
 
                 <div class="profile-main-card">
@@ -36,50 +33,40 @@
                     </div>
                     <div class="profile-info-wrapper">
                         <div class="name-badge-row">
-                            <h2 class="customer-name" th:text="${customer.fullName}">Nguyễn Minh Quân</h2>
-                            <span class="member-badge" th:text="${customer.memberLevel != null ? 'THÀNH VIÊN ' + customer.memberLevel : 'THÀNH VIÊN'}">
-                                <i class="fa-solid fa-gem"></i> THÀNH VIÊN
-                            </span>
+                            <h2 class="customer-name" th:text="${customer.fullName}"></h2>
                         </div>
-                        <div class="member-id" th:text="'Mã thành viên: CMX-' + ${customer.customerId}">Mã thành viên: CMX-2023-89104</div>
+                        <div class="member-id" th:text="'Mã thành viên: CMX-' + ${customer.customerId}"></div>
 
                         <div class="meta-info-grid">
                             <div class="meta-item">
                                 <span class="meta-lbl">LẦN ĐẶT GẦN NHẤT</span>
-                                <span class="meta-val" th:text="${customer.latestBooking != null ? #temporals.format(customer.latestBooking, 'dd MMM, yyyy') : 'Chưa có'}">15 Nov, 2021</span>
+                                <span class="meta-val" th:text="${customer.latestBooking != null ? #temporals.format(customer.latestBooking, 'dd MMM, yyyy') : 'Chưa có'}"></span>
                             </div>
                             <div class="meta-item">
                                 <span class="meta-lbl">TRẠNG THÁI</span>
                                 <span class="meta-val" th:classappend="${customer.status == 'ACTIVE' ? 'status-active-text' : ''}">
                                     <span class="dot-indicator" th:style="${customer.status != 'ACTIVE' ? 'background:#666' : ''}"></span>
-                                    <span th:text="${customer.status == 'ACTIVE' ? 'Đang hoạt động' : 'Ngưng hoạt động'}">Đang hoạt động</span>
+                                    <span th:text="${customer.status == 'ACTIVE' ? 'Đang hoạt động' : 'Bị khóa'}"></span>
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="metrics-grid-3">
+                <div class="metrics-grid-2">
                     <div class="metric-card">
                         <div class="metric-header">
                             <i class="fa-solid fa-wallet"></i>
                             <span class="metric-title">TỔNG CHI TIÊU</span>
                         </div>
-                        <div class="metric-value" th:text="${#numbers.formatInteger(customer.totalSpent != null ? customer.totalSpent : 0, 1, 'DEFAULT')} + ' VND'">12,500,000 <span class="unit">VND</span></div>
+                        <div class="metric-value" th:text="${#numbers.formatInteger(customer.totalSpent != null ? customer.totalSpent : 0, 1, 'DEFAULT')} + ' VND'"></div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-header">
                             <i class="fa-solid fa-ticket"></i>
                             <span class="metric-title">VÉ ĐÃ ĐẶT</span>
                         </div>
-                        <div class="metric-value" th:text="${customer.totalBookings}">84</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <i class="fa-solid fa-gem"></i>
-                            <span class="metric-title">HẠNG THÀNH VIÊN</span>
-                        </div>
-                        <div class="metric-value" th:text="${customer.memberLevel != null ? customer.memberLevel : 'Bronze'}">Bronze</div>
+                        <div class="metric-value" th:text="${customer.totalBookings}"></div>
                     </div>
                 </div>
 
@@ -89,22 +76,22 @@
 
                         <div class="info-group">
                             <label class="info-label">ĐỊA CHỈ EMAIL</label>
-                            <div class="info-value" th:text="${customer.email}">minhquan.nguyen@email.com</div>
+                            <div class="info-value" th:text="${customer.email}"></div>
                         </div>
 
                         <div class="info-group">
                             <label class="info-label">SỐ ĐIỆN THOẠI</label>
-                            <div class="info-value" th:text="${customer.phone != null ? customer.phone : '---'}">+84 90 123 4567</div>
+                            <div class="info-value" th:text="${customer.phone != null ? customer.phone : '---'}"></div>
                         </div>
 
                         <div class="info-group">
                             <label class="info-label">NGÀY SINH</label>
-                            <div class="info-value" th:text="${customer.birthday != null ? #temporals.format(customer.birthday, 'dd MMM, yyyy') : '---'}">22 August, 1995</div>
+                            <div class="info-value" th:text="${customer.birthday != null ? #temporals.format(customer.birthday, 'dd MMM, yyyy') : '---'}"></div>
                         </div>
 
                         <div class="info-group">
                             <label class="info-label">GIỚI TÍNH</label>
-                            <div class="info-value" th:text="${customer.gender != null ? customer.gender : '---'}">Nam</div>
+                            <div class="info-value" th:text="${customer.gender != null ? customer.gender : '---'}"></div>
                         </div>
                     </div>
 
@@ -124,17 +111,17 @@
                                 <th>TRẠNG THÁI</th>
                             </tr>
                             </thead>
-                            <tbody>
-                            <tr th:each="tx : ${transactions}">
-                                <td class="muted-td" th:text="${tx.date}">Oct 24, 2023</td>
+                            <tbody id="transactionBody">
+                            <tr th:each="tx : ${transactions}" class="tx-row">
+                                <td class="muted-td" th:text="${tx.date}"></td>
                                 <td>
-                                    <div class="product-title" th:text="${tx.productName}">Dune: Part Two (IMAX)</div>
-                                    <div class="product-sub" th:text="${tx.productDetails}">2 Tickets + Mega Combo</div>
+                                    <div class="product-title" th:text="${tx.productName}"></div>
+                                    <div class="product-sub" th:text="${tx.productDetails}"></div>
                                 </td>
-                                <td class="muted-td" th:text="${tx.theater}">District 1</td>
-                                <td class="price-td" th:text="${#numbers.formatInteger(tx.amount != null ? tx.amount : 0, 1, 'DEFAULT')} + ' đ'">650,000 đ</td>
+                                <td class="muted-td" th:text="${tx.theater}"></td>
+                                <td class="price-td" th:text="${#numbers.formatInteger(tx.amount != null ? tx.amount : 0, 1, 'DEFAULT')} + ' đ'"></td>
                                 <td>
-                                    <span th:class="${tx.status == 'Hoàn thành' ? 'status-pill success' : 'status-pill canceled'}" th:text="${tx.status}">Hoàn thành</span>
+                                    <span th:class="${tx.status == 'Hoàn thành' ? 'status-pill success' : 'status-pill canceled'}" th:text="${tx.status}"></span>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(transactions)}">
@@ -142,6 +129,13 @@
                             </tr>
                             </tbody>
                         </table>
+                        <div class="table-footer" id="txPagination" th:if="${not #lists.isEmpty(transactions)}">
+                            <span class="footer-count" id="txPageInfo"></span>
+                            <div class="pagination-arrows">
+                                <button class="p-btn" id="txPrevPage"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button class="p-btn" id="txNextPage"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
