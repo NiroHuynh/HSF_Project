@@ -5,7 +5,7 @@ import com.hsf_project.dto.movie.request.CreateMovieRequest;
 import com.hsf_project.dto.movie.request.UpdateMovieRequest;
 import com.hsf_project.dto.movie.response.MovieResponse;
 import com.hsf_project.entity.Movie;
-import com.hsf_project.entity.MovieStatus;
+import com.hsf_project.entity.enums.MovieStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;

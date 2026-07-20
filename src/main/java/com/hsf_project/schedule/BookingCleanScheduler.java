@@ -1,7 +1,7 @@
 package com.hsf_project.schedule;
 
 import com.hsf_project.entity.Booking;
-import com.hsf_project.entity.BookingStatus;
+import com.hsf_project.entity.enums.BookingStatus;
 import com.hsf_project.entity.Ticket;
 import com.hsf_project.entity.User;
 import com.hsf_project.repository.BookingRepository;
