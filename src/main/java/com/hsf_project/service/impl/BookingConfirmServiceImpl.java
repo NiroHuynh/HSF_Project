@@ -1,6 +1,8 @@
 package com.hsf_project.service.impl;
 
 import com.hsf_project.entity.*;
+import com.hsf_project.entity.enums.BookingStatus;
+import com.hsf_project.entity.enums.TicketStatus;
 import com.hsf_project.repository.*;
 import com.hsf_project.service.BookingConfirmService;
 import com.hsf_project.service.ComboService;
@@ -105,7 +107,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
 //        booking.setTotalAmount(totalAmount);
 //        booking.setDiscountAmount(discountAmount);
 //        booking.setFinalAmount(finalAmount);
-//        // PENDING chờ kết quả VNPay; finalizeBooking sẽ chuyển sang CONFIRMED/CANCELED
+//        // PENDING chờ kết quả VNPay; finalizeBooking sẽ chuyển sang PAID/CANCELLED
 //        booking.setStatus("PENDING");
 //        booking.setCreatedAt(now);
 //        booking.setUpdatedAt(now);
@@ -220,7 +222,6 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
             ticket.setShowtime(showtime);
             ticket.setSeat(seats.get(i));
             ticket.setTicketPrice(ticketPrices.get(i));
-            ticket.setUnitPrice(ticketPrices.get(i).getPrice());
             ticket.setStatus(TicketStatus.PENDING.name());
             ticket.setBookedAt(now);
             ticket.setPaidAt(null);
@@ -290,7 +291,7 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
         payment.setPaymentTime(now);
 
         if (success) {
-            booking.setStatus(BookingStatus.CONFIRMED.name());
+            booking.setStatus("PAID");
             for (Ticket ticket : booking.getTickets()) {
                 ticket.setStatus("PAID");
                 ticket.setPaidAt(now);
@@ -300,10 +301,9 @@ public class BookingConfirmServiceImpl implements BookingConfirmService {
                 promotionService.markUsed(booking.getPromotion().getId());
             }
         } else {
-            booking.setStatus(BookingStatus.CANCELED.name());
+            booking.setStatus("CANCELLED");
             // Ràng buộc CK_ticket_status trong DB chỉ cho PAID/PENDING nên không set
-            // Không đổi ticket sang CANCELED vì constraint ticket chỉ nhận PAID/PENDING;
-            // soft-delete ticket để giải phóng ghế.
+            // ticket = CANCELLED được; soft-delete để giải phóng ghế
             // (existsBookedSeat lọc isDeleted = false).
             for (Ticket ticket : booking.getTickets()) {
                 ticket.setIsDeleted(true);

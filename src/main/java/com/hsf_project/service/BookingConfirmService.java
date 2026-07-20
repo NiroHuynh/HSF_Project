@@ -36,7 +36,7 @@ public interface BookingConfirmService {
 
     /**
      * Chốt kết quả thanh toán từ VNPay Return URL.
-     * Thành công: booking → CONFIRMED, ticket → PAID, payment → SUCCESS, đánh dấu voucher đã dùng.
+     * Thành công: booking/ticket → PAID, payment → SUCCESS, đánh dấu voucher đã dùng.
      *   Nếu booking đã bị hủy vì quá hạn nhưng ghế còn trống thì khôi phục lại;
      *   ghế đã có người khác giữ thì ghi nhận cần hoàn tiền (payment → REFUND_REQUIRED).
      * Thất bại/hủy: booking → CANCELED, soft-delete ticket (giải phóng ghế), payment → FAILED.

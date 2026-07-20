@@ -10,7 +10,6 @@ import java.util.List;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket,Long> {
-    long countByTicketPriceRoomId(Integer roomId);
 
     @Query("""
         SELECT CASE
@@ -21,7 +20,7 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
         WHERE t.seat.id = :seatId
         AND t.showtime.id = :showtimeId
         AND t.isDeleted = false
-        AND (t.booking.status IN ('CONFIRMED', 'EXPORTED') OR (t.booking.status = 'PENDING' AND t.booking.expiredAt > CURRENT_TIMESTAMP))
+        AND (t.booking.status = 'PAID' OR (t.booking.status = 'PENDING' AND t.booking.expiredAt > CURRENT_TIMESTAMP))
     """)
     boolean existsBookedSeat(
             @Param("seatId") Long seatId,
@@ -42,7 +41,7 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
         AND t.showtime.id = :showtimeId
         AND t.booking.id <> :excludeBookingId
         AND t.isDeleted = false
-        AND (t.booking.status IN ('CONFIRMED', 'EXPORTED') OR (t.booking.status = 'PENDING' AND t.booking.expiredAt > CURRENT_TIMESTAMP))
+        AND (t.booking.status = 'PAID' OR (t.booking.status = 'PENDING' AND t.booking.expiredAt > CURRENT_TIMESTAMP))
     """)
     boolean existsBookedSeatForOtherBooking(
             @Param("seatId") Long seatId,
@@ -83,6 +82,7 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
             "AND t.showtime.room.cinema.id = :cinemaId")
     java.math.BigDecimal ticketRevenueByCinema(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to,
                                                @Param("cinemaId") Integer cinemaId);
+
     /**
      * Đếm số ghế đã đặt theo từng suất chiếu — batch query tránh N+1.
      * Trả về Object[]: [0]=showtimeId, [1]=bookedCount

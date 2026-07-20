@@ -9,7 +9,7 @@ import com.hsf_project.exception.AppException;
 import com.hsf_project.exception.ErrorCode;
 import com.hsf_project.mapper.ReviewMapper;
 import com.hsf_project.repository.MovieReviewRepository;
-import com.hsf_project.repository.movie.MovieRepository;
+import com.hsf_project.repository.MovieRepository;
 import com.hsf_project.service.ReviewService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
