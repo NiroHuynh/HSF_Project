@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Nationalized;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +16,9 @@ public class PaymentMethod {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    // Cột method_name/description trong DB là NVARCHAR; thiếu @Nationalized thì Hibernate
+    // bind tham số kiểu VARCHAR và tiếng Việt bị mất dấu khi lưu.
+    @Nationalized
     @Size(max = 50)
     @NotNull
     @Column(name = "method_name", nullable = false, length = 50)
@@ -24,6 +28,7 @@ public class PaymentMethod {
     @Column(name = "provider", length = 100)
     private String provider;
 
+    @Nationalized
     @Size(max = 255)
     @Column(name = "description")
     private String description;

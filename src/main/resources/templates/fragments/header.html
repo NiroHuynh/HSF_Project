@@ -90,6 +90,36 @@
       dd.style.display = 'none';
     }
   });
+
+  // Toast góc trên phải dùng chung cho các trang khách hàng, thay cho alert() mặc định.
+  function showToast(message, type) {
+    type = type === 'error' ? 'error' : 'success';
+    var wrap = document.querySelector('.app-toast-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'app-toast-wrap';
+      document.body.appendChild(wrap);
+    }
+
+    var toast = document.createElement('div');
+    toast.className = 'app-toast app-toast-' + type;
+    var icon = type === 'success' ? 'check_circle' : 'error';
+    var iconEl = document.createElement('span');
+    iconEl.className = 'material-symbols-outlined';
+    iconEl.textContent = icon;
+    var textEl = document.createElement('span');
+    textEl.textContent = message;
+    toast.appendChild(iconEl);
+    toast.appendChild(textEl);
+    wrap.appendChild(toast);
+
+    requestAnimationFrame(function () { toast.classList.add('show'); });
+
+    setTimeout(function () {
+      toast.classList.remove('show');
+      setTimeout(function () { toast.remove(); }, 250);
+    }, 3000);
+  }
 </script>
 
 </body>

@@ -160,7 +160,7 @@
                     </div>
 
                     <button th:data-code="${promo.code}"
-                            onclick="navigator.clipboard.writeText(this.dataset.code); alert('Đã sao chép mã ưu đãi: ' + this.dataset.code);"
+                            onclick="navigator.clipboard.writeText(this.dataset.code); showToast('Đã sao chép mã ưu đãi: ' + this.dataset.code);"
                             class="btn-copy">
                         Sao chép mã
                     </button>
