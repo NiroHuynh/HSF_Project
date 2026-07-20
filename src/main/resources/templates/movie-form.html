@@ -106,14 +106,19 @@
                                     <!-- Quốc gia -->
                                     <div class="form-item">
                                         <span class="form-item-label">Quốc gia</span>
-                                        <div class="select-wrapper">
-                                            <select name="language" class="form-item-select" required>
-                                                <option value="" th:selected="${movie == null || movie.language == null}">Chọn quốc gia</option>
-                                                <option value="Mỹ (USA)" th:selected="${movie != null && movie.language == 'Mỹ (USA)'}">Mỹ (USA)</option>
-                                                <option value="Hàn Quốc" th:selected="${movie != null && movie.language == 'Hàn Quốc'}">Hàn Quốc</option>
-                                                <option value="Việt Nam" th:selected="${movie != null && movie.language == 'Việt Nam'}">Việt Nam</option>
-                                            </select>
-                                        </div>
+                                        <input type="text" name="language" class="form-item-input" required
+                                               list="countryList" placeholder="Nhập quốc gia..." maxlength="50"
+                                               th:value="${movie != null ? movie.language : ''}">
+                                        <datalist id="countryList">
+                                            <option value="Việt Nam">
+                                            <option value="Mỹ (USA)">
+                                            <option value="Hàn Quốc">
+                                            <option value="Nhật Bản">
+                                            <option value="Trung Quốc">
+                                            <option value="Thái Lan">
+                                            <option value="Anh (UK)">
+                                            <option value="Pháp">
+                                        </datalist>
                                     </div>
 
                                     <!-- Đạo diễn (Tag Chips) -->
@@ -151,20 +156,22 @@
                                     <!-- Ngày khởi chiếu + Ngày kết thúc (2 cột) -->
                                     <div class="form-item">
                                         <span class="form-item-label">Ngày khởi chiếu</span>
-                                        <input type="date" name="releaseDate" class="form-item-input" required
+                                        <input type="date" name="releaseDate" id="releaseDateInput" class="form-item-input" required
                                                th:value="${movie != null ? movie.releaseDate : ''}"
+                                               th:min="${movie == null ? T(java.time.LocalDate).now() : null}"
                                                th:disabled="${movie != null and movie.status.name() == 'NOW_SHOWING'}">
                                     </div>
                                     <div class="form-item">
                                         <span class="form-item-label">Ngày kết thúc dự kiến</span>
-                                        <input type="date" name="endDate" class="form-item-input" required
-                                               th:value="${movie != null ? movie.endDate : ''}">
+                                        <input type="date" name="endDate" id="endDateInput" class="form-item-input" required
+                                               th:value="${movie != null ? movie.endDate : ''}"
+                                               th:min="${movie != null ? movie.releaseDate : null}">
                                     </div>
 
-                                    <!-- ADD: badge (chỉ xem) -->
+                                    <!-- ADD: badge (chỉ xem, tự cập nhật theo ngày khởi chiếu) -->
                                     <div th:if="${movie == null}" class="form-item">
                                         <span class="form-item-label">Trạng thái</span>
-                                        <div class="status-badge badge-coming">
+                                        <div id="addStatusBadge" class="status-badge badge-coming">
                                             <span>COMING SOON</span>
                                         </div>
                                     </div>

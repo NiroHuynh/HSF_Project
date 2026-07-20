@@ -14,6 +14,36 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('posterUpload').style.pointerEvents = 'none';
     }
 
+    // ========== ADD: TRẠNG THÁI TỰ ĐỘNG THEO NGÀY KHỞI CHIẾU ==========
+    const addStatusBadge = document.getElementById('addStatusBadge');
+    const releaseDateInput = document.getElementById('releaseDateInput');
+    if (mode === 'add' && addStatusBadge && releaseDateInput) {
+        function updateAddStatusBadge() {
+            const today = new Date().toISOString().slice(0, 10);
+            const isNowShowing = releaseDateInput.value && releaseDateInput.value <= today;
+            addStatusBadge.classList.toggle('badge-coming', !isNowShowing);
+            addStatusBadge.classList.toggle('badge-showing', isNowShowing);
+            addStatusBadge.querySelector('span').textContent = isNowShowing ? 'NOW SHOWING' : 'COMING SOON';
+        }
+        releaseDateInput.addEventListener('change', updateAddStatusBadge);
+        updateAddStatusBadge();
+    }
+
+    // ========== NGÀY KẾT THÚC >= NGÀY KHỞI CHIẾU ==========
+    const endDateInput = document.getElementById('endDateInput');
+    if (releaseDateInput && endDateInput) {
+        function syncEndDateMin() {
+            if (releaseDateInput.value) {
+                endDateInput.min = releaseDateInput.value;
+                if (endDateInput.value && endDateInput.value < releaseDateInput.value) {
+                    endDateInput.value = releaseDateInput.value;
+                }
+            }
+        }
+        releaseDateInput.addEventListener('change', syncEndDateMin);
+        syncEndDateMin();
+    }
+
     // ========== GENRE TAG CHIPS (dropdown) ==========
     const allGenres = typeof GENRES !== 'undefined' ? GENRES : [
         { id: 1, name: 'Hành động' },
@@ -383,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Diễn viên
-        const castVal = castValue.value;
+        const castVal = castValue.value || castInput.value.trim();
         if (!castVal) {
             castTagList.classList.add('error');
             errors.push('Vui lòng nhập ít nhất một diễn viên');
@@ -394,6 +424,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!isDisabled(releaseDate) && !releaseDate.value) {
             releaseDate.classList.add('error');
             errors.push('Vui lòng chọn ngày khởi chiếu');
+        } else if (!isDisabled(releaseDate) && releaseDate.value) {
+            const today = new Date().toISOString().slice(0, 10);
+            if (releaseDate.value < today) {
+                releaseDate.classList.add('error');
+                errors.push('Ngày khởi chiếu không được ở trong quá khứ');
+            }
         }
 
         // Ngày kết thúc
@@ -403,11 +439,11 @@ document.addEventListener('DOMContentLoaded', function () {
             errors.push('Vui lòng chọn ngày kết thúc dự kiến');
         }
 
-        // Ngày kết thúc phải sau ngày khởi chiếu
+        // Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu
         const refRelease = form.querySelector('[name="releaseDate"]');
         if (endDate.value && refRelease.value && endDate.value < refRelease.value) {
             endDate.classList.add('error');
-            errors.push('Ngày kết thúc phải sau ngày khởi chiếu');
+            errors.push('Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu');
         }
 
         // Poster (chỉ check khi thêm phim)
@@ -504,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formData = new FormData(form);
         formData.set('director', directorValue.value || directorInput.value.trim());
-        formData.set('cast', castValue.value);
+        formData.set('cast', castValue.value || castInput.value.trim());
 
         const posterHasFile = posterUpload.dataset.hasFile === 'true';
         const posterFileEl = posterFile.files[0];
