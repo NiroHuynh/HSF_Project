@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "role")
@@ -16,7 +15,6 @@ public class Role {
 
     @Size(max = 50)
     @NotNull
-    @Nationalized
     @Column(name = "role_name", nullable = false, length = 50)
     private String roleName;
 
