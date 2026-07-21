@@ -1,9 +1,11 @@
 package com.hsf_project.controller;
 
+import com.hsf_project.dto.response.PaymentPageData;
 import com.hsf_project.entity.*;
 import com.hsf_project.entity.enums.BookingStatus;
 import com.hsf_project.repository.BookingRepository;
 import com.hsf_project.repository.TicketRepository;
+import com.hsf_project.service.BookingPaymentService;
 import com.hsf_project.service.PaymentMethodService;
 import com.hsf_project.service.PromotionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,70 +30,44 @@ public class BookingPaymentController {
     private PromotionService promotionService;
 
     @Autowired
-    private BookingRepository bookingRepository;
-
-    @Autowired
-    private TicketRepository ticketRepository;
+    private BookingPaymentService bookingPaymentService;
 
     @GetMapping("/payment")
     public String showPaymentPage(@RequestParam String bookingCode, Model model) {
 
-        // 1. Tìm thông tin Booking từ DB dựa vào mã code
-        Booking booking = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy mã đơn hàng: " + bookingCode));
+        try {
+            // 1. Gọi Service lấy dữ liệu đã gom trong DTO
+            PaymentPageData data = bookingPaymentService.getPaymentPageData(bookingCode);
 
-        // 2. Tính toán số giây đếm ngược còn lại (Đồng bộ tổng 15 phút)
-        long secondsLeft = Duration.between(LocalDateTime.now(), booking.getExpiredAt()).toSeconds();
+            // 2. Đẩy thông tin chung ra Model
+            model.addAttribute("bookingCode",            data.getBookingCode());
+            model.addAttribute("secondsLeft",            data.getSecondsLeft());
+            model.addAttribute("selectedSeats",          data.getSelectedSeats());
+            model.addAttribute("selectedCombos",         data.getSelectedCombos());
 
-        // Nếu quá giờ giữ ghế, lập tức đá user về trang phim
-        if (secondsLeft <= 0) {
+            // 3. Đẩy thông tin tiền tệ & PTTT
+            model.addAttribute("totalAmount",            data.getTotalAmount());
+            model.addAttribute("discountAmount",         data.getDiscountAmount());
+            model.addAttribute("finalAmount",            data.getFinalAmount());
+
+            model.addAttribute("paymentMethods",         data.getPaymentMethods());
+            model.addAttribute("defaultPaymentMethodId", data.getPaymentMethods().isEmpty() ? null : data.getPaymentMethods().get(0).getId());
+
+            // 4. Đẩy thông tin phim/rạp từ Showtime
+            var showtime = data.getShowtime();
+            model.addAttribute("movieTitle",    showtime.getMovie().getTitle());
+            model.addAttribute("moviePosterUrl", showtime.getMovie().getPosterUrl());
+            model.addAttribute("showTimeDate",  showtime.getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            model.addAttribute("showTimeTime",  showtime.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+            model.addAttribute("roomName",      showtime.getRoom().getName());
+            model.addAttribute("cinemaName",    showtime.getRoom().getCinema().getName());
+
+            return "bookingPayment";
+
+        } catch (IllegalStateException e) {
+            // Xử lý khi lỡ hết thời gian 15 phút giữ ghế
             return "redirect:/movies/error?error=timeout";
         }
-
-        // 3. Lấy danh sách các ghế đã chọn từ Booking
-        List<String> selectedSeats = booking.getTickets().stream()
-                .map(ticket -> ticket.getSeat().getSeatCode())
-                .toList();
-
-        // 4. Lấy danh sách Combo khách hàng đã chọn (Đã được lưu trong bảng trung gian booking_combo ở bước trước)
-        // Ánh xạ sang cấu trúc SelectedCombo để Thymeleaf render ra giao diện hiển thị
-        List<SelectedCombo> selectedCombos = booking.getBookingCombos().stream()
-                .map(bc -> new SelectedCombo(
-                        bc.getCombo().getName(),
-                        bc.getQuantity(),
-                        bc.getTotalPrice()
-                )).toList();
-
-        // 5. Lấy thông tin Suất chiếu từ một chiếc vé bất kỳ trong Booking này
-        ShowTime showtime = booking.getTickets().get(0).getShowtime();
-
-        // 6. Lấy danh sách các phương thức thanh toán đang kích hoạt (VNPay, MoMo,...)
-        List<PaymentMethod> paymentMethods = paymentMethodService.getActiveMethods();
-        Long defaultPaymentMethodId = paymentMethods.isEmpty() ? null : paymentMethods.get(0).getId();
-
-        // 7. Đẩy toàn bộ dữ liệu sạch từ DB ra Model cho giao diện
-        model.addAttribute("bookingCode",            bookingCode);
-        model.addAttribute("secondsLeft",            secondsLeft);
-        model.addAttribute("selectedSeats",          selectedSeats);
-        model.addAttribute("selectedCombos",         selectedCombos);
-
-        // Tiền nong lấy trực tiếp từ DB chốt ở Backend, cực kỳ an toàn
-        model.addAttribute("totalAmount",            booking.getTotalAmount());      // Tổng tiền trước giảm giá
-        model.addAttribute("discountAmount",         booking.getDiscountAmount());   // Tiền được giảm (0 nếu chưa áp mã)
-        model.addAttribute("finalAmount",            booking.getFinalAmount());       // Số tiền cuối cùng phải trả
-
-        model.addAttribute("paymentMethods",         paymentMethods);
-        model.addAttribute("defaultPaymentMethodId", defaultPaymentMethodId);
-
-        // 8. Tách riêng từng attribute thông tin phim/rạp/suất chiếu cho Thymeleaf render đúng tên biến
-        model.addAttribute("movieTitle",    showtime.getMovie().getTitle());
-        model.addAttribute("moviePosterUrl", showtime.getMovie().getPosterUrl());
-        model.addAttribute("showTimeDate",  showtime.getStartTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        model.addAttribute("showTimeTime",  showtime.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")));
-        model.addAttribute("roomName",      showtime.getRoom().getName());
-        model.addAttribute("cinemaName",    showtime.getRoom().getCinema().getName());
-
-        return "bookingPayment";
     }
 
     /**
@@ -105,21 +81,21 @@ public class BookingPaymentController {
         return promotionService.validate(code, orderAmount);
     }
 
-    // Tinh chỉnh hàm helper nhận thẳng thực thể ShowTime đã lấy được ở trên, đỡ phải query DB lại một lần nữa
-    private ShowtimeInfo loadShowtimeInfo(ShowTime showtime) {
-        String startTimeLabel = showtime.getStartTime()
-                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-        String roomName = showtime.getRoom().getName();
-        String formatLabel = "CINEMAX " + showtime.getRoom().getRoomType();
-
-        return new ShowtimeInfo(
-                showtime.getMovie().getTitle(),
-                showtime.getMovie().getPosterUrl(),
-                startTimeLabel,
-                roomName,
-                formatLabel
-        );
-    }
+//    // Tinh chỉnh hàm helper nhận thẳng thực thể ShowTime đã lấy được ở trên, đỡ phải query DB lại một lần nữa
+//    private ShowtimeInfo loadShowtimeInfo(ShowTime showtime) {
+//        String startTimeLabel = showtime.getStartTime()
+//                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+//        String roomName = showtime.getRoom().getName();
+//        String formatLabel = "CINEMAX " + showtime.getRoom().getRoomType();
+//
+//        return new ShowtimeInfo(
+//                showtime.getMovie().getTitle(),
+//                showtime.getMovie().getPosterUrl(),
+//                startTimeLabel,
+//                roomName,
+//                formatLabel
+//        );
+//    }
 
     public record SelectedCombo(String name, int quantity, BigDecimal lineTotal) {
     }
@@ -129,29 +105,7 @@ public class BookingPaymentController {
 
     @PostMapping("/cancel")
     public String cancelBooking(@RequestParam String bookingCode) {
-        // 1. Tìm đơn hàng cần hủy
-        Optional<Booking> bookingOpt = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode);
-
-        if (bookingOpt.isPresent()) {
-            Booking booking = bookingOpt.get();
-
-            // 2. Chuyển trạng thái đơn hàng thành CANCELLED
-            booking.setStatus(BookingStatus.CANCELED.name());
-            booking.setUpdatedAt(LocalDateTime.now());
-
-            // 3. Giải phóng toàn bộ ghế liên quan (Soft-delete Ticket)
-            if (booking.getTickets() != null) {
-                for (Ticket ticket : booking.getTickets()) {
-                    ticket.setIsDeleted(true);
-                }
-                ticketRepository.saveAll(booking.getTickets()); // Chốt hạ lưu xuống DB
-            }
-
-            bookingRepository.save(booking);
-            System.out.println(">>> [HỦY CHỦ ĐỘNG] Khách hàng chủ động hủy đơn: " + bookingCode);
-        }
-
-        // 4. Đưa khách về trang danh sách phim
+        bookingPaymentService.cancelBooking(bookingCode);
         return "redirect:/movies";
     }
 }
