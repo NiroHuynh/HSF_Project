@@ -3,7 +3,6 @@ package com.hsf_project.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Nationalized;
 
 import java.time.LocalDateTime;
 
@@ -28,7 +27,6 @@ public class MovieReview {
     @Column(name = "rating_star", columnDefinition = "tinyint not null")
     private Short ratingStar;
 
-    @Nationalized
     @Lob
     @Column(name = "comment")
     private String comment;
