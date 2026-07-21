@@ -386,6 +386,8 @@ INSERT INTO city (name, is_deleted) VALUES
                                         (N'Hải Phòng',   0);
 GO
 
+
+
 /* ============================================================
    12. CINEMA  (khớp đúng tên rạp trong ảnh Chi tiết phim)
    ============================================================ */
@@ -920,3 +922,363 @@ GO
    booking(6)  booking_combo(5)  ticket(10)
    payment_method(3)  payment(6)
    ============================================================ */
+
+/* ================================================================
+   FILE GỘP — CHẠY SAU create.sql + Data.sql (DB GỐC)
+   Thứ tự xử lý:
+     BƯỚC 1: Xóa phim trùng poster_url (giữ 1 đại diện/nhóm) + dọn cascade
+             FK liên quan (payment -> booking_combo -> ticket -> booking
+             -> show_time -> movie).
+     BƯỚC 2: Insert 5 tài khoản manager còn thiếu (1 station = 1 manager).
+     BƯỚC 3: Insert show_time test (động theo GETDATE()+30p) cho 8 phim.
+             2 phim đã bị xóa ở BƯỚC 1 (Cuộc Gọi Cuối Cùng, Biệt Đội Săn Bão)
+             được THAY bằng Người Gác Hải Đăng / Bản Giao Hưởng Cuối (dùng lại
+             đúng phòng Gigamall - 2D / Gigamall - IMAX).
+     BƯỚC 4: Insert booking + ticket (PAID) để test in vé tại CGV Vincom NCT
+             (Joker, Dune — không bị ảnh hưởng bởi BƯỚC 1).
+   ================================================================ */
+
+USE HSF_PROJECT;
+GO
+
+
+/* ================================================================
+   BƯỚC 1: XÓA PHIM TRÙNG poster_url — GIỮ 1 ĐẠI DIỆN/NHÓM
+   Giữ lại: Kẻ Đánh Cắp Ký Ức, Đường Đua Tốc Độ, Vũ Trụ Song Hành, Đảo Bão
+   Xóa:     Cuộc Gọi Cuối Cùng, Ánh Sáng Cuối Đường Hầm,
+            Chiến Dịch Sao Đỏ, Giấc Mơ Atlantis, Biệt Đội Săn Bão
+   ================================================================ */
+
+DECLARE @MoviesToDelete TABLE (title NVARCHAR(255));
+INSERT INTO @MoviesToDelete (title) VALUES
+                                        (N'Cuộc Gọi Cuối Cùng'),
+                                        (N'Ánh Sáng Cuối Đường Hầm'),
+                                        (N'Chiến Dịch Sao Đỏ'),
+                                        (N'Giấc Mơ Atlantis'),
+                                        (N'Biệt Đội Săn Bão');
+
+-- Toàn bộ show_time thuộc các phim sắp xóa (bao gồm show_time gốc trong Data.sql)
+DECLARE @ShowtimeIds TABLE (id BIGINT);
+INSERT INTO @ShowtimeIds (id)
+SELECT st.id
+FROM show_time st
+         JOIN movie m ON m.id = st.movie_id
+WHERE m.title IN (SELECT title FROM @MoviesToDelete);
+
+-- Các booking có ít nhất 1 vé thuộc những show_time này
+DECLARE @AffectedBookingIds TABLE (id BIGINT);
+INSERT INTO @AffectedBookingIds (id)
+SELECT DISTINCT booking_id
+FROM ticket
+WHERE showtime_id IN (SELECT id FROM @ShowtimeIds);
+
+-- Xóa các vé thuộc show_time sắp xóa (chỉ đúng những vé đó, không đụng vé khác của cùng booking)
+DELETE FROM ticket
+WHERE showtime_id IN (SELECT id FROM @ShowtimeIds);
+
+-- Trong số booking bị ảnh hưởng, chỉ những booking KHÔNG còn vé nào mới bị xóa hẳn
+DECLARE @BookingsToDelete TABLE (id BIGINT);
+INSERT INTO @BookingsToDelete (id)
+SELECT ab.id
+FROM @AffectedBookingIds ab
+WHERE NOT EXISTS (SELECT 1 FROM ticket t WHERE t.booking_id = ab.id);
+
+DELETE FROM payment WHERE booking_id IN (SELECT id FROM @BookingsToDelete);
+DELETE FROM booking_combo WHERE booking_id IN (SELECT id FROM @BookingsToDelete);
+DELETE FROM booking WHERE id IN (SELECT id FROM @BookingsToDelete);
+
+DELETE FROM show_time WHERE id IN (SELECT id FROM @ShowtimeIds);
+
+-- Dọn bảng trung gian movie_genre (many-to-many movie <-> genre) trước khi xóa movie
+DELETE FROM movie_genre
+WHERE movie_id IN (
+    SELECT id FROM movie WHERE title IN (SELECT title FROM @MoviesToDelete)
+);
+
+DELETE FROM movie WHERE title IN (SELECT title FROM @MoviesToDelete);
+GO
+
+-- Kiểm tra lại số phim còn lại (kỳ vọng 17 - 5 = 12)
+SELECT COUNT(*) AS total_movies_remaining FROM movie;
+GO
+
+
+/* ================================================================
+   BƯỚC 2: TÀI KHOẢN MANAGER CHO TỪNG STATION (CINEMA)
+   1 station = 1 manager, status = ACTIVE, role_id = 2 (MANAGER).
+   Đã có sẵn: staff.bao@cinemax.vn -> CGV Vincom Nguyễn Chí Thanh
+   ================================================================ */
+
+INSERT INTO users
+(role_id, first_name, last_name, email, phone_number, password,
+ date_of_birth, gender, status, is_deleted)
+VALUES
+    (2, N'Hải',   N'Trịnh Quốc', 'manager.pandora@cinemax.vn',   '0900000003',
+     '123456', '1992-03-11', N'Nam', 'ACTIVE', 0),
+
+    (2, N'Thảo',  N'Nguyễn Anh', 'manager.liberty@cinemax.vn',   '0900000004',
+     '123456', '1993-06-22', N'Nữ',  'ACTIVE', 0),
+
+    (2, N'Đức',   N'Lê Minh',    'manager.gigamall@cinemax.vn',  '0900000005',
+     '123456', '1991-10-05', N'Nam', 'ACTIVE', 0),
+
+    (2, N'Ngọc',  N'Phan Bảo',   'manager.danang@cinemax.vn',    '0900000006',
+     '123456', '1994-02-18', N'Nữ',  'ACTIVE', 0),
+
+    (2, N'Tuấn',  N'Võ Anh',     'manager.cantho@cinemax.vn',    '0900000007',
+     '123456', '1990-12-29', N'Nam', 'ACTIVE', 0);
+GO
+
+UPDATE users
+SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Pandora City')
+WHERE email = 'manager.pandora@cinemax.vn';
+GO
+
+UPDATE users
+SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Liberty Citypoint')
+WHERE email = 'manager.liberty@cinemax.vn';
+GO
+
+UPDATE users
+SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Gigamall Thủ Đức')
+WHERE email = 'manager.gigamall@cinemax.vn';
+GO
+
+UPDATE users
+SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Vincom Đà Nẵng')
+WHERE email = 'manager.danang@cinemax.vn';
+GO
+
+UPDATE users
+SET cinema_id = (SELECT id FROM cinema WHERE name = N'CGV Sense City Cần Thơ')
+WHERE email = 'manager.cantho@cinemax.vn';
+GO
+
+
+/* ================================================================
+   BƯỚC 3: SHOW_TIME ĐỘNG ĐỂ TEST (không hard-code ngày)
+   - Mỗi phim 2 suất: base = GETDATE() + 30 phút, suất 2 = base + 3 giờ.
+   - 2 phim đã bị xóa ở BƯỚC 1 được thay bằng phim khác, GIỮ NGUYÊN
+     phòng cũ (Gigamall - 2D / Gigamall - IMAX) để không đổi cấu trúc rải phòng:
+       Cuộc Gọi Cuối Cùng  -> Người Gác Hải Đăng     (Gigamall - 2D)
+       Biệt Đội Săn Bão    -> Bản Giao Hưởng Cuối    (Gigamall - IMAX)
+   ================================================================ */
+
+DECLARE @base DATETIME2 = DATEADD(MINUTE, 30, GETDATE());
+DECLARE @slot2 DATETIME2 = DATEADD(HOUR, 3, @base);
+
+INSERT INTO show_time (start_time, end_time, room_id, movie_id, is_deleted)
+VALUES
+-- 1. Joker: Folie à Deux -> Vincom NCT - 2D
+(@base,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Joker: Folie à Deux'), @base),
+ (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D'),
+ (SELECT id FROM movie WHERE title = N'Joker: Folie à Deux'), 0),
+
+(@slot2,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Joker: Folie à Deux'), @slot2),
+ (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D'),
+ (SELECT id FROM movie WHERE title = N'Joker: Folie à Deux'), 0),
+
+-- 2. Dune: Part Two -> Vincom NCT - IMAX
+(@base,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Dune: Part Two'), @base),
+ (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX'),
+ (SELECT id FROM movie WHERE title = N'Dune: Part Two'), 0),
+
+(@slot2,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Dune: Part Two'), @slot2),
+ (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX'),
+ (SELECT id FROM movie WHERE title = N'Dune: Part Two'), 0),
+
+-- 3. Lằn Ranh Sinh Tử -> Liberty - 2D
+(@base,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Lằn Ranh Sinh Tử'), @base),
+ (SELECT id FROM cinema_room WHERE name = N'Liberty - 2D'),
+ (SELECT id FROM movie WHERE title = N'Lằn Ranh Sinh Tử'), 0),
+
+(@slot2,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Lằn Ranh Sinh Tử'), @slot2),
+ (SELECT id FROM cinema_room WHERE name = N'Liberty - 2D'),
+ (SELECT id FROM movie WHERE title = N'Lằn Ranh Sinh Tử'), 0),
+
+-- 4. Kẻ Đánh Cắp Ký Ức -> Liberty - IMAX
+(@base,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Kẻ Đánh Cắp Ký Ức'), @base),
+ (SELECT id FROM cinema_room WHERE name = N'Liberty - IMAX'),
+ (SELECT id FROM movie WHERE title = N'Kẻ Đánh Cắp Ký Ức'), 0),
+
+(@slot2,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Kẻ Đánh Cắp Ký Ức'), @slot2),
+ (SELECT id FROM cinema_room WHERE name = N'Liberty - IMAX'),
+ (SELECT id FROM movie WHERE title = N'Kẻ Đánh Cắp Ký Ức'), 0),
+
+-- 5. Đảo Bão -> Pandora - 2D
+(@base,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Đảo Bão'), @base),
+ (SELECT id FROM cinema_room WHERE name = N'Pandora - 2D'),
+ (SELECT id FROM movie WHERE title = N'Đảo Bão'), 0),
+
+(@slot2,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Đảo Bão'), @slot2),
+ (SELECT id FROM cinema_room WHERE name = N'Pandora - 2D'),
+ (SELECT id FROM movie WHERE title = N'Đảo Bão'), 0),
+
+-- 6. Người Gác Hải Đăng (thay Cuộc Gọi Cuối Cùng - đã xóa) -> Gigamall - 2D
+(@base,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Người Gác Hải Đăng'), @base),
+ (SELECT id FROM cinema_room WHERE name = N'Gigamall - 2D'),
+ (SELECT id FROM movie WHERE title = N'Người Gác Hải Đăng'), 0),
+
+(@slot2,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Người Gác Hải Đăng'), @slot2),
+ (SELECT id FROM cinema_room WHERE name = N'Gigamall - 2D'),
+ (SELECT id FROM movie WHERE title = N'Người Gác Hải Đăng'), 0),
+
+-- 7. Bản Giao Hưởng Cuối (thay Biệt Đội Săn Bão - đã xóa) -> Gigamall - IMAX
+(@base,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Bản Giao Hưởng Cuối'), @base),
+ (SELECT id FROM cinema_room WHERE name = N'Gigamall - IMAX'),
+ (SELECT id FROM movie WHERE title = N'Bản Giao Hưởng Cuối'), 0),
+
+(@slot2,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Bản Giao Hưởng Cuối'), @slot2),
+ (SELECT id FROM cinema_room WHERE name = N'Gigamall - IMAX'),
+ (SELECT id FROM movie WHERE title = N'Bản Giao Hưởng Cuối'), 0),
+
+-- 8. Trò Chơi Sinh Tồn -> Da Nang - 2D
+(@base,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Trò Chơi Sinh Tồn'), @base),
+ (SELECT id FROM cinema_room WHERE name = N'Da Nang - 2D'),
+ (SELECT id FROM movie WHERE title = N'Trò Chơi Sinh Tồn'), 0),
+
+(@slot2,
+ DATEADD(MINUTE, (SELECT duration_minutes FROM movie WHERE title = N'Trò Chơi Sinh Tồn'), @slot2),
+ (SELECT id FROM cinema_room WHERE name = N'Da Nang - 2D'),
+ (SELECT id FROM movie WHERE title = N'Trò Chơi Sinh Tồn'), 0);
+GO
+
+
+/* ================================================================
+   BƯỚC 4: BOOKING + TICKET (CONFIRMED/PAID) ĐỂ TEST IN VÉ TẠI CGV VINCOM NCT
+   - Joker: Folie à Deux -> Vincom NCT - 2D  (2 suất: sớm & muộn)
+   - Dune: Part Two      -> Vincom NCT - IMAX (2 suất: sớm & muộn)
+   - booking.status = 'CONFIRMED' để khớp TicketRepository.existsBookedSeat()
+   ================================================================ */
+
+/* ---------- BOOKING A: Joker (suất sớm) - phong.huynh@gmail.com - 2 ghế ---------- */
+INSERT INTO booking (user_id, promotion_id, booking_code, total_amount, discount_amount, final_amount, status, note, is_deleted)
+VALUES (
+           (SELECT user_id FROM users WHERE email = 'phong.huynh@gmail.com'),
+           NULL,
+           'CMXTESTNCT01',
+           150000, 0, 150000,
+           'CONFIRMED',
+           N'Booking test in vé - Joker suất sớm - NCT',
+           0
+       );
+GO
+
+INSERT INTO ticket (booking_id, showtime_id, seat_id, ticket_price_id, status, paid_at, is_deleted)
+VALUES
+    ((SELECT id FROM booking WHERE booking_code = 'CMXTESTNCT01'),
+     (SELECT TOP 1 id FROM show_time
+      WHERE movie_id = (SELECT id FROM movie WHERE title = N'Joker: Folie à Deux')
+        AND room_id  = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D')
+      ORDER BY start_time ASC),
+     (SELECT id FROM seat WHERE seat_code = 'A1' AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D')),
+     (SELECT id FROM ticket_price WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D') AND seat_type = 'STANDARD'),
+     'PAID', GETDATE(), 0),
+
+    ((SELECT id FROM booking WHERE booking_code = 'CMXTESTNCT01'),
+     (SELECT TOP 1 id FROM show_time
+      WHERE movie_id = (SELECT id FROM movie WHERE title = N'Joker: Folie à Deux')
+        AND room_id  = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D')
+      ORDER BY start_time ASC),
+     (SELECT id FROM seat WHERE seat_code = 'A2' AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D')),
+     (SELECT id FROM ticket_price WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D') AND seat_type = 'STANDARD'),
+     'PAID', GETDATE(), 0);
+GO
+
+INSERT INTO payment (booking_id, payment_method_id, amount, payment_time, payment_status)
+VALUES (
+           (SELECT id FROM booking WHERE booking_code = 'CMXTESTNCT01'),
+           (SELECT id FROM payment_method WHERE provider = 'VNPAY'),
+           150000, GETDATE(), 'SUCCESS'
+       );
+GO
+
+/* ---------- BOOKING B: Dune: Part Two (suất sớm) - mai.nguyen@gmail.com - 2 ghế ---------- */
+INSERT INTO booking (user_id, promotion_id, booking_code, total_amount, discount_amount, final_amount, status, note, is_deleted)
+VALUES (
+           (SELECT user_id FROM users WHERE email = 'mai.nguyen@gmail.com'),
+           NULL,
+           'CMXTESTNCT02',
+           190000, 0, 190000,
+           'CONFIRMED',
+           N'Booking test in vé - Dune Part Two suất sớm - NCT',
+           0
+       );
+GO
+
+INSERT INTO ticket (booking_id, showtime_id, seat_id, ticket_price_id, status, paid_at, is_deleted)
+VALUES
+    ((SELECT id FROM booking WHERE booking_code = 'CMXTESTNCT02'),
+     (SELECT TOP 1 id FROM show_time
+      WHERE movie_id = (SELECT id FROM movie WHERE title = N'Dune: Part Two')
+        AND room_id  = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')
+      ORDER BY start_time ASC),
+     (SELECT id FROM seat WHERE seat_code = 'A1' AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
+     (SELECT id FROM ticket_price WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX') AND seat_type = 'STANDARD'),
+     'PAID', GETDATE(), 0),
+
+    ((SELECT id FROM booking WHERE booking_code = 'CMXTESTNCT02'),
+     (SELECT TOP 1 id FROM show_time
+      WHERE movie_id = (SELECT id FROM movie WHERE title = N'Dune: Part Two')
+        AND room_id  = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')
+      ORDER BY start_time ASC),
+     (SELECT id FROM seat WHERE seat_code = 'A2' AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX')),
+     (SELECT id FROM ticket_price WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - IMAX') AND seat_type = 'STANDARD'),
+     'PAID', GETDATE(), 0);
+GO
+
+INSERT INTO payment (booking_id, payment_method_id, amount, payment_time, payment_status)
+VALUES (
+           (SELECT id FROM booking WHERE booking_code = 'CMXTESTNCT02'),
+           (SELECT id FROM payment_method WHERE provider = 'DOMESTIC_ATM'),
+           190000, GETDATE(), 'SUCCESS'
+       );
+GO
+
+/* ---------- BOOKING C: Joker (suất muộn) - khanh.tran@gmail.com - 1 ghế ---------- */
+INSERT INTO booking (user_id, promotion_id, booking_code, total_amount, discount_amount, final_amount, status, note, is_deleted)
+VALUES (
+           (SELECT user_id FROM users WHERE email = 'khanh.tran@gmail.com'),
+           NULL,
+           'CMXTESTNCT03',
+           75000, 0, 75000,
+           'CONFIRMED',
+           N'Booking test in vé - Joker suất muộn - NCT',
+           0
+       );
+GO
+
+INSERT INTO ticket (booking_id, showtime_id, seat_id, ticket_price_id, status, paid_at, is_deleted)
+VALUES
+    ((SELECT id FROM booking WHERE booking_code = 'CMXTESTNCT03'),
+     (SELECT TOP 1 id FROM show_time
+      WHERE movie_id = (SELECT id FROM movie WHERE title = N'Joker: Folie à Deux')
+        AND room_id  = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D')
+      ORDER BY start_time DESC),
+     (SELECT id FROM seat WHERE seat_code = 'B1' AND room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D')),
+     (SELECT id FROM ticket_price WHERE room_id = (SELECT id FROM cinema_room WHERE name = N'Vincom NCT - 2D') AND seat_type = 'STANDARD'),
+     'PAID', GETDATE(), 0);
+GO
+
+INSERT INTO payment (booking_id, payment_method_id, amount, payment_time, payment_status)
+VALUES (
+           (SELECT id FROM booking WHERE booking_code = 'CMXTESTNCT03'),
+           (SELECT id FROM payment_method WHERE provider = 'VNPAY'),
+           75000, GETDATE(), 'SUCCESS'
+       );
+GO

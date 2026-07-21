@@ -220,6 +220,10 @@
                 <div class="price-final" th:text="${#numbers.formatDecimal(b.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
                 <div class="price-discount" th:if="${b.discountAmount != null && b.discountAmount.doubleValue() > 0}"
                      th:text="${#numbers.formatDecimal(b.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                <a th:if="${b.status == 'PENDING'}"
+                   th:href="@{/booking/payment(bookingCode=${b.bookingCode})}"
+                   onclick="event.stopPropagation()"
+                   class="btn btn-primary btn-sm" style="margin-top: var(--space-sm);">Thanh toán</a>
             </div>
         </div>
 
