@@ -7,6 +7,7 @@ import com.hsf_project.repository.auth.RoleRepository;
 import com.hsf_project.repository.auth.UserRepository;
 import com.hsf_project.service.auth.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,9 +22,23 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RoleRepository roleRepo;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public User loginByEmail(String email, String password) {
-        return userRepo.findByEmailAndPasswordAndIsDeletedFalseAndStatus(email,password, "ACTIVE");
+        // 1. Tìm user theo email (và còn hoạt động)
+        Optional<User> userOpt = userRepo.findByEmailAndIsDeletedFalse(email);
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            // 2. Kiểm tra status và so sánh mật khẩu raw với mật khẩu đã hash trong DB
+            if ("ACTIVE".equalsIgnoreCase(user.getStatus())
+                    && passwordEncoder.matches(password, user.getPassword())) {
+                return user;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -48,7 +63,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(form.getEmail());
         user.setPhoneNumber(form.getPhoneNumber() == null || form.getPhoneNumber().isBlank()
                 ? null : form.getPhoneNumber());
-        user.setPassword(form.getPassword());
+        user.setPassword(passwordEncoder.encode(form.getPassword()));
         user.setStatus("ACTIVE");
         user.setIsDeleted(false);
         return userRepo.save(user);
@@ -58,11 +73,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User changePassword(Long userId, String oldPassword, String newPassword) {
         Optional<User> found = userRepo.findById(userId);
-        if (found.isEmpty() || !found.get().getPassword().equals(oldPassword)) {
+        if (found.isEmpty() || !passwordEncoder.matches(oldPassword, found.get().getPassword())) {
             return null;
         }
         User user = found.get();
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         return userRepo.save(user);
     }
 
@@ -74,7 +89,7 @@ public class UserServiceImpl implements UserService {
             return false;
         }
         User user = found.get();
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
         return true;
     }
