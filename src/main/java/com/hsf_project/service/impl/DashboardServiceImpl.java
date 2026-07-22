@@ -8,6 +8,7 @@ import com.hsf_project.dto.dashboard.response.MovieStatsResponse;
 import com.hsf_project.dto.dashboard.response.RevenueTrendResponse;
 import com.hsf_project.entity.Booking;
 import com.hsf_project.entity.Movie;
+import com.hsf_project.entity.enums.BookingStatus;
 import com.hsf_project.entity.enums.MovieStatus;
 import com.hsf_project.entity.Ticket;
 import com.hsf_project.mapper.DashboardMapper;
@@ -226,7 +227,7 @@ public class DashboardServiceImpl implements DashboardService {
         String keyword = (search != null && !search.trim().isEmpty()) ? search.trim().toLowerCase() : null;
 
         List<Booking> bookings = bookingRepository
-                .findByBookingDateBetweenAndStatusAndIsDeletedFalse(fromDateTime, toDateTime, "PAID");
+                .findByBookingDateBetweenAndStatusAndIsDeletedFalse(fromDateTime, toDateTime, BookingStatus.CONFIRMED.name());
 
         Map<Integer, MovieRevenueGroup> groupMap = new LinkedHashMap<>();
         for (Booking booking : bookings) {
