@@ -333,8 +333,8 @@
                 </div>
 
                 <div class="price-row" th:each="combo : ${selectedCombos}">
-                    <span class="text-secondary body-sm" th:text="'Combo: ' + ${combo.name()} + ' x' + ${combo.quantity()}">Combo</span>
-                    <span th:text="${#numbers.formatInteger(combo.lineTotal(), 0, 'POINT')} + 'đ'">0đ</span>
+                    <span class="text-secondary body-sm" th:text="'Combo: ' + ${combo.name} + ' x' + ${combo.quantity}">Combo</span>
+                    <span th:text="${#numbers.formatInteger(combo.lineTotal, 0, 'POINT')} + 'đ'">0đ</span>
                 </div>
 
                 <div class="price-row">
