@@ -33,36 +33,36 @@ INSERT INTO users
  date_of_birth, gender, status, is_deleted)
 VALUES
     (1, N'Minh',  N'Nguyễn Quang', 'admin@cinemax.vn',      '0900000001',
-     '123456', '1990-01-15', N'Nam', 'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1990-01-15', N'Nam', 'ACTIVE', 0),
 
     (2, N'Bảo',   N'Hồ Nguyễn',    'staff.bao@cinemax.vn',  '0900000002',
-     '123456', '1996-07-25', N'Nam', 'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1996-07-25', N'Nam', 'ACTIVE', 0),
 
     (3, N'Phong', N'Huỳnh Tấn',    'phong.huynh@gmail.com', '0901234567',
-     '123456', '1999-07-08', N'Nam', 'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1999-07-08', N'Nam', 'ACTIVE', 0),
 
     (3, N'Mai',   N'Nguyễn Thị',   'mai.nguyen@gmail.com',  '0912345678',
-     '123456', '2001-11-02', N'Nữ',  'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '2001-11-02', N'Nữ',  'ACTIVE', 0),
 
     (3, N'Khánh', N'Trần Gia',     'khanh.tran@gmail.com',  '0923456789',
-     '123456', '1998-05-19', N'Nam', 'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1998-05-19', N'Nam', 'ACTIVE', 0),
 
     (3, N'Linh',  N'Phạm Thuỳ',    'linh.pham@gmail.com',   '0934567890',
-     '123456', '2000-09-30', N'Nữ',  'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '2000-09-30', N'Nữ',  'ACTIVE', 0),
 
     (3, N'Nam',   N'Đặng Hoài',    'nam.dang@gmail.com',    '0945678901',
-     '123456', '1997-04-12', N'Nam', 'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1997-04-12', N'Nam', 'ACTIVE', 0),
 
     (3, N'Hương', N'Lê Thị',       'huong.le@gmail.com',    '0956789012',
-     '123456', '1995-08-23', N'Nữ',  'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1995-08-23', N'Nữ',  'ACTIVE', 0),
 
     (3, N'Quân',  N'Vũ Minh',      'quan.vu@gmail.com',     '0967890123',
-     '123456', '2002-01-17', N'Nam', 'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '2002-01-17', N'Nam', 'ACTIVE', 0),
 
     (3, N'Trâm',  N'Đỗ Bảo',       'tram.do@gmail.com',     '0978901234',
-     '123456', '1999-12-05', N'Nữ',  'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1999-12-05', N'Nữ',  'ACTIVE', 0),
     (2, N'Bình', N'Viết', 'binh@fpt.edu.vn', '0912345678',
-     '123456', '2004-01-01', N'Nam', 'ACTIVE', 0);
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '2004-01-01', N'Nam', 'ACTIVE', 0);
 GO
 
 /* ============================================================
@@ -1014,19 +1014,19 @@ INSERT INTO users
  date_of_birth, gender, status, is_deleted)
 VALUES
     (2, N'Hải',   N'Trịnh Quốc', 'manager.pandora@cinemax.vn',   '0900000003',
-     '123456', '1992-03-11', N'Nam', 'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1992-03-11', N'Nam', 'ACTIVE', 0),
 
     (2, N'Thảo',  N'Nguyễn Anh', 'manager.liberty@cinemax.vn',   '0900000004',
-     '123456', '1993-06-22', N'Nữ',  'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1993-06-22', N'Nữ',  'ACTIVE', 0),
 
     (2, N'Đức',   N'Lê Minh',    'manager.gigamall@cinemax.vn',  '0900000005',
-     '123456', '1991-10-05', N'Nam', 'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1991-10-05', N'Nam', 'ACTIVE', 0),
 
     (2, N'Ngọc',  N'Phan Bảo',   'manager.danang@cinemax.vn',    '0900000006',
-     '123456', '1994-02-18', N'Nữ',  'ACTIVE', 0),
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1994-02-18', N'Nữ',  'ACTIVE', 0),
 
     (2, N'Tuấn',  N'Võ Anh',     'manager.cantho@cinemax.vn',    '0900000007',
-     '123456', '1990-12-29', N'Nam', 'ACTIVE', 0);
+     '$2a$10$2y3m0IZAXxDeLRhSIrtWTuYr7MZf8UXV3OOVNjjEPjPRUHTz/AyO2', '1990-12-29', N'Nam', 'ACTIVE', 0);
 GO
 
 UPDATE users
