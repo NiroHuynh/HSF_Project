@@ -9,6 +9,7 @@ import com.hsf_project.service.BookingComboService;
 import com.hsf_project.service.ComboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ public class BookingComboServiceImpl implements BookingComboService {
     private ComboService comboService;
 
     @Override
+    @Transactional
     public void saveBookingCombos(String bookingCode, Map<String, String> allParams) {
         // 1. Lấy và validate Booking
         Booking booking = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode)
