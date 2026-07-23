@@ -59,7 +59,6 @@ public class CreateMovieRequest {
     @NotNull(message = "Ngày kết thúc dự kiến không được để trống")
     LocalDate endDate;
 
-    @NotBlank(message = "Poster không được để trống")
     String posterUrl;
 
     Boolean isFeatured;
