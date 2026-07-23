@@ -137,24 +137,24 @@
             box-shadow: 0 20px 45px rgba(0,0,0,0.6); transform: scale(0.9); transition: transform 200ms ease;
         }
         .bill-modal.is-active .invoice-wrapper { transform: scale(1); }
-        .invoice-header { padding: 20px; background: linear-gradient(135deg, rgba(227, 27, 35, 0.1) 0%, rgba(0, 0, 0, 0) 100%); border-bottom: 1px dashed rgba(255, 255, 255, 0.16); position: relative; }
+        .invoice-header { padding: 14px 20px; background: linear-gradient(135deg, rgba(227, 27, 35, 0.1) 0%, rgba(0, 0, 0, 0) 100%); border-bottom: 1px dashed rgba(255, 255, 255, 0.16); position: relative; }
         .invoice-header::before, .invoice-header::after { content: ''; position: absolute; bottom: -10px; width: 20px; height: 20px; background-color: #0A0A0C; border-radius: 50%; }
         .invoice-header::before { left: -11px; } .invoice-header::after { right: -11px; }
-        .invoice-body { padding: 20px; }
-        .info-grid-bill { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .info-grid-bill { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
         .bill-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; }
         .bill-value { font-size: 14px; font-weight: 600; color: #fff; margin-top: 4px; }
-        .price-row-summary { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; color: var(--color-text-secondary); }
+        .price-row-summary { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 14px; color: var(--color-text-secondary); }
         .price-row-summary.total-final { font-size: 18px; font-weight: 800; color: var(--color-brand-red); margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.16); }
         .close-bill-btn { background: none; border: none; color: var(--color-text-muted); cursor: pointer; }
         .close-bill-btn:hover { color: #fff; }
 
         .invoice-wrapper { max-height: 90vh; overflow: hidden; }
-        .invoice-body { overflow-y: auto; max-height: calc(90vh - 110px); }
-        .bill-section-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; margin: 16px 0 8px; font-weight: 700; letter-spacing: 0.04em; }
-        .bill-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .invoice-body { padding: 16px; max-height: calc(90vh - 80px); overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+        .invoice-body::-webkit-scrollbar { display: none; }
+        .bill-section-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; margin: 10px 0 4px; font-weight: 700; letter-spacing: 0.04em; }
+        .bill-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         .bill-table th { text-align: left; font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-        .bill-table td { font-size: 13px; padding: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--color-text-primary); }
+        .bill-table td { font-size: 13px; padding: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--color-text-primary); }
         .bill-table td:last-child, .bill-table th:last-child { text-align: right; }
     </style>
 </head>
@@ -241,7 +241,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <span class="bill-label">CHI TIẾT VÉ</span>
-                    <h2 style="margin: 4px 0 0 0; font-size: 22px; font-weight: 800;" id="m-code">MÃ VÉ</h2>
+                    <h2 style="margin: 2px 0 0 0; font-size: 20px; font-weight: 800;" id="m-code">MÃ VÉ</h2>
                 </div>
                 <button class="close-bill-btn" onclick="closeBill()">
                     <span class="material-symbols-outlined">close</span>
@@ -249,10 +249,10 @@
             </div>
         </div>
         <div class="invoice-body">
-            <div style="display: flex; gap: 16px; margin-bottom: 20px;">
-                <img id="m-poster" src="" style="width: 70px; height: 100px; object-fit: cover; border-radius: 6px;" alt="Poster">
+            <div style="display: flex; gap: 12px; margin-bottom: 14px;">
+                <img id="m-poster" src="" style="width: 60px; height: 85px; object-fit: cover; border-radius: 6px;" alt="Poster">
                 <div>
-                    <h3 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700;" id="m-movie">Tên Phim</h3>
+                    <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700;" id="m-movie">Tên Phim</h3>
                     <p style="margin: 0; font-size: 14px; color: #2D7A4F; font-weight: 600;" id="m-status">Trạng thái</p>
                 </div>
             </div>
@@ -277,7 +277,7 @@
                 </table>
             </div>
 
-            <div style="background-color: #18181D; padding: 12px; border-radius: 8px;">
+            <div style="background-color: #18181D; padding: 10px; border-radius: 8px;">
                 <div class="price-row-summary"><span>Tổng tiền gốc</span><span id="m-total">0 đ</span></div>
                 <div class="price-row-summary"><span>Giảm giá</span><span style="color: #2D7A4F;" id="m-discount">0 đ</span></div>
                 <div class="price-row-summary" style="font-size: 12px; color: var(--color-text-muted);"><span>Ngày đặt</span><span id="m-date">---</span></div>
