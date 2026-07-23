@@ -393,7 +393,6 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    @Transactional
     public void initRatings() {
         List<Integer> movieIds = movieReviewRepository.findDistinctMovieIdsWithReviews();
         for (Integer movieId : movieIds) {
