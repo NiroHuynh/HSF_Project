@@ -28,7 +28,9 @@ public class AdminController {
     private Map<String,Integer> countRows(Integer roomId){Map<String,Set<String>> rowsByType=new HashMap<>();SEAT_TYPES.forEach(t->rowsByType.put(t,new HashSet<>()));for(Seat s:seats.findByRoomIdAndIsDeletedFalseOrderByRowLabelAscSeatNumberAsc(roomId)){Set<String> set=rowsByType.get(s.getType());if(set!=null)set.add(s.getRowLabel());}Map<String,Integer> out=new HashMap<>();rowsByType.forEach((t,set)->out.put(t,set.size()));return out;}
 
     @PostMapping("/cities/save") public String saveCity(@RequestParam(required=false) Integer id,@RequestParam String name,RedirectAttributes ra){
-        if(name.trim().isBlank())return err(ra,"Tên thành phố không được để trống","/admin/locations"); City x=id==null?new City():cities.findById(id).orElseThrow();x.setName(name.trim());x.setIsDeleted(false);cities.save(x);return ok(ra,"Đã lưu thành phố","/admin/locations");}
+        if(name.trim().isBlank())return err(ra,"Tên thành phố không được để trống","/admin/locations");
+        if(name.trim().length() > 20)return err(ra,"Tên thành phố tối đa 20 ký tự","/admin/locations");
+        City x=id==null?new City():cities.findById(id).orElseThrow();x.setName(name.trim());x.setIsDeleted(false);cities.save(x);return ok(ra,"Đã lưu thành phố","/admin/locations");}
     @PostMapping("/cities/{id}/delete") public String delCity(@PathVariable Integer id,RedirectAttributes ra){
         long upcoming=showTimes.countUpcomingByCity(id,LocalDateTime.now());
         if(upcoming>0)return err(ra,"Không thể xóa thành phố vì còn "+upcoming+" suất chiếu sắp tới","/admin/locations");
@@ -37,7 +39,10 @@ public class AdminController {
         for(Cinema c:children){roomCount+=softDeleteCinema(c);}
         x.setIsDeleted(true);cities.save(x);
         return ok(ra,"Đã xóa thành phố"+(children.isEmpty()?"":" cùng "+children.size()+" rạp và "+roomCount+" phòng chiếu"),"/admin/locations");}
-    @PostMapping("/cinemas/save") public String saveCinema(@RequestParam(required=false) Integer id,@RequestParam String name,@RequestParam String address,@RequestParam Integer cityId,RedirectAttributes ra){if(name.isBlank()||address.isBlank())return err(ra,"Tên và địa chỉ rạp là bắt buộc","/admin/locations");Cinema x=id==null?new Cinema():cinemas.findById(id).orElseThrow();x.setName(name.trim());x.setAddress(address.trim());x.setCity(cities.findById(cityId).orElseThrow());x.setIsDeleted(false);cinemas.save(x);return ok(ra,"Đã lưu rạp chiếu","/admin/locations");}
+    @PostMapping("/cinemas/save") public String saveCinema(@RequestParam(required=false) Integer id,@RequestParam String name,@RequestParam String address,@RequestParam Integer cityId,RedirectAttributes ra){
+        if(name.isBlank()||address.isBlank())return err(ra,"Tên và địa chỉ rạp là bắt buộc","/admin/locations");
+        if(name.trim().length() > 30)return err(ra,"Tên rạp tối đa 30 ký tự","/admin/locations");
+        Cinema x=id==null?new Cinema():cinemas.findById(id).orElseThrow();x.setName(name.trim());x.setAddress(address.trim());x.setCity(cities.findById(cityId).orElseThrow());x.setIsDeleted(false);cinemas.save(x);return ok(ra,"Đã lưu rạp chiếu","/admin/locations");}
     @PostMapping("/cinemas/{id}/delete") public String delCinema(@PathVariable Integer id,RedirectAttributes ra){
         long upcoming=showTimes.countUpcomingByCinema(id,LocalDateTime.now());
         if(upcoming>0)return err(ra,"Không thể xóa rạp vì còn "+upcoming+" suất chiếu sắp tới","/admin/locations");
@@ -46,6 +51,7 @@ public class AdminController {
 
     @PostMapping("/rooms/save") public String saveRoom(@RequestParam(required=false) Integer id,@RequestParam String name,@RequestParam String roomType,@RequestParam Integer standardRows,@RequestParam Integer vipRows,@RequestParam Integer sweetboxRows,@RequestParam Integer cinemaId,RedirectAttributes ra){
         if(!ROOM_TYPES.contains(roomType)||name.isBlank())return err(ra,"Thông tin phòng không hợp lệ","/admin/locations");
+        if(name.trim().length() > 30)return err(ra,"Tên phòng tối đa 30 ký tự","/admin/locations");
         if(standardRows<0||vipRows<0||sweetboxRows<0)return err(ra,"Số hàng ghế không được âm","/admin/locations");
         int rowCount=standardRows+vipRows+sweetboxRows;
         if(rowCount<1||rowCount>MAX_ROWS)return err(ra,"Tổng số hàng ghế phải từ 1 đến "+MAX_ROWS,"/admin/locations");
@@ -93,7 +99,7 @@ public class AdminController {
      * trước khi vào thân hàm, người dùng nhận trang 500 thay vì thông báo nhập sai.
      */
     @PostMapping("/combos/save") public String saveCombo(@RequestParam(required=false) Long id,@RequestParam String name,@RequestParam(required=false) String description,@RequestParam String price,@RequestParam String quantity,@RequestParam String status,RedirectAttributes ra){
-        if(name.isBlank()||name.trim().length()>100)return err(ra,"Tên combo bắt buộc và tối đa 100 ký tự","/admin/combos");
+        if(name.isBlank()||name.trim().length()>30)return err(ra,"Tên combo bắt buộc và tối đa 30 ký tự","/admin/combos");
         if(description!=null&&description.trim().length()>255)return err(ra,"Mô tả combo tối đa 255 ký tự","/admin/combos");
         if(!List.of("ACTIVE","INACTIVE").contains(status))return err(ra,"Trạng thái combo không hợp lệ","/admin/combos");
         BigDecimal priceValue;int quantityValue;

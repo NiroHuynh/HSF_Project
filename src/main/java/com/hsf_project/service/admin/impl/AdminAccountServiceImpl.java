@@ -13,6 +13,7 @@ import com.hsf_project.service.admin.AdminAccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class AdminAccountServiceImpl implements AdminAccountService {
     RoleRepository roleRepository;
     CinemaRepository cinemaRepository;
     AdminAccountMapper adminAccountMapper;
+    PasswordEncoder passwordEncoder;
 
     private static final List<Integer> ADMIN_ROLE_IDS = List.of(1, 2);
     private static final int MANAGER_ROLE_ID = 2;
@@ -104,7 +106,7 @@ public class AdminAccountServiceImpl implements AdminAccountService {
 
         User user = new User();
         user.setEmail(email);
-        user.setPassword(form.getPassword());
+        user.setPassword(passwordEncoder.encode(form.getPassword()));
         user.setFirstName(form.getFirstName().trim());
         user.setLastName(form.getLastName().trim());
         user.setRole(role);
