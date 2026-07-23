@@ -30,16 +30,7 @@ public interface MovieRepository extends JpaRepository<Movie, Integer> {
 
     Page<Movie> findByStatusAndIsDeletedFalse(MovieStatus status, Pageable pageable);
 
-    Page<Movie> findByTitleContainingIgnoreCaseAndStatusAndIsDeletedFalse(
-            String title, MovieStatus status, Pageable pageable);
-
     Page<Movie> findDistinctByGenres_IdInAndStatusAndIsDeletedFalse(List<Integer> genreIds, MovieStatus status, Pageable pageable);
-
-    @Query("SELECT DISTINCT m FROM Movie m JOIN m.genres g WHERE g.id IN :genreIds AND m.status = :status AND (m.isDeleted IS NULL OR m.isDeleted = false)")
-    Page<Movie> findByGenreIdsAndStatus(@Param("genreIds") List<Integer> genreIds, @Param("status") MovieStatus status, Pageable pageable);
-
-    @Query("SELECT DISTINCT m FROM Movie m JOIN m.genres g WHERE g.id IN :genreIds AND m.status = :status AND (m.isDeleted IS NULL OR m.isDeleted = false) AND LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-    Page<Movie> findByGenreIdsAndStatusAndTitleContaining(@Param("genreIds") List<Integer> genreIds, @Param("status") MovieStatus status, @Param("keyword") String keyword, Pageable pageable);
 
     /**
      * Lấy danh sách phim cho dropdown tạo suất chiếu.
@@ -49,8 +40,6 @@ public interface MovieRepository extends JpaRepository<Movie, Integer> {
             "AND (m.isDeleted IS NULL OR m.isDeleted = false) " +
             "ORDER BY m.title ASC")
     List<Movie> findByStatusInForDropdown(@Param("statuses") List<MovieStatus> statuses);
-
-    Page<Movie> findDistinctByGenres_IdInAndStatusAndIsDeletedFalseAndTitleContainingIgnoreCase(List<Integer> genreIds, MovieStatus status, String keyword, Pageable pageable);
 
     boolean existsByTitleIgnoreCaseAndIsDeletedFalse(String title);
 
@@ -67,4 +56,9 @@ public interface MovieRepository extends JpaRepository<Movie, Integer> {
     List<Movie> findByStatusAndReleaseDateLessThanEqualAndIsDeletedFalse(MovieStatus status, LocalDate today);
 
     List<Movie> findByStatusAndEndDateBeforeAndIsDeletedFalse(MovieStatus status, LocalDate today);
+
+    List<Movie> findByStatusAndEndDateIsNullAndIsDeletedFalse(MovieStatus status);
+
+    @Query("SELECT COUNT(m) > 0 FROM Movie m WHERE LOWER(m.title) = LOWER(:title) AND YEAR(m.releaseDate) = :year AND (m.isDeleted IS NULL OR m.isDeleted = false)")
+    boolean existsByTitleAndReleaseYear(@Param("title") String title, @Param("year") int year);
 }

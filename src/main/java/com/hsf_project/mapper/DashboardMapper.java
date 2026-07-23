@@ -18,5 +18,6 @@ public interface DashboardMapper {
     @Mapping(target = "posterUrl", source = "movie.posterUrl")
     @Mapping(target = "revenue", source = "revenue")
     @Mapping(target = "ticketsSold", expression = "java((long) ticketIds.size())")
+    @Mapping(target = "averageRating", source = "movie.averageRating")
     MovieRevenueRankingResponse toRevenueRankingResponse(Movie movie, BigDecimal revenue, Set<Long> ticketIds);
 }

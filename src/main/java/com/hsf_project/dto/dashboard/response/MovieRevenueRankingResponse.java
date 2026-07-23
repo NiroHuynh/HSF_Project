@@ -21,4 +21,5 @@ public class MovieRevenueRankingResponse {
     String posterUrl;
     BigDecimal revenue;
     long ticketsSold;
+    BigDecimal averageRating;
 }

@@ -149,7 +149,8 @@
         .close-bill-btn { background: none; border: none; color: var(--color-text-muted); cursor: pointer; }
         .close-bill-btn:hover { color: #fff; }
 
-        .invoice-wrapper { max-height: 90vh; overflow-y: auto; }
+        .invoice-wrapper { max-height: 90vh; overflow: hidden; }
+        .invoice-body { overflow-y: auto; max-height: calc(90vh - 110px); }
         .bill-section-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; margin: 16px 0 8px; font-weight: 700; letter-spacing: 0.04em; }
         .bill-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
         .bill-table th { text-align: left; font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
@@ -234,7 +235,7 @@
     </div>
 </main>
 
-<div class="bill-modal" id="billModal" onclick="document.getElementById('billModal').classList.remove('is-active')">
+<div class="bill-modal" id="billModal" onclick="closeBill()">
     <div class="invoice-wrapper" onclick="event.stopPropagation()">
         <div class="invoice-header">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -242,7 +243,7 @@
                     <span class="bill-label">CHI TIẾT VÉ</span>
                     <h2 style="margin: 4px 0 0 0; font-size: 22px; font-weight: 800;" id="m-code">MÃ VÉ</h2>
                 </div>
-                <button class="close-bill-btn" onclick="document.getElementById('billModal').classList.remove('is-active')">
+                <button class="close-bill-btn" onclick="closeBill()">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
@@ -335,8 +336,14 @@
             comboSection.style.display = 'none';
         }
 
-        // Bật hiển thị Popup
+        // Bật hiển thị Popup + khóa scroll body
+        document.body.style.overflow = 'hidden';
         document.getElementById('billModal').classList.add('is-active');
+    }
+
+    function closeBill() {
+        document.getElementById('billModal').classList.remove('is-active');
+        document.body.style.overflow = '';
     }
 </script>
 

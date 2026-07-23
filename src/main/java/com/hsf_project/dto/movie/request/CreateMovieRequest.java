@@ -29,8 +29,8 @@ public class CreateMovieRequest {
     String title;
 
     @NotNull(message = "Thời lượng không được để trống")
-    @Min(value = 30, message = "Thời lượng phải từ 30 đến 300 phút")
-    @Max(value = 300, message = "Thời lượng phải từ 30 đến 300 phút")
+    @Min(value = 80, message = "Thời lượng phải từ 80 đến 240 phút")
+    @Max(value = 240, message = "Thời lượng phải từ 80 đến 240 phút")
     Integer durationMinutes;
 
     @NotNull(message = "Ngày khởi chiếu không được để trống")
@@ -47,6 +47,7 @@ public class CreateMovieRequest {
     @Size(max = 5000, message = "Mô tả không được vượt quá 5000 ký tự")
     String description;
 
+    @NotNull(message = "Phân loại độ tuổi không được để trống")
     AgeRating ageRating;
 
     @NotEmpty(message = "Phải chọn ít nhất một thể loại")
@@ -57,6 +58,9 @@ public class CreateMovieRequest {
 
     @NotNull(message = "Ngày kết thúc dự kiến không được để trống")
     LocalDate endDate;
+
+    @NotBlank(message = "Poster không được để trống")
+    String posterUrl;
 
     Boolean isFeatured;
 

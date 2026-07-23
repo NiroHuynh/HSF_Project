@@ -47,13 +47,30 @@ document.addEventListener('DOMContentLoaded', function () {
     // ========== GENRE TAG CHIPS (dropdown) ==========
     const allGenres = typeof GENRES !== 'undefined' ? GENRES : [
         { id: 1, name: 'Hành động' },
-        { id: 2, name: 'Hài' },
-        { id: 3, name: 'Kinh dị' },
-        { id: 4, name: 'Tâm lý' },
-        { id: 5, name: 'Tình cảm' },
-        { id: 6, name: 'Hoạt hình' },
-        { id: 7, name: 'Phiêu lưu' },
-        { id: 8, name: 'Khoa học viễn tưởng' }
+        { id: 2, name: 'Khoa học viễn tưởng' },
+        { id: 3, name: 'Chính kịch / Tâm lý' },
+        { id: 4, name: 'Tình cảm' },
+        { id: 5, name: 'Kinh dị' },
+        { id: 6, name: 'Hồi hộp' },
+        { id: 7, name: 'Hài' },
+        { id: 8, name: 'Bí ẩn' },
+        { id: 9, name: 'Âm nhạc' },
+        { id: 10, name: 'Phiêu lưu' },
+        { id: 11, name: 'Hoạt hình' },
+        { id: 12, name: 'Giả tưởng' },
+        { id: 13, name: 'Tội phạm' },
+        { id: 14, name: 'Gia đình' },
+        { id: 15, name: 'Thiếu nhi' },
+        { id: 16, name: 'Nhạc kịch' },
+        { id: 17, name: 'Tiểu sử' },
+        { id: 18, name: 'Lịch sử' },
+        { id: 19, name: 'Chiến tranh' },
+        { id: 20, name: 'Võ thuật' },
+        { id: 21, name: 'Thể thao' },
+        { id: 22, name: 'Tài liệu' },
+        { id: 23, name: 'Viễn Tây' },
+        { id: 24, name: 'Hoạt hình 3D' },
+        { id: 25, name: 'Siêu anh hùng' }
     ];
 
     intializeGenreComponent(allGenres);
