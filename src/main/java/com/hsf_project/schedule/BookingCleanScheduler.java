@@ -21,8 +21,6 @@ import java.util.List;
 @Component
 public class BookingCleanScheduler {
 
-    private static final Logger log = LoggerFactory.getLogger(BookingCleanScheduler.class);
-
     /**
      * Hủy đơn muộn hơn hạn giữ ghế 5 phút: ghế đã tự nhả ngay khi hết hạn
      * (existsBookedSeat chỉ tính PENDING còn hạn), nhưng đợi thêm để VNPay
