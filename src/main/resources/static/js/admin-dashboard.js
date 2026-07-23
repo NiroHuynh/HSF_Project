@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('totalMovies').textContent = data.result.totalMovies || 0;
                 document.getElementById('nowShowingCount').textContent = data.result.nowShowingCount || 0;
                 document.getElementById('dailyRevenue').textContent = formatCurrency(data.result.dailyRevenue || 0);
-                document.getElementById('averageRating').textContent = (data.result.averageRating || 0).toFixed(1) + '/5';
+                document.getElementById('averageRating').textContent = (data.result.averageRating || 0).toFixed(1) + '/10';
             }
         } catch (err) {
             console.error('Failed to load stats:', err);
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let movies = data.result || [];
 
             if (movies.length === 0) {
-                rankingBody.innerHTML = '<tr><td colspan="5" class="text-muted text-center">Không có dữ liệu</td></tr>';
+                rankingBody.innerHTML = '<tr><td colspan="6" class="text-muted text-center">Không có dữ liệu</td></tr>';
                 return;
             }
 
@@ -175,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     '</td>' +
                     '<td class="col-revenue revenue-value">' + formatCurrency(m.revenue || 0) + '</td>' +
                     '<td class="col-tickets">' + (m.ticketsSold || 0).toLocaleString() + '</td>' +
+                    '<td class="col-rating">' + formatRating(m.averageRating) + '</td>' +
                     '<td class="col-actions">' +
                     '  <button class="action-btn" onclick="editMovie(' + m.movieId + ')" title="Sửa"><i class="fa-solid fa-pen"></i></button>' +
                     '  <button class="action-btn" onclick="deleteMovie(' + m.movieId + ')" title="Xóa"><i class="fa-solid fa-trash"></i></button>' +
@@ -184,6 +185,11 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (err) {
             console.error('Failed to load ranking:', err);
         }
+    }
+
+    function formatRating(rating) {
+        if (rating == null) return '<span class="text-muted">N/A</span>';
+        return '<span class="rating-value">' + Number(rating).toFixed(1) + '</span>';
     }
 
     function escapeHtml(text) {

@@ -16,4 +16,7 @@ public interface MovieReviewRepository extends JpaRepository<MovieReview, Intege
 
     @Query("SELECT AVG(r.ratingStar) FROM MovieReview r WHERE r.movie.id = :movieId AND r.isDeleted = false")
     BigDecimal findAverageRatingByMovieId(@Param("movieId") Integer movieId);
+
+    @Query("SELECT DISTINCT r.movie.id FROM MovieReview r WHERE r.isDeleted = false")
+    List<Integer> findDistinctMovieIdsWithReviews();
 }

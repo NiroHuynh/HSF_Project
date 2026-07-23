@@ -73,7 +73,7 @@
                     <div class="stat-card">
                         <div class="stat-info">
                             <span class="stat-label">Đánh giá TB</span>
-                            <span class="stat-value" id="averageRating" th:text="${avgRating != null ? avgRating + '/5' : '0.0/5'}">4.8/5</span>
+                            <span class="stat-value" id="averageRating" th:text="${avgRating != null ? avgRating + '/10' : '0.0/10'}">4.8/10</span>
                             <span class="stat-sub">Từ người dùng</span>
                         </div>
                         <div class="stat-icon-wrapper"><i class="fa-solid fa-star"></i></div>
@@ -138,6 +138,7 @@
                                 <th class="col-movie">Phim</th>
                                 <th class="col-revenue">Doanh thu</th>
                                 <th class="col-tickets">Vé đã bán</th>
+                                <th class="col-rating">Đánh giá</th>
                                 <th class="col-actions">Thao tác</th>
                             </tr>
                             </thead>
@@ -158,6 +159,10 @@
                                     <span class="revenue-value" th:text="${#numbers.formatInteger(movie.revenue, 3, 'POINT') + 'đ'}">0đ</span>
                                 </td>
                                 <td th:text="${movie.ticketsSold}">0</td>
+                                <td class="col-rating">
+                                    <span th:if="${movie.averageRating != null}" th:text="${#numbers.formatDecimal(movie.averageRating, 1, 1)}">0.0</span>
+                                    <span th:if="${movie.averageRating == null}" class="text-muted">N/A</span>
+                                </td>
                                 <td class="col-actions">
                                     <button class="action-btn" th:onclick="'editMovie(' + ${movie.id} + ')'" title="Sửa"><i class="fa-solid fa-pen"></i></button>
                                     <button class="action-btn" th:onclick="'deleteMovie(' + ${movie.id} + ')'" title="Xóa"><i class="fa-solid fa-trash"></i></button>
@@ -165,7 +170,7 @@
                             </tr>
 
                             <tr th:if="${#lists.isEmpty(movies)}">
-                                <td colspan="5" style="text-align: center; color: var(--text-secondary); opacity: 0.6; padding: 30px;">
+                                <td colspan="6" style="text-align: center; color: var(--text-secondary); opacity: 0.6; padding: 30px;">
                                     Không có dữ liệu phim nào được tìm thấy.
                                 </td>
                             </tr>

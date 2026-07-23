@@ -75,6 +75,11 @@ public class ReviewServiceImpl implements ReviewService {
                 .isPresent();
     }
 
+    @Override
+    public void recalculateRating(Integer movieId) {
+        updateAverageRating(movieId);
+    }
+
     private void updateAverageRating(Integer movieId) {
         BigDecimal avg = movieReviewRepository.findAverageRatingByMovieId(movieId);
         Movie movie = movieRepository.findById(movieId)

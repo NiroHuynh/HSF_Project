@@ -27,6 +27,8 @@ public enum ErrorCode {
     INVALID_GROWTH_TYPE(1022, HttpStatus.BAD_REQUEST, "Loại thống kê không hợp lệ, chỉ chấp nhận month/quarter/year"),
     INVALID_SORT_FIELD(1023, HttpStatus.BAD_REQUEST, "Trường sắp xếp không hợp lệ"),
     NO_BOOKING_DATA(1024, HttpStatus.NOT_FOUND, "Không có dữ liệu đặt vé"),
+    MOVIE_TITLE_YEAR_EXISTS(1025, HttpStatus.CONFLICT, "Phim với tên và năm phát hành này đã tồn tại"),
+    POSTER_REQUIRED(1026, HttpStatus.BAD_REQUEST, "Phim phải có poster trước khi chuyển sang trạng thái Đang chiếu"),
     INTERNAL_ERROR(9999, HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống");
 
     private final int code;

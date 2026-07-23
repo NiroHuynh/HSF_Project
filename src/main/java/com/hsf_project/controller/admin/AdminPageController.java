@@ -127,6 +127,7 @@ public class AdminPageController {
             m.put("image", r.getPosterUrl());
             m.put("revenue", r.getRevenue());
             m.put("ticketsSold", r.getTicketsSold());
+            m.put("averageRating", r.getAverageRating());
             return m;
         }).collect(toList());
         model.addAttribute("movies", movies);

@@ -14,6 +14,8 @@ import com.hsf_project.mapper.MovieMapper;
 import com.hsf_project.repository.*;
 import com.hsf_project.service.CloudinaryService;
 import com.hsf_project.service.MovieService;
+import com.hsf_project.service.ReviewService;
+import com.hsf_project.util.VietnameseUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -48,6 +52,8 @@ public class MovieServiceImpl implements MovieService {
     MovieAdminMapper movieAdminMapper;
     MovieMapper movieMapper;
     CloudinaryService cloudinaryService;
+    ReviewService reviewService;
+    MovieReviewRepository movieReviewRepository;
 
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/jpeg", "image/jpg", "image/png", "image/webp");
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -92,10 +98,19 @@ public class MovieServiceImpl implements MovieService {
 
     private boolean matchesKeyword(Movie movie, String keyword) {
         if (keyword == null || keyword.isBlank()) return true;
-        String kw = keyword.toLowerCase();
-        return (movie.getTitle() != null && movie.getTitle().toLowerCase().contains(kw))
-                || (movie.getDirector() != null && movie.getDirector().toLowerCase().contains(kw))
-                || (movie.getCast() != null && movie.getCast().toLowerCase().contains(kw));
+        String kwNorm = VietnameseUtils.removeDiacritics(keyword);
+        String[] words = kwNorm.split("\\s+");
+        String titleNorm = movie.getTitle() != null ? VietnameseUtils.removeDiacritics(movie.getTitle()) : null;
+        String directorNorm = movie.getDirector() != null ? VietnameseUtils.removeDiacritics(movie.getDirector()) : null;
+        String castNorm = movie.getCast() != null ? VietnameseUtils.removeDiacritics(movie.getCast()) : null;
+        for (String word : words) {
+            if (word.isEmpty()) continue;
+            if ((titleNorm != null && titleNorm.contains(word))
+                    || (directorNorm != null && directorNorm.contains(word))
+                    || (castNorm != null && castNorm.contains(word)))
+                return true;
+        }
+        return false;
     }
 
     private boolean matchesGenreIds(Movie movie, List<Integer> genreIds) {
@@ -113,7 +128,20 @@ public class MovieServiceImpl implements MovieService {
     @Override
     @Transactional(readOnly = true)
     public Page<MovieHomeDTO> searchMovies(String keyword, MovieStatus status, Pageable pageable) {
-        return movieRepository.findByTitleContainingIgnoreCaseAndStatusAndIsDeletedFalse(keyword, status, pageable)
+        String kw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+        if (kw == null) {
+            return getMoviesByStatus(status, pageable);
+        }
+        List<Movie> movies = movieRepository.findByStatusAndIsDeletedFalse(status);
+        List<Movie> filtered = movies.stream()
+                .filter(m -> matchesKeyword(m, kw))
+                .toList();
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<Movie> pageContent = start < filtered.size()
+                ? filtered.subList(start, end)
+                : List.of();
+        return new PageImpl<>(pageContent, pageable, filtered.size())
                 .map(movieMapper::toMovieHomeDTO);
     }
 
@@ -127,15 +155,28 @@ public class MovieServiceImpl implements MovieService {
     @Override
     @Transactional(readOnly = true)
     public Page<MovieHomeDTO> searchMoviesByGenre(List<Integer> genreIds, String keyword, MovieStatus status, Pageable pageable) {
-        return movieRepository.findDistinctByGenres_IdInAndStatusAndIsDeletedFalseAndTitleContainingIgnoreCase(genreIds, status, keyword, pageable)
+        String kw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+        if (kw == null) {
+            return getMoviesByGenreAndStatus(genreIds, status, pageable);
+        }
+        List<Movie> movies = movieRepository.findDistinctByGenres_IdInAndStatusAndIsDeletedFalse(genreIds, status, Pageable.unpaged()).getContent();
+        List<Movie> filtered = movies.stream()
+                .filter(m -> matchesKeyword(m, kw))
+                .toList();
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<Movie> pageContent = start < filtered.size()
+                ? filtered.subList(start, end)
+                : List.of();
+        return new PageImpl<>(pageContent, pageable, filtered.size())
                 .map(movieMapper::toMovieHomeDTO);
     }
 
     @Override
     @Transactional
     public MovieResponse createMovie(CreateMovieRequest request, String updatedBy) {
-        if (movieRepository.existsByTitleIgnoreCaseAndIsDeletedFalse(request.getTitle().trim()))
-            throw new AppException(ErrorCode.MOVIE_TITLE_EXISTS);
+        if (movieRepository.existsByTitleAndReleaseYear(request.getTitle().trim(), request.getReleaseDate().getYear()))
+            throw new AppException(ErrorCode.MOVIE_TITLE_YEAR_EXISTS);
 
         if (request.getReleaseDate().isBefore(LocalDate.now()))
             throw new AppException(ErrorCode.INVALID_RELEASE_DATE);
@@ -148,14 +189,8 @@ public class MovieServiceImpl implements MovieService {
         List<Genre> genres = validateGenres(request.getGenreIds());
 
         Movie movie = movieAdminMapper.toMovie(request);
-        if (request.getStatus() != null) {
-            movie.setStatus(request.getStatus());
-        } else if (!request.getReleaseDate().isAfter(LocalDate.now())) {
-            movie.setStatus(MovieStatus.NOW_SHOWING);
-        } else {
-            movie.setStatus(MovieStatus.COMING_SOON);
-        }
-        movie.setAgeRating(request.getAgeRating() != null ? request.getAgeRating() : AgeRating.P);
+        movie.setStatus(request.getStatus() != null ? request.getStatus() : MovieStatus.COMING_SOON);
+        movie.setAgeRating(request.getAgeRating());
         movie.setIsDeleted(false);
         movie.setCreatedAt(LocalDateTime.now());
         movie.setUpdatedBy(updatedBy);
@@ -179,6 +214,10 @@ public class MovieServiceImpl implements MovieService {
                         if (!existing.getId().equals(id))
                             throw new AppException(ErrorCode.MOVIE_TITLE_EXISTS);
                     });
+            if (movieRepository.existsByTitleAndReleaseYear(request.getTitle().trim(), movie.getReleaseDate().getYear())) {
+                if (!movie.getTitle().equalsIgnoreCase(request.getTitle().trim()))
+                    throw new AppException(ErrorCode.MOVIE_TITLE_YEAR_EXISTS);
+            }
         }
 
         if (movie.getStatus() == MovieStatus.ENDED || movie.getStatus() == MovieStatus.CANCELLED)
@@ -186,25 +225,28 @@ public class MovieServiceImpl implements MovieService {
                     "Không thể cập nhật phim đã " +
                     (movie.getStatus() == MovieStatus.ENDED ? "kết thúc" : "hủy"));
 
-        if (request.getDurationMinutes() != null
-                && !showTimeRepository.findByMovieIdAndIsDeletedFalse(id).isEmpty())
+        boolean hasShowtimes = !showTimeRepository.findByMovieIdAndIsDeletedFalse(id).isEmpty();
+        boolean hasBookings = bookingRepository.hasConfirmedBookingsByMovie(id);
+
+        if (request.getDurationMinutes() != null && hasShowtimes)
             throw new AppException(ErrorCode.MOVIE_NOW_SHOWING, "Không thể thay đổi thời lượng khi phim đã có suất chiếu");
 
-        if (request.getReleaseDate() != null) {
-            if (movie.getStatus() == MovieStatus.NOW_SHOWING)
-                throw new AppException(ErrorCode.MOVIE_NOW_SHOWING, "Không thể thay đổi ngày khởi chiếu khi phim đang chiếu");
-            if (request.getReleaseDate().isBefore(LocalDate.now()))
-                throw new AppException(ErrorCode.INVALID_RELEASE_DATE);
-            if (movie.getStatus() == MovieStatus.COMING_SOON && !request.getReleaseDate().isAfter(LocalDate.now())) {
-                movie.setStatus(MovieStatus.NOW_SHOWING);
+        if (request.getReleaseDate() != null || request.getEndDate() != null) {
+            if (hasShowtimes)
+                throw new AppException(ErrorCode.MOVIE_HAS_SHOWTIMES, "Không thể thay đổi ngày chiếu khi phim đã có suất chiếu");
+            if (request.getReleaseDate() != null) {
+                if (request.getReleaseDate().isBefore(LocalDate.now()))
+                    throw new AppException(ErrorCode.INVALID_RELEASE_DATE);
+            }
+            if (request.getEndDate() != null) {
+                LocalDate refRelease = request.getReleaseDate() != null ? request.getReleaseDate() : movie.getReleaseDate();
+                if (request.getEndDate().isBefore(refRelease))
+                    throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu");
             }
         }
 
-        if (request.getEndDate() != null) {
-            LocalDate refRelease = request.getReleaseDate() != null ? request.getReleaseDate() : movie.getReleaseDate();
-            if (request.getEndDate().isBefore(refRelease))
-                throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu");
-        }
+        if (request.getAgeRating() != null && !request.getAgeRating().equals(movie.getAgeRating()) && hasBookings)
+            throw new AppException(ErrorCode.MOVIE_HAS_BOOKINGS, "Không thể thay đổi phân loại độ tuổi khi phim đã có vé đặt");
 
         if (request.getGenreIds() != null && !request.getGenreIds().isEmpty()) {
             movie.setGenres(validateGenres(request.getGenreIds()));
@@ -229,6 +271,10 @@ public class MovieServiceImpl implements MovieService {
                 if (!valid)
                     throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION,
                             "Không thể chuyển từ " + current + " sang " + target);
+                if (target == MovieStatus.NOW_SHOWING && !hasShowtimes)
+                    throw new AppException(ErrorCode.NO_FUTURE_SHOWTIMES, "Không thể chuyển sang Đang chiếu khi chưa có suất chiếu");
+                if (target == MovieStatus.NOW_SHOWING && movie.getPosterUrl() == null)
+                    throw new AppException(ErrorCode.POSTER_REQUIRED);
                 if (target == MovieStatus.ENDED
                         && showTimeRepository.countUpcomingByMovie(id, LocalDateTime.now()) > 0)
                     throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION,
@@ -286,6 +332,13 @@ public class MovieServiceImpl implements MovieService {
                 && showTimeRepository.countUpcomingByMovie(id, LocalDateTime.now()) > 0)
             throw new AppException(ErrorCode.NO_FUTURE_SHOWTIMES, "Không thể kết thúc phim khi còn suất chiếu trong tương lai");
 
+        if (target == MovieStatus.NOW_SHOWING && movie.getPosterUrl() == null)
+            throw new AppException(ErrorCode.POSTER_REQUIRED);
+
+        if (target == MovieStatus.NOW_SHOWING
+                && showTimeRepository.findByMovieIdAndIsDeletedFalse(id).isEmpty())
+            throw new AppException(ErrorCode.NO_FUTURE_SHOWTIMES, "Không thể chuyển sang Đang chiếu khi chưa có suất chiếu");
+
         movie.setStatus(target);
         return movieAdminMapper.toMovieResponse(movieRepository.save(movie));
     }
@@ -297,6 +350,9 @@ public class MovieServiceImpl implements MovieService {
 
         if (movie.getStatus() != MovieStatus.NOW_SHOWING && movie.getStatus() != MovieStatus.COMING_SOON)
             throw new AppException(ErrorCode.MOVIE_CANNOT_CANCEL);
+
+        if (showTimeRepository.countUpcomingByMovie(id, LocalDateTime.now()) > 0)
+            throw new AppException(ErrorCode.MOVIE_HAS_SHOWTIMES, "Không thể hủy phim khi còn suất chiếu trong tương lai");
 
         if (bookingRepository.hasConfirmedBookingsByMovie(id))
             throw new AppException(ErrorCode.MOVIE_HAS_BOOKINGS, "Không thể hủy phim đã có vé đặt");
@@ -325,6 +381,24 @@ public class MovieServiceImpl implements MovieService {
             m.setStatus(MovieStatus.ENDED);
         }
         movieRepository.saveAll(nowShowing);
+
+        List<Movie> nowShowingNoEndDate = movieRepository.findByStatusAndEndDateIsNullAndIsDeletedFalse(MovieStatus.NOW_SHOWING);
+        for (Movie m : nowShowingNoEndDate) {
+            LocalDate defaultEndDate = m.getReleaseDate() != null ? m.getReleaseDate().plusDays(30) : today.minusDays(1);
+            if (defaultEndDate.isBefore(today)) {
+                m.setStatus(MovieStatus.ENDED);
+            }
+        }
+        movieRepository.saveAll(nowShowingNoEndDate);
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    @Transactional
+    public void initRatings() {
+        List<Integer> movieIds = movieReviewRepository.findDistinctMovieIdsWithReviews();
+        for (Integer movieId : movieIds) {
+            reviewService.recalculateRating(movieId);
+        }
     }
 
     @Override

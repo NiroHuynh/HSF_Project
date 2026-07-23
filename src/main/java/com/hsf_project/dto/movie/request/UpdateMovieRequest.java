@@ -25,8 +25,8 @@ public class UpdateMovieRequest {
     @Size(max = 200, message = "Tên phim không được vượt quá 200 ký tự")
     String title;
 
-    @Min(value = 30, message = "Thời lượng phải từ 30 đến 300 phút")
-    @Max(value = 300, message = "Thời lượng phải từ 30 đến 300 phút")
+    @Min(value = 80, message = "Thời lượng phải từ 80 đến 240 phút")
+    @Max(value = 240, message = "Thời lượng phải từ 80 đến 240 phút")
     Integer durationMinutes;
 
     LocalDate releaseDate;

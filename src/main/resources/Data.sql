@@ -15,7 +15,25 @@ USE HSF_PROJECT;
 GO
 
 /* ============================================================
-   1. ROLE
+    FIX: Đảm bảo cột comment trong movie_review là NVARCHAR
+    để lưu được tiếng Việt (idempotent, chạy nhiều lần không sao)
+   ============================================================ */
+IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE TABLE_NAME='movie_review' AND COLUMN_NAME='comment' AND DATA_TYPE='nvarchar')
+ALTER TABLE movie_review ALTER COLUMN comment NVARCHAR(MAX);
+GO
+
+/* ============================================================
+    FIX: Đảm bảo cột name trong genre là NVARCHAR
+    để lưu được tên thể loại tiếng Việt (idempotent)
+   ============================================================ */
+IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE TABLE_NAME='genre' AND COLUMN_NAME='name' AND DATA_TYPE='nvarchar')
+ALTER TABLE genre ALTER COLUMN name NVARCHAR(50) NOT NULL;
+GO
+
+/* ============================================================
+    1. ROLE
    ============================================================ */
 -- role_id: 1 = ADMIN | 2 = STAFF | 3 = CUSTOMER
 INSERT INTO role (role_name, is_deleted) VALUES
@@ -126,21 +144,21 @@ VALUES
      138, N'Todd Phillips',
      N'Joaquin Phoenix, Lady Gaga, Brendan Gleeson',
      '2026-09-15', '/images/joker.jpeg',
-     'T18', 9.3, 'NOW_SHOWING', 0),
+     'T18', 0, 'NOW_SHOWING', 0),
 
     (N'Dune: Part Two',
      N'Paul Atreides tiếp tục hành trình báo thù, tìm cách ngăn chặn tương lai đen tối và đoàn kết người Fremen để giành lại quyền kiểm soát Arrakis.',
      166, N'Denis Villeneuve',
      N'Timothée Chalamet, Zendaya, Rebecca Ferguson',
      '2026-04-01', '/images/parttwo.jpeg',
-     'T13', 9.0, 'NOW_SHOWING', 0),
+     'T13', 0, 'NOW_SHOWING', 0),
 
     (N'Lằn Ranh Sinh Tử',
      N'Một cựu cảnh sát buộc phải truy đuổi tổ chức buôn người xuyên quốc gia để cứu con gái trước khi quá muộn.',
      124, N'Lê Minh Khoa',
      N'Trấn Thành, Ngọc Lan, Hữu Long',
      '2026-08-01', '/images/lanranhsinhtu.jpeg',
-     'T16', 8.0, 'NOW_SHOWING', 0),
+     'T16', 0, 'NOW_SHOWING', 0),
 
     (N'Đường Đua Tốc Độ',
      N'Một tay đua trẻ phải vượt qua quá khứ để giành chiến thắng trong giải đua xuyên Việt lớn nhất từ trước đến nay.',
@@ -168,7 +186,7 @@ VALUES
      98, N'Trần Bửu Lộc',
      N'Lan Ngọc, Việt Hương',
      '2026-02-14', '/images/loinguyengiatoc.jpeg',
-     'T18', 6.9, 'ENDED', 0),
+     'T18', 0, 'ENDED', 0),
 
     -- ============================================================
     -- NOW_SHOWING
@@ -179,35 +197,35 @@ VALUES
      126, N'Nguyễn Khắc Minh',
      N'Quốc Trường, Kaity Nguyễn, Hứa Vĩ Văn',
      '2026-07-10', '/images/thanhphokhongngu.jpeg',
-     'T16', 8.4, 'NOW_SHOWING', 0),
+     'T16', 0, 'NOW_SHOWING', 0),
 
     (N'Đảo Bão',
      N'Một nhóm du khách mắc kẹt trên hòn đảo sau cơn bão lớn và phát hiện nơi đây đang che giấu một phòng thí nghiệm bí mật.',
      118, N'Bùi Quốc Việt',
      N'Liên Bỉnh Phát, Thu Anh, Bình An',
      '2026-06-28', '/images/chuyentauhoanghon.jpeg',
-     'T13', 7.9, 'NOW_SHOWING', 0),
+     'T13', 0, 'NOW_SHOWING', 0),
 
     (N'Cuộc Gọi Cuối Cùng',
      N'Một nữ tổng đài viên nhận được cuộc gọi từ tương lai, cảnh báo về chuỗi thảm họa sẽ xảy ra trong vòng 24 giờ.',
      112, N'Đặng Hoàng Nam',
      N'Jun Vũ, Anh Dũng, Quang Tuấn',
      '2026-07-02', '/images/thanhphokhongngu.jpeg',
-     'T13', 8.1, 'NOW_SHOWING', 0),
+     'T13', 0, 'NOW_SHOWING', 0),
 
     (N'Biệt Đội Săn Bão',
      N'Một nhóm chuyên gia khí tượng thực hiện nhiệm vụ nguy hiểm nhằm ngăn chặn siêu bão trước khi nó tàn phá miền Trung.',
      130, N'Võ Thành Nhân',
      N'Hồng Ánh, Kiều Minh Tuấn, Song Luân',
      '2026-05-18', '/images/chuyentauhoanghon.jpeg',
-     'P', 7.7, 'NOW_SHOWING', 0),
+     'P', 0, 'NOW_SHOWING', 0),
 
     (N'Trò Chơi Sinh Tồn',
      N'Tám người xa lạ bị nhốt trong một khu công nghiệp bỏ hoang và buộc phải vượt qua hàng loạt thử thách để sống sót.',
      121, N'Lê Quốc Bảo',
      N'Rima Thanh Vy, Quốc Anh, Võ Điền Gia Huy',
      '2026-06-20', '/images/giaidieutinhyeu.jpeg',
-     'T18', 8.5, 'NOW_SHOWING', 0),
+     'T18', 0, 'NOW_SHOWING', 0),
 
     -- ============================================================
     -- COMING_SOON
@@ -252,46 +270,62 @@ GO
    6. GENRE
    ============================================================ */
 INSERT INTO genre (name, is_deleted) VALUES
-                                         (N'Action',   0),
-                                         (N'Sci-Fi',   0),
-                                         (N'Drama',    0),
-                                         (N'Romance',  0),
-                                         (N'Horror',   0),
-                                         (N'Thriller', 0),
-                                         (N'Comedy',   0),
-                                         (N'Mystery',  0),
-                                         (N'Music',    0);
+                                         (N'Hành động', 0),             -- id = 1
+                                         (N'Khoa học viễn tưởng', 0),   -- id = 2
+                                         (N'Chính kịch / Tâm lý', 0),   -- id = 3
+                                         (N'Tình cảm', 0),              -- id = 4
+                                         (N'Kinh dị', 0),               -- id = 5
+                                         (N'Hồi hộp', 0),               -- id = 6
+                                         (N'Hài', 0),                   -- id = 7
+                                         (N'Bí ẩn', 0),                 -- id = 8
+                                         (N'Âm nhạc', 0),               -- id = 9
+                                         (N'Phiêu lưu', 0),             -- id = 10
+                                         (N'Hoạt hình', 0),             -- id = 11
+                                         (N'Giả tưởng', 0),             -- id = 12
+                                         (N'Tội phạm', 0),              -- id = 13
+                                         (N'Gia đình', 0),              -- id = 14
+                                         (N'Thiếu nhi', 0),             -- id = 15
+                                         (N'Nhạc kịch', 0),             -- id = 16
+                                         (N'Tiểu sử', 0),               -- id = 17
+                                         (N'Lịch sử', 0),               -- id = 18
+                                         (N'Chiến tranh', 0),           -- id = 19
+                                         (N'Võ thuật', 0),              -- id = 20
+                                         (N'Thể thao', 0),              -- id = 21
+                                         (N'Tài liệu', 0),              -- id = 22
+                                         (N'Viễn Tây', 0),              -- id = 23
+                                         (N'Hoạt hình 3D', 0),          -- id = 24
+                                         (N'Siêu anh hùng', 0);         -- id = 25
 GO
 
 /* ============================================================
    7. MOVIE_GENRE
    ============================================================ */
 INSERT INTO movie_genre (movie_id, genre_id) VALUES
-                                                 ((SELECT id FROM movie WHERE title = N'Joker: Folie à Deux'), (SELECT id FROM genre WHERE name = N'Action')),
-                                                 ((SELECT id FROM movie WHERE title = N'Joker: Folie à Deux'), (SELECT id FROM genre WHERE name = N'Drama')),
-                                                 ((SELECT id FROM movie WHERE title = N'Dune: Part Two'),       (SELECT id FROM genre WHERE name = N'Sci-Fi')),
-                                                 ((SELECT id FROM movie WHERE title = N'Dune: Part Two'),       (SELECT id FROM genre WHERE name = N'Drama')),
-                                                 ((SELECT id FROM movie WHERE title = N'Lằn Ranh Sinh Tử'),     (SELECT id FROM genre WHERE name = N'Action')),
-                                                 ((SELECT id FROM movie WHERE title = N'Lằn Ranh Sinh Tử'),     (SELECT id FROM genre WHERE name = N'Thriller')),
-                                                 ((SELECT id FROM movie WHERE title = N'Đường Đua Tốc Độ'),     (SELECT id FROM genre WHERE name = N'Action')),
-                                                 ((SELECT id FROM movie WHERE title = N'Vũ Trụ Song Hành'),     (SELECT id FROM genre WHERE name = N'Sci-Fi')),
-                                                 ((SELECT id FROM movie WHERE title = N'Mùa Hè Của Em'),        (SELECT id FROM genre WHERE name = N'Romance')),
-                                                 ((SELECT id FROM movie WHERE title = N'Bóng Ma Quá Khứ'),      (SELECT id FROM genre WHERE name = N'Horror')),
-                                                 ((SELECT id FROM movie WHERE title = N'Kẻ Đánh Cắp Ký Ức'),    (SELECT id FROM genre WHERE name = N'Sci-Fi')),
-                                                 ((SELECT id FROM movie WHERE title = N'Kẻ Đánh Cắp Ký Ức'),    (SELECT id FROM genre WHERE name = N'Thriller')),
-                                                 ((SELECT id FROM movie WHERE title = N'Đảo Bão'),              (SELECT id FROM genre WHERE name = N'Action')),
-                                                 ((SELECT id FROM movie WHERE title = N'Đảo Bão'),              (SELECT id FROM genre WHERE name = N'Thriller')),
-                                                 ((SELECT id FROM movie WHERE title = N'Cuộc Gọi Cuối Cùng'),   (SELECT id FROM genre WHERE name = N'Thriller')),
-                                                 ((SELECT id FROM movie WHERE title = N'Biệt Đội Săn Bão'),     (SELECT id FROM genre WHERE name = N'Action')),
-                                                 ((SELECT id FROM movie WHERE title = N'Trò Chơi Sinh Tồn'),    (SELECT id FROM genre WHERE name = N'Horror')),
-                                                 ((SELECT id FROM movie WHERE title = N'Trò Chơi Sinh Tồn'),    (SELECT id FROM genre WHERE name = N'Thriller')),
-                                                 ((SELECT id FROM movie WHERE title = N'Người Gác Hải Đăng'),   (SELECT id FROM genre WHERE name = N'Drama')),
-                                                 ((SELECT id FROM movie WHERE title = N'Người Gác Hải Đăng'),   (SELECT id FROM genre WHERE name = N'Mystery')),
-                                                 ((SELECT id FROM movie WHERE title = N'Bản Giao Hưởng Cuối'),  (SELECT id FROM genre WHERE name = N'Drama')),
-                                                 ((SELECT id FROM movie WHERE title = N'Bản Giao Hưởng Cuối'),  (SELECT id FROM genre WHERE name = N'Music')),
-                                                 ((SELECT id FROM movie WHERE title = N'Chiến Dịch Sao Đỏ'),    (SELECT id FROM genre WHERE name = N'Action')),
-                                                 ((SELECT id FROM movie WHERE title = N'Giấc Mơ Atlantis'),     (SELECT id FROM genre WHERE name = N'Sci-Fi')),
-                                                 ((SELECT id FROM movie WHERE title = N'Ánh Sáng Cuối Đường Hầm'), (SELECT id FROM genre WHERE name = N'Thriller'));
+                                                 ((SELECT id FROM movie WHERE title = N'Joker: Folie à Deux'), (SELECT id FROM genre WHERE name = N'Hành động')),
+                                                 ((SELECT id FROM movie WHERE title = N'Joker: Folie à Deux'), (SELECT id FROM genre WHERE name = N'Chính kịch / Tâm lý')),
+                                                 ((SELECT id FROM movie WHERE title = N'Dune: Part Two'),       (SELECT id FROM genre WHERE name = N'Khoa học viễn tưởng')),
+                                                 ((SELECT id FROM movie WHERE title = N'Dune: Part Two'),       (SELECT id FROM genre WHERE name = N'Chính kịch / Tâm lý')),
+                                                 ((SELECT id FROM movie WHERE title = N'Lằn Ranh Sinh Tử'),     (SELECT id FROM genre WHERE name = N'Hành động')),
+                                                 ((SELECT id FROM movie WHERE title = N'Lằn Ranh Sinh Tử'),     (SELECT id FROM genre WHERE name = N'Hồi hộp')),
+                                                 ((SELECT id FROM movie WHERE title = N'Đường Đua Tốc Độ'),     (SELECT id FROM genre WHERE name = N'Hành động')),
+                                                 ((SELECT id FROM movie WHERE title = N'Vũ Trụ Song Hành'),     (SELECT id FROM genre WHERE name = N'Khoa học viễn tưởng')),
+                                                 ((SELECT id FROM movie WHERE title = N'Mùa Hè Của Em'),        (SELECT id FROM genre WHERE name = N'Tình cảm')),
+                                                 ((SELECT id FROM movie WHERE title = N'Bóng Ma Quá Khứ'),      (SELECT id FROM genre WHERE name = N'Kinh dị')),
+                                                 ((SELECT id FROM movie WHERE title = N'Kẻ Đánh Cắp Ký Ức'),    (SELECT id FROM genre WHERE name = N'Khoa học viễn tưởng')),
+                                                 ((SELECT id FROM movie WHERE title = N'Kẻ Đánh Cắp Ký Ức'),    (SELECT id FROM genre WHERE name = N'Hồi hộp')),
+                                                 ((SELECT id FROM movie WHERE title = N'Đảo Bão'),              (SELECT id FROM genre WHERE name = N'Hành động')),
+                                                 ((SELECT id FROM movie WHERE title = N'Đảo Bão'),              (SELECT id FROM genre WHERE name = N'Hồi hộp')),
+                                                 ((SELECT id FROM movie WHERE title = N'Cuộc Gọi Cuối Cùng'),   (SELECT id FROM genre WHERE name = N'Hồi hộp')),
+                                                 ((SELECT id FROM movie WHERE title = N'Biệt Đội Săn Bão'),     (SELECT id FROM genre WHERE name = N'Hành động')),
+                                                 ((SELECT id FROM movie WHERE title = N'Trò Chơi Sinh Tồn'),    (SELECT id FROM genre WHERE name = N'Kinh dị')),
+                                                 ((SELECT id FROM movie WHERE title = N'Trò Chơi Sinh Tồn'),    (SELECT id FROM genre WHERE name = N'Hồi hộp')),
+                                                 ((SELECT id FROM movie WHERE title = N'Người Gác Hải Đăng'),   (SELECT id FROM genre WHERE name = N'Chính kịch / Tâm lý')),
+                                                 ((SELECT id FROM movie WHERE title = N'Người Gác Hải Đăng'),   (SELECT id FROM genre WHERE name = N'Bí ẩn')),
+                                                 ((SELECT id FROM movie WHERE title = N'Bản Giao Hưởng Cuối'),  (SELECT id FROM genre WHERE name = N'Chính kịch / Tâm lý')),
+                                                 ((SELECT id FROM movie WHERE title = N'Bản Giao Hưởng Cuối'),  (SELECT id FROM genre WHERE name = N'Âm nhạc')),
+                                                 ((SELECT id FROM movie WHERE title = N'Chiến Dịch Sao Đỏ'),    (SELECT id FROM genre WHERE name = N'Hành động')),
+                                                 ((SELECT id FROM movie WHERE title = N'Giấc Mơ Atlantis'),     (SELECT id FROM genre WHERE name = N'Khoa học viễn tưởng')),
+                                                 ((SELECT id FROM movie WHERE title = N'Ánh Sáng Cuối Đường Hầm'), (SELECT id FROM genre WHERE name = N'Hồi hộp'));
 GO
 
 /* ============================================================
