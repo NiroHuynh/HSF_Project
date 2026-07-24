@@ -1,21 +1,12 @@
 package com.hsf_project.config;
 
-
 import com.hsf_project.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.util.Set;
-
 public class RoleAuthInterceptor implements HandlerInterceptor {
-
-    private final Set<String> allowedRoles;
-
-    public RoleAuthInterceptor(String... allowedRoles) {
-        this.allowedRoles = Set.of(allowedRoles);
-    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -24,6 +15,7 @@ public class RoleAuthInterceptor implements HandlerInterceptor {
         HttpSession session = request.getSession(false);
         Object attr = (session != null) ? session.getAttribute("ttdn") : null;
 
+        // Chưa đăng nhập -> lưu lại URL đang định vào, đá về login
         if (!(attr instanceof User currentUser)) {
             session = request.getSession(true);
             session.setAttribute("redirectAfterLogin", request.getRequestURI() +
@@ -32,10 +24,9 @@ public class RoleAuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // Module Đặt vé chỉ dành cho CUSTOMER
         String roleName = (currentUser.getRole() == null) ? "" : currentUser.getRole().getRoleName();
-        boolean allowed = allowedRoles.stream().anyMatch(r -> r.equalsIgnoreCase(roleName));
-
-        if (!allowed) {
+        if (!"CUSTOMER".equalsIgnoreCase(roleName)) {
             response.sendRedirect(request.getContextPath() + "/access-denied");
             return false;
         }
