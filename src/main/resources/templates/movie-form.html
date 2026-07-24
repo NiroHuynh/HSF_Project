@@ -86,10 +86,10 @@
                                         <span class="form-item-label">Phân loại độ tuổi</span>
                                         <div class="select-wrapper">
                                             <select name="ageRating" class="form-item-select" required>
-                                                <option value="" th:selected="${movie == null}">Chọn độ tuổi</option>
+                                                <option value="" disabled th:selected="${movie == null or movie.ageRating == null}">-- Chọn độ tuổi --</option>
                                                 <option th:each="ar : ${ageRatings}"
-                                                        th:value="${ar.name()}" th:text="${ar.name() + ' - 16+'}"
-                                                        th:selected="${movie != null && movie.ageRating.name() == ar.name()}">
+                                                        th:value="${ar.name()}" th:text="${ar.description}"
+                                                        th:selected="${movie != null and movie.ageRating != null and movie.ageRating.name() == ar.name()}">
                                                 </option>
                                             </select>
                                         </div>
@@ -106,19 +106,29 @@
                                     <!-- Quốc gia -->
                                     <div class="form-item">
                                         <span class="form-item-label">Quốc gia</span>
-                                        <input type="text" name="language" class="form-item-input" required
-                                               list="countryList" placeholder="Nhập quốc gia..." maxlength="50"
-                                               th:value="${movie != null ? movie.language : ''}">
-                                        <datalist id="countryList">
-                                            <option value="Việt Nam">
-                                            <option value="Mỹ (USA)">
-                                            <option value="Hàn Quốc">
-                                            <option value="Nhật Bản">
-                                            <option value="Trung Quốc">
-                                            <option value="Thái Lan">
-                                            <option value="Anh (UK)">
-                                            <option value="Pháp">
-                                        </datalist>
+                                        <select name="language" class="form-item-input form-item-select" required>
+                                            <option value="" disabled th:selected="${movie == null or movie.language == null or movie.language == ''}">-- Chọn quốc gia --</option>
+                                            <option value="Việt Nam" th:selected="${movie != null and movie.language == 'Việt Nam'}">🇻🇳 Việt Nam</option>
+                                            <option value="Hoa Kỳ (USA)" th:selected="${movie != null and movie.language == 'Hoa Kỳ (USA)'}">🇺🇸 Hoa Kỳ (USA)</option>
+                                            <option value="Hàn Quốc" th:selected="${movie != null and movie.language == 'Hàn Quốc'}">🇰🇷 Hàn Quốc</option>
+                                            <option value="Nhật Bản" th:selected="${movie != null and movie.language == 'Nhật Bản'}">🇯🇵 Nhật Bản</option>
+                                            <option value="Trung Quốc" th:selected="${movie != null and movie.language == 'Trung Quốc'}">🇨🇳 Trung Quốc</option>
+                                            <option value="Hồng Kông" th:selected="${movie != null and movie.language == 'Hồng Kông'}">🇭🇰 Hồng Kông</option>
+                                            <option value="Đài Loan" th:selected="${movie != null and movie.language == 'Đài Loan'}">🇹🇼 Đài Loan</option>
+                                            <option value="Thái Lan" th:selected="${movie != null and movie.language == 'Thái Lan'}">🇹🇭 Thái Lan</option>
+                                            <option value="Ấn Độ" th:selected="${movie != null and movie.language == 'Ấn Độ'}">🇮🇳 Ấn Độ</option>
+                                            <option value="Anh (United Kingdom)" th:selected="${movie != null and movie.language == 'Anh (United Kingdom)'}">🇬🇧 Anh (United Kingdom)</option>
+                                            <option value="Pháp" th:selected="${movie != null and movie.language == 'Pháp'}">🇫🇷 Pháp</option>
+                                            <option value="Đức" th:selected="${movie != null and movie.language == 'Đức'}">🇩🇪 Đức</option>
+                                            <option value="Canada" th:selected="${movie != null and movie.language == 'Canada'}">🇨🇦 Canada</option>
+                                            <option value="Úc" th:selected="${movie != null and movie.language == 'Úc'}">🇦🇺 Úc</option>
+                                            <option value="Tây Ban Nha" th:selected="${movie != null and movie.language == 'Tây Ban Nha'}">🇪🇸 Tây Ban Nha</option>
+                                            <option value="Ý" th:selected="${movie != null and movie.language == 'Ý'}">🇮🇹 Ý</option>
+                                            <option value="Nga" th:selected="${movie != null and movie.language == 'Nga'}">🇷🇺 Nga</option>
+                                            <option value="Indonesia" th:selected="${movie != null and movie.language == 'Indonesia'}">🇮🇩 Indonesia</option>
+                                            <option value="Malaysia" th:selected="${movie != null and movie.language == 'Malaysia'}">🇲🇾 Malaysia</option>
+                                            <option value="Philippines" th:selected="${movie != null and movie.language == 'Philippines'}">🇵🇭 Philippines</option>
+                                        </select>
                                     </div>
 
                                     <!-- Đạo diễn (Tag Chips) -->

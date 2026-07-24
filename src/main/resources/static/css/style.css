@@ -691,9 +691,11 @@ input, textarea, select {
 .chip-screenx { background: #3A1E2E; color: #F06DB9; }
 
 /* Age rating chips */
+.chip-p      { background: #1E3A1E; color: #6DBF6D; }
+.chip-k      { background: #3A351E; color: #F0D06D; }
+.chip-t13    { background: #3A281E; color: #F0A06D; }
 .chip-t16    { background: #3A1E1E; color: #F06D6D; }
 .chip-t18    { background: #3A1E1E; color: #E31B23; }
-.chip-p      { background: #1E3A1E; color: #6DBF6D; }
 
 /* Promo category chips */
 .chip-promo  { background: var(--color-brand-red); color: white; }
