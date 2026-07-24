@@ -61,7 +61,7 @@
             <button type="button" class="close" onclick="closeModal(this)">×</button>
             <h2>Thêm combo</h2>
             <input type="hidden" name="id">
-            <label>Tên combo<input name="name" maxlength="100"></label>
+            <label>Tên combo<input name="name" maxlength="30"></label>
             <label>Mô tả<textarea name="description" maxlength="255" rows="3"></textarea></label>
             <div class="grid2">
                 <label>Giá bán<input name="price" type="number" step="1000"></label>
@@ -86,7 +86,7 @@
     <script>
         function validateComboForm(form) {
             return validateForm(form, {
-                name: [required('Vui lòng nhập tên combo'), maxLength(100, 'Tên combo tối đa 100 ký tự')],
+                name: [required('Vui lòng nhập tên combo'), maxLength(30, 'Tên combo tối đa 30 ký tự')],
                 description: [maxLength(255, 'Mô tả tối đa 255 ký tự')],
                 // Trần giá khớp cột DECIMAL(10,2) của combo.price; vượt ngưỡng là lỗi 500 lúc lưu.
                 price: [required('Vui lòng nhập giá bán'), min(1000, 'Giá bán tối thiểu 1.000đ'),

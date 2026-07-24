@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class PromotionForm {
 
     @NotBlank(message = "Vui lòng nhập mã voucher")
-    @Size(max = 50, message = "Mã tối đa 50 ký tự")
+    @Size(max = 20, message = "Mã voucher tối đa 20 ký tự")
     @Pattern(regexp = "^[A-Za-z0-9_-]+$", message = "Mã chỉ gồm chữ, số, gạch ngang/gạch dưới")
     private String code;
 

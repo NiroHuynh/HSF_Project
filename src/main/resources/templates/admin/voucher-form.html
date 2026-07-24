@@ -21,7 +21,7 @@
                     <div class="col-md-5">
                         <label class="form-label" for="code">Mã voucher *</label>
                         <input type="text" id="code" th:field="*{code}" class="form-control"
-                               placeholder="VD: SUMMER10" style="text-transform: uppercase;">
+                               placeholder="VD: SUMMER10" style="text-transform: uppercase;" maxlength="20">
                         <small class="text-danger" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></small>
                     </div>
                     <div class="col-md-7">

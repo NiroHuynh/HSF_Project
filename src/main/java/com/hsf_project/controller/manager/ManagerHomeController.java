@@ -60,16 +60,11 @@ public class ManagerHomeController {
             model.addAttribute("showtimes",   stats.get("showtimes"));
             model.addAttribute("tickets",     stats.get("tickets"));
             model.addAttribute("customers",   stats.get("customers"));
-            model.addAttribute("chartLabels", stats.get("chartLabels"));
-            model.addAttribute("chartData",   stats.get("chartData"));
         } else {
             model.addAttribute("revenue",   "0 đ");
             model.addAttribute("showtimes", 0L);
             model.addAttribute("tickets",   0L);
             model.addAttribute("customers", 0L);
-            model.addAttribute("chartLabels",
-                    java.util.List.of("T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12"));
-            model.addAttribute("chartData", new long[12]);
         }
 
         return "manager/home";
