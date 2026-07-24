@@ -24,6 +24,9 @@ public class HomeController {
         List<MovieHomeDTO> comingSoon = homeService.getMoviesForHome(MovieStatus.COMING_SOON);
         model.addAttribute("comingSoonMovies", comingSoon);
 
+        // In ra console xem Java lấy được bao nhiêu phim
+        System.out.println(">>> So luong phim sap chieu: " + comingSoon.size());
+
         List<Promotion> promotions = homeService.getAvailablePromotions();
         model.addAttribute("activePromotions", promotions);
 

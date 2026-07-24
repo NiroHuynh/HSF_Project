@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.web.filter.CharacterEncodingFilter;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -43,4 +44,17 @@ public class WebConfig implements WebMvcConfigurer {
         registration.setOrder(1);
         return registration;
     }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new RoleAuthInterceptor())
+                .addPathPatterns(
+                        "/booking/movie/**",
+                        "/booking/seat",
+                        "/booking/combo",
+                        "/booking/payment",
+                        "/booking/confirm"
+                );
+    }
+
 }

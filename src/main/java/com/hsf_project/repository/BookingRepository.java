@@ -98,13 +98,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
 // ── manager/dashboard — thống kê tổng ────────────────────────────────────
 
-    @Query(value = "SELECT COALESCE(SUM(b.final_amount), 0) FROM booking b " +
-            "JOIN ticket t ON t.booking_id = b.id " +
-            "JOIN show_time st ON st.id = t.showtime_id " +
-            "JOIN cinema_room r ON r.id = st.room_id " +
-            "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
-            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
-            "AND b.booking_date BETWEEN :from AND :to", nativeQuery = true)
+    @Query(value = "SELECT COALESCE(SUM(x.final_amount), 0) FROM ( " +
+            "    SELECT DISTINCT b.id, b.final_amount FROM booking b " +
+            "    JOIN ticket t ON t.booking_id = b.id " +
+            "    JOIN show_time st ON st.id = t.showtime_id " +
+            "    JOIN cinema_room r ON r.id = st.room_id " +
+            "    WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "    AND b.status NOT IN ('PENDING', 'CANCELED') " +
+            "    AND b.booking_date BETWEEN :from AND :to) x", nativeQuery = true)
     BigDecimal getTotalRevenueByCinema(@Param("cinemaId") Integer cinemaId,
                                        @Param("from") LocalDateTime from,
                                        @Param("to") LocalDateTime to);
@@ -114,6 +115,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN show_time st ON st.id = t.showtime_id " +
             "JOIN cinema_room r ON r.id = st.room_id " +
             "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "AND b.booking_date BETWEEN :from AND :to", nativeQuery = true)
     Long countBookingsByCinema(@Param("cinemaId") Integer cinemaId,
                                @Param("from") LocalDateTime from,
@@ -124,6 +126,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN show_time st ON st.id = t.showtime_id " +
             "JOIN cinema_room r ON r.id = st.room_id " +
             "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "AND b.booking_date BETWEEN :from AND :to", nativeQuery = true)
     Long countCustomersByCinema(@Param("cinemaId") Integer cinemaId,
                                 @Param("from") LocalDateTime from,
@@ -191,56 +194,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                          @Param("from") LocalDateTime from,
                                          @Param("to") LocalDateTime to);
 
-    @Query(value = "SELECT MONTH(b.booking_date) AS mon, COALESCE(SUM(b.final_amount), 0) AS rev " +
-            "FROM booking b JOIN ticket t ON t.booking_id = b.id " +
-            "JOIN show_time st ON st.id = t.showtime_id " +
-            "JOIN cinema_room r ON r.id = st.room_id " +
-            "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
-            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
-            "AND b.booking_date BETWEEN :from AND :to " +
-            "GROUP BY MONTH(b.booking_date) ORDER BY MONTH(b.booking_date)", nativeQuery = true)
-    List<Object[]> getMonthlyRevenueByCinema(@Param("cinemaId") Integer cinemaId,
-                                             @Param("from") LocalDateTime from,
-                                             @Param("to") LocalDateTime to);
-
-    @Query(value = "SELECT " +
-            "CASE WHEN DAY(b.booking_date) <= 7 THEN 1 " +
-            "     WHEN DAY(b.booking_date) <= 14 THEN 2 " +
-            "     WHEN DAY(b.booking_date) <= 21 THEN 3 ELSE 4 END AS week_num, " +
-            "COALESCE(SUM(b.final_amount), 0) AS rev " +
-            "FROM booking b JOIN ticket t ON t.booking_id = b.id " +
-            "JOIN show_time st ON st.id = t.showtime_id " +
-            "JOIN cinema_room r ON r.id = st.room_id " +
-            "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
-            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
-            "AND b.booking_date BETWEEN :from AND :to " +
-            "GROUP BY CASE WHEN DAY(b.booking_date) <= 7 THEN 1 " +
-            "              WHEN DAY(b.booking_date) <= 14 THEN 2 " +
-            "              WHEN DAY(b.booking_date) <= 21 THEN 3 ELSE 4 END " +
-            "ORDER BY week_num", nativeQuery = true)
-    List<Object[]> getWeeklyRevenueByCinema(@Param("cinemaId") Integer cinemaId,
-                                            @Param("from") LocalDateTime from,
-                                            @Param("to") LocalDateTime to);
-
-    @Query(value = "SELECT " +
-            "CASE WHEN MONTH(b.booking_date) BETWEEN 1 AND 3 THEN 1 " +
-            "     WHEN MONTH(b.booking_date) BETWEEN 4 AND 6 THEN 2 " +
-            "     WHEN MONTH(b.booking_date) BETWEEN 7 AND 9 THEN 3 ELSE 4 END AS quarter_num, " +
-            "COALESCE(SUM(b.final_amount), 0) AS rev " +
-            "FROM booking b JOIN ticket t ON t.booking_id = b.id " +
-            "JOIN show_time st ON st.id = t.showtime_id " +
-            "JOIN cinema_room r ON r.id = st.room_id " +
-            "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
-            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
-            "AND b.booking_date BETWEEN :from AND :to " +
-            "GROUP BY CASE WHEN MONTH(b.booking_date) BETWEEN 1 AND 3 THEN 1 " +
-            "              WHEN MONTH(b.booking_date) BETWEEN 4 AND 6 THEN 2 " +
-            "              WHEN MONTH(b.booking_date) BETWEEN 7 AND 9 THEN 3 ELSE 4 END " +
-            "ORDER BY quarter_num", nativeQuery = true)
-    List<Object[]> getQuarterlyRevenueByCinema(@Param("cinemaId") Integer cinemaId,
-                                               @Param("from") LocalDateTime from,
-                                               @Param("to") LocalDateTime to);
-
     @Query("SELECT DISTINCT b FROM Booking b " +
             "JOIN FETCH b.user JOIN FETCH b.tickets t JOIN FETCH t.seat " +
             "JOIN FETCH t.showtime st JOIN FETCH st.movie JOIN FETCH st.room r " +
@@ -258,6 +211,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN cinema_room r ON r.id = st.room_id " +
             "JOIN booking b ON b.id = t.booking_id " +
             "WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "AND b.booking_date BETWEEN :from AND :to", nativeQuery = true)
     Long countTicketsSoldByCinema(@Param("cinemaId") Integer cinemaId,
                                   @Param("from") LocalDateTime from,
@@ -271,6 +225,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "    JOIN show_time st ON st.id = t.showtime_id " +
             "    JOIN cinema_room r ON r.id = st.room_id " +
             "    WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "    AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "    AND b.booking_date BETWEEN :from AND :to)", nativeQuery = true)
     BigDecimal getTotalComboRevenueByCinema(@Param("cinemaId") Integer cinemaId,
                                             @Param("from") LocalDateTime from,
@@ -284,69 +239,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "    JOIN show_time st ON st.id = t.showtime_id " +
             "    JOIN cinema_room r ON r.id = st.room_id " +
             "    WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "    AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "    AND b.booking_date BETWEEN :from AND :to)", nativeQuery = true)
     Long countCombosSoldByCinema(@Param("cinemaId") Integer cinemaId,
                                  @Param("from") LocalDateTime from,
                                  @Param("to") LocalDateTime to);
-
-    /** Doanh thu combo theo tháng — cho biểu đồ stacked year/quarter mode */
-    @Query(value = "SELECT MONTH(b.booking_date) AS mon, COALESCE(SUM(bc.total_price), 0) AS rev " +
-            "FROM booking b JOIN booking_combo bc ON bc.booking_id = b.id " +
-            "WHERE b.id IN ( " +
-            "    SELECT DISTINCT b2.id FROM booking b2 " +
-            "    JOIN ticket t ON t.booking_id = b2.id " +
-            "    JOIN show_time st ON st.id = t.showtime_id " +
-            "    JOIN cinema_room r ON r.id = st.room_id " +
-            "    WHERE r.cinema_id = :cinemaId AND b2.is_deleted = 0 " +
-            "    AND b2.booking_date BETWEEN :from AND :to) " +
-            "GROUP BY MONTH(b.booking_date) ORDER BY MONTH(b.booking_date)", nativeQuery = true)
-    List<Object[]> getMonthlyComboRevenueByCinema(@Param("cinemaId") Integer cinemaId,
-                                                  @Param("from") LocalDateTime from,
-                                                  @Param("to") LocalDateTime to);
-
-    /** Doanh thu combo theo tuần — cho biểu đồ stacked month mode */
-    @Query(value = "SELECT " +
-            "CASE WHEN DAY(b.booking_date) <= 7 THEN 1 " +
-            "     WHEN DAY(b.booking_date) <= 14 THEN 2 " +
-            "     WHEN DAY(b.booking_date) <= 21 THEN 3 ELSE 4 END AS week_num, " +
-            "COALESCE(SUM(bc.total_price), 0) AS rev " +
-            "FROM booking b JOIN booking_combo bc ON bc.booking_id = b.id " +
-            "WHERE b.id IN ( " +
-            "    SELECT DISTINCT b2.id FROM booking b2 " +
-            "    JOIN ticket t ON t.booking_id = b2.id " +
-            "    JOIN show_time st ON st.id = t.showtime_id " +
-            "    JOIN cinema_room r ON r.id = st.room_id " +
-            "    WHERE r.cinema_id = :cinemaId AND b2.is_deleted = 0 " +
-            "    AND b2.booking_date BETWEEN :from AND :to) " +
-            "GROUP BY CASE WHEN DAY(b.booking_date) <= 7 THEN 1 " +
-            "              WHEN DAY(b.booking_date) <= 14 THEN 2 " +
-            "              WHEN DAY(b.booking_date) <= 21 THEN 3 ELSE 4 END " +
-            "ORDER BY week_num", nativeQuery = true)
-    List<Object[]> getWeeklyComboRevenueByCinema(@Param("cinemaId") Integer cinemaId,
-                                                 @Param("from") LocalDateTime from,
-                                                 @Param("to") LocalDateTime to);
-
-    /** Doanh thu combo theo quý — cho biểu đồ stacked quarter mode */
-    @Query(value = "SELECT " +
-            "CASE WHEN MONTH(b.booking_date) BETWEEN 1 AND 3 THEN 1 " +
-            "     WHEN MONTH(b.booking_date) BETWEEN 4 AND 6 THEN 2 " +
-            "     WHEN MONTH(b.booking_date) BETWEEN 7 AND 9 THEN 3 ELSE 4 END AS quarter_num, " +
-            "COALESCE(SUM(bc.total_price), 0) AS rev " +
-            "FROM booking b JOIN booking_combo bc ON bc.booking_id = b.id " +
-            "WHERE b.id IN ( " +
-            "    SELECT DISTINCT b2.id FROM booking b2 " +
-            "    JOIN ticket t ON t.booking_id = b2.id " +
-            "    JOIN show_time st ON st.id = t.showtime_id " +
-            "    JOIN cinema_room r ON r.id = st.room_id " +
-            "    WHERE r.cinema_id = :cinemaId AND b2.is_deleted = 0 " +
-            "    AND b2.booking_date BETWEEN :from AND :to) " +
-            "GROUP BY CASE WHEN MONTH(b.booking_date) BETWEEN 1 AND 3 THEN 1 " +
-            "              WHEN MONTH(b.booking_date) BETWEEN 4 AND 6 THEN 2 " +
-            "              WHEN MONTH(b.booking_date) BETWEEN 7 AND 9 THEN 3 ELSE 4 END " +
-            "ORDER BY quarter_num", nativeQuery = true)
-    List<Object[]> getQuarterlyComboRevenueByCinema(@Param("cinemaId") Integer cinemaId,
-                                                    @Param("from") LocalDateTime from,
-                                                    @Param("to") LocalDateTime to);
 
     /**
      * Top 5 phim doanh thu cao nhất tại chi nhánh.
@@ -360,6 +257,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "    JOIN show_time st ON st.id = t.showtime_id " +
             "    JOIN cinema_room r ON r.id = st.room_id " +
             "    WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "    AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "    AND b.booking_date BETWEEN :from AND :to " +
             "), ticket_per_movie AS ( " +
             "    SELECT st.movie_id, COUNT(t.id) AS cnt " +
@@ -368,6 +266,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "    JOIN booking b ON b.id = t.booking_id " +
             "    JOIN cinema_room r ON r.id = st.room_id " +
             "    WHERE r.cinema_id = :cinemaId AND b.is_deleted = 0 " +
+            "    AND b.status NOT IN ('PENDING', 'CANCELED') " +
             "    AND b.booking_date BETWEEN :from AND :to " +
             "    GROUP BY st.movie_id " +
             ") " +

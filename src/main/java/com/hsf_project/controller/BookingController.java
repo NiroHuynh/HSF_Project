@@ -72,7 +72,6 @@ public class BookingController {
         model.addAttribute("selectedDate", resolvedDate);
         model.addAttribute("cinemaSchedules", cinemas);
 
-        // Đổi đúng theo đường dẫn template thật của bạn, ví dụ "booking/movie-detail"
         return "bookingContext";
     }
 

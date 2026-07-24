@@ -89,10 +89,21 @@ function submitAddAccount() {
                 closeAddAccountModal();
                 location.reload();
             } else {
-                alert('Thêm tài khoản thất bại: ' + (res.message || 'Lỗi không xác định'));
+                showErrorModal('Thêm tài khoản thất bại: ' + (res.message || 'Lỗi không xác định'));
             }
         })
-        .catch(() => alert('Lỗi kết nối mạng, vui lòng thử lại!'));
+        .catch(() => showErrorModal('Lỗi kết nối mạng, vui lòng thử lại!'));
+}
+
+// ============== ERROR MODAL ==============
+
+function showErrorModal(message) {
+    document.getElementById('errorModalText').textContent = message;
+    document.getElementById('errorModal').classList.add('open');
+}
+
+function closeErrorModal() {
+    document.getElementById('errorModal').classList.remove('open');
 }
 
 // ============== EDIT MODAL ==============
@@ -206,4 +217,5 @@ window.addEventListener('click', function (e) {
     if (e.target === document.getElementById('addAccountModal')) closeAddAccountModal();
     if (e.target === document.getElementById('editAccountModal')) closeEditAccountModal();
     if (e.target === document.getElementById('deleteConfirmModal')) closeDeleteModal();
+    if (e.target === document.getElementById('errorModal')) closeErrorModal();
 });

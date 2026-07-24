@@ -81,21 +81,6 @@ public class BookingPaymentController {
         return promotionService.validate(code, orderAmount);
     }
 
-//    // Tinh chỉnh hàm helper nhận thẳng thực thể ShowTime đã lấy được ở trên, đỡ phải query DB lại một lần nữa
-//    private ShowtimeInfo loadShowtimeInfo(ShowTime showtime) {
-//        String startTimeLabel = showtime.getStartTime()
-//                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-//        String roomName = showtime.getRoom().getName();
-//        String formatLabel = "CINEMAX " + showtime.getRoom().getRoomType();
-//
-//        return new ShowtimeInfo(
-//                showtime.getMovie().getTitle(),
-//                showtime.getMovie().getPosterUrl(),
-//                startTimeLabel,
-//                roomName,
-//                formatLabel
-//        );
-//    }
 
     public record SelectedCombo(String name, int quantity, BigDecimal lineTotal) {
     }

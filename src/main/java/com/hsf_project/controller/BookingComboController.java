@@ -80,7 +80,6 @@ public class BookingComboController {
             @RequestParam Map<String, String> allParams
     ) {
         try {
-            // Chỉ gọi Service thực hiện, không ôm logic ở đây
             bookingComboService.saveBookingCombos(bookingCode, allParams);
             return "redirect:/booking/payment?bookingCode=" + bookingCode;
         } catch (IllegalStateException e) {
@@ -89,70 +88,5 @@ public class BookingComboController {
         }
     }
 
-//    @PostMapping("/combo/save")
-//    @Transactional
-//    public String saveBookingCombos(
-//            @RequestParam String bookingCode,
-//            @RequestParam Map<String, String> allParams // Hứng toàn bộ dữ liệu combo_* từ form gửi lên
-//    ) {
-//        // 1. Lấy Booking từ DB ra
-//        Booking booking = bookingRepository.findByBookingCodeAndIsDeletedFalse(bookingCode)
-//                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng: " + bookingCode));
-//
-//        // Kiểm tra nếu đơn hàng đã hết hạn giữ ghế thì không cho thao tác tiếp
-//        if (booking.getExpiredAt() == null || LocalDateTime.now().isAfter(booking.getExpiredAt())) {
-//            return "redirect:/movies/error?error=timeout";
-//        }
-//
-//        // 2. Duyệt dữ liệu tham số để lọc ra các combo khách chọn
-//        Map<Long, Integer> comboQuantities = new java.util.LinkedHashMap<>();
-//        BigDecimal comboTotal = BigDecimal.ZERO;
-//
-//        for (Map.Entry<String, String> entry : allParams.entrySet()) {
-//            if (!entry.getKey().startsWith("combo_")) {
-//                continue;
-//            }
-//            Long comboId = Long.valueOf(entry.getKey().substring("combo_".length()));
-//            int qty = Integer.parseInt(entry.getValue());
-//
-//            if (qty > 0) {
-//                comboQuantities.put(comboId, qty);
-//                Combo combo = comboService.getById(comboId);
-//                comboTotal = comboTotal.add(combo.getPrice().multiply(BigDecimal.valueOf(qty)));
-//            }
-//        }
-//
-//        // 3. Xóa combo cũ của booking (user quay lại sửa lựa chọn thì không bị nhân đôi dòng)
-//        bookingComboRepository.deleteByBookingId(booking.getId());
-//
-//        // 4. Lưu danh sách combo mới vào bảng trung gian booking_combo
-//        for (Map.Entry<Long, Integer> entry : comboQuantities.entrySet()) {
-//            Combo combo = comboService.getById(entry.getKey());
-//            BookingCombo line = new BookingCombo();
-//            line.setBooking(booking);
-//            line.setCombo(combo);
-//            line.setQuantity(entry.getValue());
-//            line.setUnitPrice(combo.getPrice());
-//            line.setTotalPrice(combo.getPrice().multiply(BigDecimal.valueOf(entry.getValue())));
-//            line.setCreatedAt(LocalDateTime.now());
-//            bookingComboRepository.save(line);
-//        }
-//
-//        // 5. Tính lại tổng tiền = tiền vé (từ danh sách Ticket) + tiền combo vừa chọn
-//        BigDecimal seatTotal = booking.getTickets().stream()
-//                .map(t -> t.getTicketPrice().getPrice())
-//                .reduce(BigDecimal.ZERO, BigDecimal::add);
-//
-//        BigDecimal totalAmount = seatTotal.add(comboTotal);
-//        BigDecimal finalAmount = totalAmount.subtract(booking.getDiscountAmount());
-//
-//        booking.setTotalAmount(totalAmount);
-//        booking.setFinalAmount(finalAmount);
-//        booking.setUpdatedAt(LocalDateTime.now());
-//        bookingRepository.save(booking);
-//
-//        // 6. Điều hướng sang trang thanh toán bằng đúng mã đơn
-//        return "redirect:/booking/payment?bookingCode=" + bookingCode;
-//    }
 
 }

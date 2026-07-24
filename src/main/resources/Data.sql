@@ -171,14 +171,14 @@ VALUES
      N'Hai nhà vật lý phát hiện cánh cổng dẫn đến một vũ trụ song song, nơi mọi lựa chọn của họ đã rẽ theo hướng hoàn toàn khác.',
      132, N'Đỗ Gia Linh',
      N'Mai Tài Phến, Nhã Phương',
-     '2026-07-01', '/images/vutrusonghanh.jpeg',
+     '2026-08-01', '/images/vutrusonghanh.jpeg',
      'T13', 0, 'COMING_SOON', 0),
 
     (N'Mùa Hè Của Em',
      N'Câu chuyện tình nhẹ nhàng giữa hai người trẻ gặp lại nhau sau 10 năm xa cách tại chính nơi họ từng chia tay.',
      105, N'Nguyễn Hữu Tuấn',
      N'Khả Ngân, Thanh Sơn',
-     '2026-07-01', '/images/muahecuaem.jpeg',
+     '2026-09-01', '/images/muahecuaem.jpeg',
      'P', 0, 'COMING_SOON', 0),
 
     (N'Bóng Ma Quá Khứ',
@@ -235,7 +235,7 @@ VALUES
      N'Một người gác hải đăng già phát hiện những tín hiệu kỳ lạ ngoài khơi và dần hé lộ bí mật đã bị chôn vùi nhiều thập kỷ.',
      114, N'Nguyễn Minh Đức',
      N'NSƯT Thành Lộc, Lê Phương',
-     '2026-07-01', '/images/nguoigachaidang.jpeg',
+     '2026-11-26', '/images/nguoigachaidang.jpeg',
      'T13', 0, 'COMING_SOON', 0),
 
     (N'Bản Giao Hưởng Cuối',
@@ -243,7 +243,7 @@ VALUES
      109, N'Vũ Hải Long',
      N'Isaac, Hoàng Hà, Hồng Đào',
      '2026-07-01', '/images/bangiaohuongcuoi.jpeg',
-     'P', 0, 'COMING_SOON', 0),
+     'P', 0, 'ENDED', 0),
 
     (N'Chiến Dịch Sao Đỏ',
      N'Lực lượng đặc nhiệm Việt Nam thực hiện nhiệm vụ giải cứu con tin tại một căn cứ bí mật nằm sâu trong rừng nhiệt đới.',
