@@ -27,8 +27,6 @@ public class ManagerDashboardServiceImpl implements ManagerDashboardService {
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DATE_FMT  = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final List<String> MONTH_LABELS =
-            List.of("T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12");
 
     // ── getStats ──────────────────────────────────────────────────────────────
 
@@ -44,55 +42,11 @@ public class ManagerDashboardServiceImpl implements ManagerDashboardService {
         nf.setMaximumFractionDigits(0);
         String revenueFormatted = nf.format(revenue != null ? revenue : BigDecimal.ZERO) + " đ";
 
-        List<String> chartLabels;
-        long[]       chartData;
-
-        switch (mode) {
-            case "today": {
-                chartLabels = List.of(from.format(DateTimeFormatter.ofPattern("dd/MM")));
-                long todayRev = revenue != null ? revenue.longValue() : 0L;
-                chartData = new long[]{ todayRev };
-                break;
-            }
-            case "month": {
-                chartLabels = List.of("Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4");
-                chartData   = new long[4];
-                List<Object[]> weekly = bookingRepository.getWeeklyRevenueByCinema(cinemaId, from, to);
-                for (Object[] row : weekly) {
-                    int week = ((Number) row[0]).intValue() - 1;
-                    if (week >= 0 && week < 4) chartData[week] = ((Number) row[1]).longValue();
-                }
-                break;
-            }
-            case "quarter": {
-                chartLabels = List.of("Q1", "Q2", "Q3", "Q4");
-                chartData   = new long[4];
-                List<Object[]> quarterData = bookingRepository.getQuarterlyRevenueByCinema(cinemaId, from, to);
-                for (Object[] row : quarterData) {
-                    int q = ((Number) row[0]).intValue() - 1;
-                    if (q >= 0 && q < 4) chartData[q] = ((Number) row[1]).longValue();
-                }
-                break;
-            }
-            default: {
-                chartLabels = MONTH_LABELS;
-                chartData   = new long[12];
-                List<Object[]> monthly = bookingRepository.getMonthlyRevenueByCinema(cinemaId, from, to);
-                for (Object[] row : monthly) {
-                    int month = ((Number) row[0]).intValue() - 1;
-                    if (month >= 0 && month < 12) chartData[month] = ((Number) row[1]).longValue();
-                }
-                break;
-            }
-        }
-
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("revenue",     revenueFormatted);
         result.put("showtimes",   showtimes  != null ? showtimes  : 0L);
         result.put("tickets",     tickets    != null ? tickets    : 0L);
         result.put("customers",   customers  != null ? customers  : 0L);
-        result.put("chartLabels", chartLabels);
-        result.put("chartData",   chartData);
         return result;
     }
 
