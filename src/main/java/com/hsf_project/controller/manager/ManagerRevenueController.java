@@ -53,10 +53,6 @@ public class ManagerRevenueController {
             model.addAttribute("comboCount",      "0");
             model.addAttribute("ticketPercent",   "0%");
             model.addAttribute("comboPercent",    "0%");
-            model.addAttribute("chartLabels",
-                    java.util.List.of("T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12"));
-            model.addAttribute("ticketChartData", new long[12]);
-            model.addAttribute("comboChartData",  new long[12]);
             model.addAttribute("topMovies",       java.util.List.of());
         }
 

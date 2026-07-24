@@ -1,387 +1,88 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi Tiết Doanh Thu - CineMax</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"/>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
-    <style>
-        :root {
-            --color-brand-red:#E31B23;--color-brand-red-hover:#C41219;--color-brand-red-light:rgba(227,27,35,0.15);
-            --color-bg:#0A0A0C;--color-surface:#111114;--color-surface-raised:#18181D;
-            --color-text-primary:#FFFFFF;--color-text-secondary:#A0A0B0;--color-text-muted:#606070;
-            --color-border:rgba(255,255,255,0.08);--color-border-strong:rgba(255,255,255,0.16);
-            --radius-xs:4px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-pill:9999px;
-            --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;
-            --font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
-            --text-headline-lg:clamp(24px,3.5vw,36px);--text-headline-md:clamp(20px,2.5vw,28px);
-            --text-body-md:16px;--text-body-sm:14px;--text-label:12px;
-            --lh-headline:1.15;--lh-body:1.6;--transition-fast:150ms ease;
-        }
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:var(--font-family);font-size:var(--text-body-md);line-height:var(--lh-body);background-color:var(--color-bg);color:var(--color-text-primary);-webkit-font-smoothing:antialiased}
-        button{cursor:pointer;border:none;background:none;font-family:inherit}
+package com.hsf_project.service.impl;
 
-        .mgr-layout{display:flex;min-height:100vh;}
-        .mgr-layout > div:first-child{display:contents}
-        .mgr-main{flex:1;min-width:0;overflow-x:hidden;}
-        .container{width:100%;max-width:1200px;margin:0 auto;padding:0 var(--space-md)}
-        .mgr-page{padding-block:var(--space-xl)}
+import com.hsf_project.repository.BookingRepository;
+import com.hsf_project.service.ManagerRevenueService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-        .back-link{display:inline-flex;align-items:center;gap:6px;font-size:var(--text-body-sm);font-weight:500;color:var(--color-text-muted);margin-bottom:var(--space-lg);transition:color var(--transition-fast);text-decoration:none!important}
-        .back-link:hover{color:var(--color-brand-red)}
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
-        .page-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap}
-        .headline-lg{font-size:var(--text-headline-lg);font-weight:700;line-height:var(--lh-headline);letter-spacing:-0.015em}
-        .page-subtitle{color:var(--color-text-secondary);font-size:var(--text-body-sm);margin-top:6px}
+@Service
+public class ManagerRevenueServiceImpl implements ManagerRevenueService {
 
-        .date-filter{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:14px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
-        .date-filter__label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);white-space:nowrap}
-        .date-filter__quick-btns{display:flex;background:var(--color-surface-raised);border-radius:var(--radius-sm);padding:3px;gap:2px}
-        .date-filter__quick-btn{padding:6px 14px;font-size:var(--text-label);font-weight:600;color:var(--color-text-muted);border-radius:6px;transition:all var(--transition-fast);white-space:nowrap}
-        .date-filter__quick-btn:hover{color:var(--color-text-secondary)}
-        .date-filter__quick-btn.is-active{background:var(--color-brand-red);color:#fff}
-        .date-filter__sep{width:1px;height:24px;background:var(--color-border);flex-shrink:0}
-        .date-filter__inputs{display:flex;align-items:center;gap:8px}
-        .date-filter__input{padding:7px 12px;background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:6px;color:var(--color-text-primary);font-size:var(--text-body-sm);font-family:var(--font-family);outline:none;width:145px;transition:border-color var(--transition-fast)}
-        .date-filter__input:focus{border-color:var(--color-brand-red)}
-        .date-filter__input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
-        .date-filter__to{font-size:var(--text-body-sm);color:var(--color-text-muted)}
+@Autowired
+private BookingRepository bookingRepository;
 
-        .revenue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-md);margin-top:var(--space-lg)}
-        @media(max-width:768px){.revenue-grid{grid-template-columns:1fr}}
-        .rev-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg);display:flex;flex-direction:column;gap:10px;transition:transform var(--transition-fast),border-color var(--transition-fast);position:relative;overflow:hidden}
-        .rev-card:hover{transform:translateY(-2px);border-color:var(--color-border-strong)}
-        .rev-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px}
-        .rev-card--total::before{background:var(--color-brand-red)}
-        .rev-card--ticket::before{background:#6DB9F0}
-        .rev-card--combo::before{background:#F5C518}
-        .rev-card__icon{width:48px;height:48px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:24px}
-        .rev-card__icon--red{background:var(--color-brand-red-light);color:var(--color-brand-red)}
-        .rev-card__icon--blue{background:rgba(30,95,173,0.15);color:#6DB9F0}
-        .rev-card__icon--gold{background:rgba(245,197,24,0.15);color:#F5C518}
-        .rev-card__icon .material-symbols-outlined{font-size:24px}
-        .rev-card__label{font-size:var(--text-label);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--color-text-muted)}
-        .rev-card__value{font-size:28px;font-weight:800;letter-spacing:-0.02em}
-        .rev-card__sub{font-size:var(--text-body-sm);color:var(--color-text-muted)}
+@Override
+@Transactional(readOnly = true)
+public Map<String, Object> getRevenueStats(Integer cinemaId,
+LocalDateTime from,
+LocalDateTime to,
+String mode) {
+NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+nf.setMaximumFractionDigits(0);
 
-        .chart-panel{margin-top:var(--space-xl);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg)}
-        .chart-panel__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-lg);flex-wrap:wrap;gap:var(--space-sm)}
-        .chart-panel__title{font-size:var(--text-headline-md);font-weight:700}
-        .chart-panel__subtitle{font-size:var(--text-body-sm);color:var(--color-text-muted);margin-top:2px}
-        .chart-canvas-bar{position:relative;width:100%;height:380px}
+// ── Stat cards ────────────────────────────────────────────────────────
+BigDecimal totalRev = bookingRepository.getTotalRevenueByCinema(cinemaId, from, to);
+BigDecimal comboRev = bookingRepository.getTotalComboRevenueByCinema(cinemaId, from, to);
+if (totalRev == null) totalRev = BigDecimal.ZERO;
+if (comboRev == null) comboRev = BigDecimal.ZERO;
 
-        .top-table-section{margin-top:var(--space-xl);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg)}
-        .top-table{width:100%;border-collapse:collapse;font-size:var(--text-body-sm);margin-top:var(--space-md)}
-        .top-table th{text-align:left;font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.04em;padding:10px 8px;border-bottom:1px solid var(--color-border)}
-        .top-table td{padding:12px 8px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--color-text-secondary)}
-        .top-table td:first-child{color:#fff;font-weight:600}
-        .top-table th:last-child,.top-table td:last-child{text-align:right}
-        .top-table td:last-child{color:#fff;font-weight:700}
-        .rank-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:12px;font-weight:800}
-        .rank-1{background:var(--color-brand-red-light);color:var(--color-brand-red)}
-        .rank-2{background:rgba(245,197,24,0.15);color:#F5C518}
-        .rank-3{background:rgba(30,95,173,0.15);color:#6DB9F0}
-        .rank-other{background:rgba(255,255,255,0.05);color:var(--color-text-muted)}
-        .rev-bar-cell{display:flex;align-items:center;gap:10px}
-        .rev-bar-track{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
-        .rev-bar-fill{height:100%;border-radius:3px;background:var(--color-brand-red)}
-        .empty-state{text-align:center;padding:48px;color:var(--color-text-muted);font-size:var(--text-body-sm)}
+BigDecimal ticketRev = totalRev.subtract(comboRev);
+if (ticketRev.compareTo(BigDecimal.ZERO) < 0) ticketRev = BigDecimal.ZERO;
 
-        @media(max-width:768px){.page-header-row{flex-direction:column}.date-filter{width:100%}}
+Long ticketCount = bookingRepository.countTicketsSoldByCinema(cinemaId, from, to);
+Long comboCount  = bookingRepository.countCombosSoldByCinema(cinemaId, from, to);
+if (ticketCount == null) ticketCount = 0L;
+if (comboCount  == null) comboCount  = 0L;
 
-        /* ════ SIDEBAR ════ */
-        .sidebar{width:256px;height:100vh;background:#111114;border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;overflow:hidden;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;}
-        .sidebar__brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
-        .sidebar__brand-name{font-size:20px;font-weight:800;color:#E31B23;letter-spacing:-0.02em;line-height:1.2}
-        .sidebar__branch{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;color:#606070;font-weight:500}
-        .sidebar__branch .material-symbols-outlined{font-size:14px}
-        .sidebar__branch span:last-child{color:#A0A0B0;font-weight:600}
-        .sidebar__nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
-        .sidebar__nav::-webkit-scrollbar{width:0}
-        .sidebar__divider{height:1px;background:rgba(255,255,255,0.08);margin:4px 12px}
-        .sidebar .nav-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#A0A0B0;font-size:14px;font-weight:500;transition:all 150ms ease;text-decoration:none!important}
-        .sidebar .nav-link .material-symbols-outlined{font-size:20px;flex-shrink:0}
-        .sidebar .nav-link:hover,.sidebar .nav-link:focus,.sidebar .nav-link:visited{background:#18181D;color:#fff;text-decoration:none!important}
-        .sidebar .nav-link.is-active{background:#E31B23;color:#fff;font-weight:600}
-        .sidebar .nav-link.is-active:hover{background:#C41219}
-        .sidebar__footer{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;gap:4px;flex-shrink:0}
-        .sidebar__user{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;text-decoration:none!important;transition:background 150ms ease}
-        .sidebar__user:hover{background:#18181D}
-        .sidebar__avatar{width:36px;height:36px;border-radius:50%;background:#18181D;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-        .sidebar__avatar .material-symbols-outlined{font-size:20px;color:#606070}
-        .sidebar__user-info{flex:1;min-width:0}
-        .sidebar__user-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .sidebar__user-email{font-size:11px;color:#606070;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-        .sidebar__logout{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:none;border:none;color:#606070;font-size:13px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;width:100%;transition:all 150ms ease;text-decoration:none!important}
-        .sidebar__logout:hover{background:rgba(227,27,35,0.1);color:#E31B23}
-        .sidebar__logout .material-symbols-outlined{font-size:18px}
-    </style>
-</head>
-<body>
-<div class="mgr-layout">
-    <div th:replace="~{fragments/managerSidebar :: sidebar}"></div>
-    <div class="mgr-main">
-        <main class="container mgr-page">
-            <!-- PAGE HEADER + FILTER -->
-            <div class="page-header-row">
-                <div>
-                    <h1 class="headline-lg">Chi tiết doanh thu</h1>
-                    <p class="page-subtitle">Xem báo cáo và phân tích doanh thu của chi nhánh.</p>
-                </div>
-                <div class="date-filter">
-                    <span class="date-filter__label">Giai đoạn xem xét</span>
-                    <div class="date-filter__quick-btns">
-                        <button class="date-filter__quick-btn" onclick="setQuickRange('today',this)">Hôm nay</button>
-                        <button class="date-filter__quick-btn" onclick="setQuickRange('month',this)">Tháng</button>
-                        <button class="date-filter__quick-btn" onclick="setQuickRange('quarter',this)">Quý</button>
-                        <button class="date-filter__quick-btn is-active" onclick="setQuickRange('year',this)">Năm</button>
-                    </div>
-                    <div class="date-filter__sep"></div>
-                    <div class="date-filter__inputs">
-                        <input type="date" class="date-filter__input" id="dateFrom" onchange="onDateChange()"/>
-                        <span class="date-filter__to">đến</span>
-                        <input type="date" class="date-filter__input" id="dateTo" onchange="onDateChange()"/>
-                    </div>
-                </div>
-            </div>
+// Tỉ lệ %
+String ticketPct = "0%", comboPct = "0%";
+if (totalRev.compareTo(BigDecimal.ZERO) > 0) {
+ticketPct = ticketRev.multiply(BigDecimal.valueOf(100))
+.divide(totalRev, 1, RoundingMode.HALF_UP) + "%";
+comboPct  = comboRev.multiply(BigDecimal.valueOf(100))
+.divide(totalRev, 1, RoundingMode.HALF_UP) + "%";
+}
 
-            <!-- 3 REVENUE CARDS -->
-            <div class="revenue-grid">
-                <div class="rev-card rev-card--total">
-                    <div class="rev-card__icon rev-card__icon--red">
-                        <span class="material-symbols-outlined">payments</span>
-                    </div>
-                    <span class="rev-card__label">Tổng doanh thu</span>
-                    <span class="rev-card__value" id="cardTotal" th:text="${totalRevenue}">0 đ</span>
-                    <span class="rev-card__sub" id="cardTotalSub">Tổng doanh thu trong kỳ</span>
-                </div>
-                <div class="rev-card rev-card--ticket">
-                    <div class="rev-card__icon rev-card__icon--blue">
-                        <span class="material-symbols-outlined">confirmation_number</span>
-                    </div>
-                    <span class="rev-card__label">Doanh thu từ vé</span>
-                    <span class="rev-card__value" id="cardTicket" th:text="${ticketRevenue}">0 đ</span>
-                    <span class="rev-card__sub" id="cardTicketSub">
-                    <span th:text="${ticketCount}">0</span> vé đã bán •
-                    Chiếm <span th:text="${ticketPercent}">0%</span>
-                </span>
-                </div>
-                <div class="rev-card rev-card--combo">
-                    <div class="rev-card__icon rev-card__icon--gold">
-                        <span class="material-symbols-outlined">fastfood</span>
-                    </div>
-                    <span class="rev-card__label">Doanh thu bắp nước</span>
-                    <span class="rev-card__value" id="cardCombo" th:text="${comboRevenue}">0 đ</span>
-                    <span class="rev-card__sub" id="cardComboSub">
-                    <span th:text="${comboCount}">0</span> combo đã bán •
-                    Chiếm <span th:text="${comboPercent}">0%</span>
-                </span>
-                </div>
-            </div>
+// ── Top movies ────────────────────────────────────────────────────────
+List<Object[]> topRaw = bookingRepository.getTopMoviesByCinema(cinemaId, from, to);
+long maxRev = topRaw.isEmpty() ? 1L :
+((Number) topRaw.get(0)[2]).longValue(); // phim #1 có doanh thu cao nhất
 
-            <!-- STACKED BAR CHART -->
-            <div class="chart-panel">
-                <div class="chart-panel__header">
-                    <div>
-                        <div class="chart-panel__title">Doanh thu theo kỳ</div>
-                        <div class="chart-panel__subtitle">So sánh doanh thu vé và bắp nước</div>
-                    </div>
-                </div>
-                <div class="chart-canvas-bar">
-                    <canvas id="stackedBarChart"></canvas>
-                </div>
-            </div>
+List<Map<String, Object>> topMovies = new ArrayList<>();
+int rank = 1;
+for (Object[] row : topRaw) {
+String  title     = (String) row[0];
+long    tickets   = ((Number) row[1]).longValue();
+long    revenue   = ((Number) row[2]).longValue();
+int     barWidth  = maxRev > 0 ? (int)(revenue * 100L / maxRev) : 0;
 
-            <!-- TOP MOVIES TABLE -->
-            <div class="top-table-section">
-                <div class="chart-panel__header" style="margin-bottom:0">
-                    <div>
-                        <div class="chart-panel__title">Top phim doanh thu cao nhất</div>
-                        <div class="chart-panel__subtitle">Xếp hạng theo tổng doanh thu vé tại chi nhánh</div>
-                    </div>
-                </div>
-                <table class="top-table">
-                    <thead>
-                    <tr>
-                        <th style="width:50px">#</th>
-                        <th>Tên phim</th>
-                        <th>Số vé</th>
-                        <th style="min-width:200px">Doanh thu</th>
-                        <th>Tổng</th>
-                    </tr>
-                    </thead>
-                    <tbody id="topMoviesBody"></tbody>
-                </table>
-                <div class="empty-state" id="topMoviesEmpty" style="display:none">Không có dữ liệu trong kỳ này.</div>
-            </div>
+Map<String, Object> m = new LinkedHashMap<>();
+m.put("rank",     rank++);
+m.put("title",    title);
+m.put("tickets",  nf.format(tickets));
+m.put("revenue",  nf.format(revenue) + " đ");
+m.put("barWidth", barWidth);
+topMovies.add(m);
+}
 
-        </main>
-    </div>
-</div>
-
-<script th:inline="javascript">
-    /*<![CDATA[*/
-
-    // ── DỮ LIỆU BAN ĐẦU TỪ SERVER ─────────────────────────────────────────────
-    const initTicketChart = /*[[${ticketChartData}]]*/ [];
-    const initComboChart  = /*[[${comboChartData}]]*/ [];
-    const initLabels      = /*[[${chartLabels}]]*/   [];
-    const initTopMovies   = /*[[${topMovies}]]*/     [];
-
-    // ── STACKED BAR CHART ──────────────────────────────────────────────────────
-    const ctx = document.getElementById('stackedBarChart').getContext('2d');
-    const stackedChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: initLabels,
-            datasets: [
-                {
-                    label: 'Doanh thu vé',
-                    data: initTicketChart,
-                    backgroundColor: 'rgba(109,185,240,0.75)',
-                    hoverBackgroundColor: '#6DB9F0',
-                    borderRadius: { topLeft:0, topRight:0, bottomLeft:6, bottomRight:6 },
-                    borderSkipped: false, barPercentage: 0.5
-                },
-                {
-                    label: 'Doanh thu bắp nước',
-                    data: initComboChart,
-                    backgroundColor: 'rgba(245,197,24,0.75)',
-                    hoverBackgroundColor: '#F5C518',
-                    borderRadius: { topLeft:6, topRight:6, bottomLeft:0, bottomRight:0 },
-                    borderSkipped: false, barPercentage: 0.5
-                }
-            ]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            animation: { duration:400, easing:'easeOutQuart' },
-            plugins: {
-                legend: { position:'bottom', labels:{ color:'#A0A0B0', usePointStyle:true, pointStyle:'circle', padding:20 }},
-                tooltip: { backgroundColor:'#18181D', titleColor:'#fff', bodyColor:'#A0A0B0',
-                    borderColor:'rgba(255,255,255,0.08)', borderWidth:1, padding:12,
-                    callbacks:{ label: c => c.dataset.label + ': ' + c.parsed.y.toLocaleString('vi-VN') + ' đ' }
-                }
-            },
-            scales: {
-                x: { stacked:true, ticks:{ color:'#606070' }, grid:{ display:false } },
-                y: { stacked:true,
-                    ticks:{ color:'#606070', callback: v => v>=1000000?(v/1000000)+'M':v>=1000?(v/1000)+'K':v },
-                    grid:{ color:'rgba(255,255,255,0.04)' }, border:{ display:false } }
-            }
-        }
-    });
-
-    // ── TOP MOVIES RENDER ─────────────────────────────────────────────────────
-    const RANK_CLASS = ['rank-1','rank-2','rank-3','rank-other','rank-other'];
-    const BAR_COLORS = ['var(--color-brand-red)','#F5C518','#6DB9F0','#606070','#606070'];
-
-    function renderTopMovies(movies) {
-        const tbody = document.getElementById('topMoviesBody');
-        const empty = document.getElementById('topMoviesEmpty');
-        if (!movies || !movies.length) {
-            tbody.innerHTML = '';
-            empty.style.display = 'block';
-            return;
-        }
-        empty.style.display = 'none';
-        tbody.innerHTML = movies.map((m, i) => `
-            <tr>
-                <td><span class="rank-badge ${RANK_CLASS[i] || 'rank-other'}">${m.rank}</span></td>
-                <td style="color:#fff;font-weight:600">${m.title}</td>
-                <td>${m.tickets}</td>
-                <td>
-                    <div class="rev-bar-cell">
-                        <div class="rev-bar-track">
-                            <div class="rev-bar-fill" style="width:${m.barWidth}%;background:${BAR_COLORS[i]||'#606070'}"></div>
-                        </div>
-                    </div>
-                </td>
-                <td>${m.revenue}</td>
-            </tr>
-        `).join('');
-    }
-
-    // ── DATE FILTER ────────────────────────────────────────────────────────────
-    let currentMode = 'year';
-
-    function setQuickRange(mode, btn) {
-        currentMode = mode;
-        document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        const now = new Date(), y = now.getFullYear(), m = now.getMonth();
-        if (mode === 'today') {
-            const s = fmtISO(now);
-            document.getElementById('dateFrom').value = s;
-            document.getElementById('dateTo').value   = s;
-        } else if (mode === 'month') {
-            document.getElementById('dateFrom').value = fmtISO(new Date(y,m,1));
-            document.getElementById('dateTo').value   = fmtISO(new Date(y,m+1,0));
-        } else if (mode === 'quarter') {
-            document.getElementById('dateFrom').value = y + '-01-01';
-            document.getElementById('dateTo').value   = y + '-12-31';
-        } else {
-            document.getElementById('dateFrom').value = y + '-01-01';
-            document.getElementById('dateTo').value   = y + '-12-31';
-        }
-        fetchStats();
-    }
-
-    function onDateChange() {
-        currentMode = 'year';
-        document.querySelectorAll('.date-filter__quick-btn').forEach(b => b.classList.remove('is-active'));
-        fetchStats();
-    }
-
-    function fmtISO(d) {
-        return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    }
-
-    // ── AJAX ──────────────────────────────────────────────────────────────────
-    function fetchStats() {
-        const from = document.getElementById('dateFrom').value;
-        const to   = document.getElementById('dateTo').value;
-        if (!from || !to) return;
-
-        fetch(`/manager/revenue/stats?from=${from}&to=${to}&mode=${currentMode}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.error) return;
-
-                // Cards
-                document.getElementById('cardTotal').textContent  = data.totalRevenue;
-                document.getElementById('cardTicket').textContent = data.ticketRevenue;
-                document.getElementById('cardCombo').textContent  = data.comboRevenue;
-                document.getElementById('cardTicketSub').innerHTML =
-                    `${data.ticketCount} vé đã bán • Chiếm ${data.ticketPercent}`;
-                document.getElementById('cardComboSub').innerHTML =
-                    `${data.comboCount} combo đã bán • Chiếm ${data.comboPercent}`;
-
-                // Chart
-                stackedChart.data.labels           = data.chartLabels;
-                stackedChart.data.datasets[0].data = data.ticketChartData;
-                stackedChart.data.datasets[1].data = data.comboChartData;
-                stackedChart.update();
-
-                // Top movies
-                renderTopMovies(data.topMovies);
-            })
-            .catch(console.error);
-    }
-
-    // ── INIT ──────────────────────────────────────────────────────────────────
-    (function() {
-        const y = new Date().getFullYear();
-        document.getElementById('dateFrom').value = y + '-01-01';
-        document.getElementById('dateTo').value   = y + '-12-31';
-        renderTopMovies(initTopMovies);
-    })();
-
-    /*]]>*/
-</script>
-</body>
-</html>
+// ── Kết quả ──────────────────────────────────────────────────────────
+Map<String, Object> result = new LinkedHashMap<>();
+result.put("totalRevenue",    nf.format(totalRev)  + " đ");
+result.put("ticketRevenue",   nf.format(ticketRev) + " đ");
+result.put("comboRevenue",    nf.format(comboRev)  + " đ");
+result.put("ticketCount",     nf.format(ticketCount));
+result.put("comboCount",      nf.format(comboCount));
+result.put("ticketPercent",   ticketPct);
+result.put("comboPercent",    comboPct);
+result.put("topMovies",       topMovies);
+return result;
+}
+}
