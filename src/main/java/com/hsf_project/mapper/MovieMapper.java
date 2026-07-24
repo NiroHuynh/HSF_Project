@@ -13,6 +13,11 @@ import java.util.stream.Collectors;
 public interface MovieMapper {
 
     @Mapping(target = "genresString", expression = "java(buildGenresString(movie))")
+    @Mapping(target = "roomTypes", expression = "java(mapRoomTypes(roomTypes))")
+    MovieHomeDTO toMovieHomeDTO(Movie movie, List<String> roomTypes);
+
+    @Mapping(target = "genresString", expression = "java(buildGenresString(movie))")
+    @Mapping(target = "roomTypes", expression = "java(mapRoomTypes(null))")
     MovieHomeDTO toMovieHomeDTO(Movie movie);
 
     default String buildGenresString(Movie movie) {
@@ -23,5 +28,12 @@ public interface MovieMapper {
         return genres.stream()
                 .map(Genre::getName)
                 .collect(Collectors.joining(", "));
+    }
+
+    default List<String> mapRoomTypes(List<String> roomTypes) {
+        if (roomTypes == null || roomTypes.isEmpty()) {
+            return List.of("2D");
+        }
+        return roomTypes;
     }
 }

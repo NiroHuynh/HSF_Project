@@ -684,9 +684,11 @@ input, textarea, select {
 }
 
 /* Screen format chips */
-.chip-imax   { background: #1E3A5F; color: #6DB9F0; }
-.chip-2d     { background: #1E2E1E; color: #6DBF6D; }
-.chip-3d     { background: #2E1E3A; color: #B06DF0; }
+.chip-imax    { background: #1E3A5F; color: #6DB9F0; }
+.chip-2d      { background: #1E2E1E; color: #6DBF6D; }
+.chip-3d      { background: #2E1E3A; color: #B06DF0; }
+.chip-4dx     { background: #3A2E1E; color: #F0A06D; }
+.chip-screenx { background: #3A1E2E; color: #F06DB9; }
 
 /* Age rating chips */
 .chip-t16    { background: #3A1E1E; color: #F06D6D; }

@@ -29,14 +29,17 @@ document.addEventListener('DOMContentLoaded', function () {
         updateAddStatusBadge();
     }
 
-    // ========== NGÀY KẾT THÚC >= NGÀY KHỞI CHIẾU ==========
+    // ========== NGÀY KẾT THÚC > NGÀY KHỞI CHIẾU ==========
     const endDateInput = document.getElementById('endDateInput');
     if (releaseDateInput && endDateInput) {
         function syncEndDateMin() {
             if (releaseDateInput.value) {
-                endDateInput.min = releaseDateInput.value;
-                if (endDateInput.value && endDateInput.value < releaseDateInput.value) {
-                    endDateInput.value = releaseDateInput.value;
+                const releaseD = new Date(releaseDateInput.value);
+                releaseD.setDate(releaseD.getDate() + 1);
+                const minEndDate = releaseD.toISOString().slice(0, 10);
+                endDateInput.min = minEndDate;
+                if (endDateInput.value && endDateInput.value <= releaseDateInput.value) {
+                    endDateInput.value = minEndDate;
                 }
             }
         }
@@ -456,11 +459,11 @@ document.addEventListener('DOMContentLoaded', function () {
             errors.push('Vui lòng chọn ngày kết thúc dự kiến');
         }
 
-        // Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu
+        // Ngày kết thúc phải sau ngày khởi chiếu
         const refRelease = form.querySelector('[name="releaseDate"]');
-        if (endDate.value && refRelease.value && endDate.value < refRelease.value) {
+        if (endDate.value && refRelease.value && endDate.value <= refRelease.value) {
             endDate.classList.add('error');
-            errors.push('Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu');
+            errors.push('Ngày kết thúc phải sau ngày khởi chiếu');
         }
 
         // Poster (chỉ check khi thêm phim)

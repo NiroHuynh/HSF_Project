@@ -65,10 +65,9 @@
                 <!-- Khối thông tin phim hiển thị ở phần đáy card -->
                 <div class="movie-card__info">
                     <div class="movie-card__tags">
-                        <!-- Format phim (2D/3D/IMAX) -->
-                        <span class="chip chip-imax">IMAX</span>
+                        <!-- Format phim động (2D/3D/IMAX...) theo suất chiếu -->
+                        <span class="chip" th:each="rt : ${dto.roomTypes}" th:classappend="${'chip-' + #strings.toLowerCase(rt)}" th:text="${rt}">2D</span>
                         <!-- Phân loại độ tuổi (age_rating ENUM) -->
-                        <!-- Dùng th:classappend để thay đổi class màu sắc theo enum của bạn (Ví dụ: chip-t16, chip-p) -->
                         <span class="chip" th:classappend="${'chip-' + #strings.toLowerCase(dto.movie.ageRating)}" th:text="${dto.movie.ageRating}">T16</span>
                     </div>
                     <!-- Tên phim (click để xem chi tiết) -->
@@ -105,8 +104,9 @@
                 <!-- Badge hiển thị ngày khởi chiếu (release_date) đặc trưng của mục sắp chiếu -->
                 <div class="movie-card__date-badge" th:text="${#temporals.format(dto.movie.releaseDate, 'dd.MM.yyyy')}">22.03.2026</div>
 
-                <div class="movie-card__info">
                     <div class="movie-card__tags">
+                        <!-- Format phim động (2D/3D/IMAX...) theo suất chiếu -->
+                        <span class="chip" th:each="rt : ${dto.roomTypes}" th:classappend="${'chip-' + #strings.toLowerCase(rt)}" th:text="${rt}">2D</span>
                         <!-- Phân loại độ tuổi -->
                         <span class="chip" th:classappend="${'chip-' + #strings.toLowerCase(dto.movie.ageRating)}" th:text="${dto.movie.ageRating}">P</span>
                     </div>

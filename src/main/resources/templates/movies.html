@@ -438,7 +438,10 @@
 
                     <div class="movie-card__info">
                         <div class="movie-card__tags">
-                            <span class="chip chip-imax">IMAX</span>
+                            <span class="chip"
+                                  th:each="rt : ${dto.roomTypes}"
+                                  th:classappend="${'chip-' + #strings.toLowerCase(rt)}"
+                                  th:text="${rt}">2D</span>
                             <span class="chip"
                                   th:classappend="${'chip-' + #strings.toLowerCase(dto.movie.ageRating)}"
                                   th:text="${dto.movie.ageRating}">T16</span>

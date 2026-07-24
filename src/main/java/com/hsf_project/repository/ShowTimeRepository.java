@@ -90,4 +90,10 @@ public interface ShowTimeRepository extends JpaRepository<ShowTime, Long> {
                                             @Param("startTime") LocalDateTime startTime,
                                             @Param("endTime") LocalDateTime endTime,
                                             @Param("excludeId") Long excludeId);
+
+    @Query("SELECT DISTINCT st.room.roomType FROM ShowTime st " +
+            "WHERE st.movie.id = :movieId " +
+            "AND (st.isDeleted IS NULL OR st.isDeleted = false) " +
+            "AND (st.room.isDeleted IS NULL OR st.room.isDeleted = false)")
+    List<String> findDistinctRoomTypesByMovieId(@Param("movieId") Integer movieId);
 }

@@ -118,11 +118,16 @@ public class MovieServiceImpl implements MovieService {
         return movie.getGenres().stream().anyMatch(g -> genreIds.contains(g.getId()));
     }
 
+    private MovieHomeDTO convertToMovieHomeDTO(Movie movie) {
+        List<String> roomTypes = showTimeRepository.findDistinctRoomTypesByMovieId(movie.getId());
+        return movieMapper.toMovieHomeDTO(movie, roomTypes);
+    }
+
     @Override
     @Transactional(readOnly = true)
     public Page<MovieHomeDTO> getMoviesByStatus(MovieStatus status, Pageable pageable) {
         return movieRepository.findByStatusAndIsDeletedFalse(status, pageable)
-                .map(movieMapper::toMovieHomeDTO);
+                .map(this::convertToMovieHomeDTO);
     }
 
     @Override
@@ -142,14 +147,14 @@ public class MovieServiceImpl implements MovieService {
                 ? filtered.subList(start, end)
                 : List.of();
         return new PageImpl<>(pageContent, pageable, filtered.size())
-                .map(movieMapper::toMovieHomeDTO);
+                .map(this::convertToMovieHomeDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<MovieHomeDTO> getMoviesByGenreAndStatus(List<Integer> genreIds, MovieStatus status, Pageable pageable) {
         return movieRepository.findDistinctByGenres_IdInAndStatusAndIsDeletedFalse(genreIds, status, pageable)
-                .map(movieMapper::toMovieHomeDTO);
+                .map(this::convertToMovieHomeDTO);
     }
 
     @Override
@@ -169,7 +174,7 @@ public class MovieServiceImpl implements MovieService {
                 ? filtered.subList(start, end)
                 : List.of();
         return new PageImpl<>(pageContent, pageable, filtered.size())
-                .map(movieMapper::toMovieHomeDTO);
+                .map(this::convertToMovieHomeDTO);
     }
 
     @Override
@@ -181,8 +186,8 @@ public class MovieServiceImpl implements MovieService {
         if (request.getReleaseDate().isBefore(LocalDate.now()))
             throw new AppException(ErrorCode.INVALID_RELEASE_DATE);
 
-        if (request.getEndDate() != null && request.getEndDate().isBefore(request.getReleaseDate()))
-            throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu");
+        if (request.getEndDate() != null && !request.getEndDate().isAfter(request.getReleaseDate()))
+            throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau ngày khởi chiếu");
         if (request.getEndDate() != null && request.getEndDate().isBefore(LocalDate.now()))
             throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc không được trong quá khứ");
 
@@ -240,8 +245,8 @@ public class MovieServiceImpl implements MovieService {
             }
             if (request.getEndDate() != null) {
                 LocalDate refRelease = request.getReleaseDate() != null ? request.getReleaseDate() : movie.getReleaseDate();
-                if (request.getEndDate().isBefore(refRelease))
-                    throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau hoặc bằng ngày khởi chiếu");
+                if (!request.getEndDate().isAfter(refRelease))
+                    throw new AppException(ErrorCode.INVALID_DATE_RANGE, "Ngày kết thúc phải sau ngày khởi chiếu");
             }
         }
 
