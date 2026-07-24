@@ -169,6 +169,36 @@
         .star-item.selected ~ .star-item {
             color: var(--color-star, #f5c518); /* Màu vàng sáng */
         }
+
+        /* --- Modal thông báo (thay cho alert()) --- */
+        .review-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .review-modal-overlay.open {
+            display: flex;
+        }
+        .review-modal-box {
+            background: var(--color-surface, #fff);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            max-width: 360px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow-card);
+        }
+        .review-modal-box p {
+            margin: 12px 0 20px;
+            color: var(--color-text-secondary);
+        }
+        .review-modal-box button {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -307,6 +337,14 @@
             </div>
         </div>
     </div>
+
+    <div class="review-modal-overlay" id="reviewErrorModal">
+        <div class="review-modal-box">
+            <h3>Thông báo</h3>
+            <p>Vui lòng chọn số sao đánh giá trước khi gửi!</p>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('reviewErrorModal').classList.remove('open')">Đã hiểu</button>
+        </div>
+    </div>
 </main>
 
 <script>
@@ -358,10 +396,15 @@
             form.addEventListener('submit', function(e) {
                 if (scoreInput.value === "0") {
                     e.preventDefault(); // Chặn gửi form
-                    alert('Vui lòng chọn số sao đánh giá trước khi gửi!');
+                    document.getElementById('reviewErrorModal').classList.add('open');
                 }
             });
         }
+
+        const reviewErrorModal = document.getElementById('reviewErrorModal');
+        reviewErrorModal.addEventListener('click', function(e) {
+            if (e.target === reviewErrorModal) reviewErrorModal.classList.remove('open');
+        });
     });
 </script>
 <div th:replace="~{fragments/footer :: footer}"></div>

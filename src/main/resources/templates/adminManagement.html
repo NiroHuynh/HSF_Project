@@ -173,6 +173,17 @@
         </div>
     </div>
 
+    <div class="modal" id="errorModal">
+        <div class="modal-box">
+            <button type="button" class="close" onclick="closeErrorModal()">×</button>
+            <h2>Thông báo</h2>
+            <p class="field-hint" id="errorModalText"></p>
+            <div class="modal-actions">
+                <button type="button" class="primary" onclick="closeErrorModal()">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+
     <script th:src="@{/js/form-validate.js}"></script>
     <script th:src="@{/js/adminAction.js}"></script>
 </main>
