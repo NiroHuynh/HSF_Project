@@ -3,6 +3,11 @@ package com.hsf_project.service.auth;
 import com.hsf_project.dto.auth.RegisterForm;
 import com.hsf_project.entity.User;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 public interface UserService {
 
     User loginByEmail(String email, String password);
@@ -27,4 +32,7 @@ public interface UserService {
      * @return true nếu email tồn tại và đã cập nhật.
      */
     boolean resetPassword(String email, String newPassword);
+
+    public long getRemainingLockMinutes(Long userId);
+
 }

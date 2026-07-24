@@ -11,6 +11,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 @Service
@@ -92,5 +96,26 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
         return true;
+    }
+
+    @Override
+    public long getRemainingLockMinutes(Long userId) {
+        // 1. Truy vấn mốc thời gian bị khóa dưới DB
+        LocalDateTime lockUntil = userRepo.getLockBookingUntilByUserId(userId);
+
+        if (lockUntil == null) {
+            return 0; // Không bị khóa
+        }
+
+        // 2. Lấy thời gian hiện tại chuẩn Việt Nam
+        LocalDateTime currentLocalTime = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDateTime();
+
+        // 3. Nếu giờ hiện tại vẫn chưa qua mốc bị khóa -> Đang trong thời gian phạt
+        if (currentLocalTime.isBefore(lockUntil)) {
+            long minutesLeft = Duration.between(currentLocalTime, lockUntil).toMinutes();
+            return minutesLeft <= 0 ? 1 : minutesLeft; // Tối thiểu tính là 1 phút
+        }
+
+        return 0; // Đã hết hạn khóa
     }
 }
